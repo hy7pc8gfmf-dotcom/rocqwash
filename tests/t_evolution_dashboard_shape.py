@@ -298,19 +298,51 @@ def main():
             fails.append("check6 bad --stdout should exit 2, got %d" % rc)
 
         # Check 7: live-repository posture - the real repo reads
-        # read-only at exit 0; the standing absence states of this
-        # vintage (round ledger, report directory) are data marks, the
-        # experience ledger is present; nothing in the repository is
-        # written (git status porcelain stays clean on the account
-        # paths).
+        # read-only at exit 0; the experience ledger reading is present;
+        # the rounds face is a live counter, so the summary is asserted
+        # only for consistency with the standing round ledger account
+        # (admissions rows present -> rounds=N form, otherwise the
+        # rounds=absent mark; both states are legal); nothing in the
+        # repository is written.
         rc, out = run([])
         if rc != 0:
             fails.append("check7 live read should exit 0 (rc=%d)\n%s"
                          % (rc, out[:200]))
-        if "experienceLedger=" not in out or "rounds=absent" not in out:
+        ledger = os.path.join(REPO, "docs", "round-ledger.jsonl")
+        rows_total = 0
+        rows_admitted = 0
+        if os.path.isfile(ledger):
+            with open(ledger, "r", encoding="utf-8") as handle:
+                for line in handle:
+                    text = line.strip()
+                    if not text or text.startswith("#"):
+                        continue
+                    rows_total += 1
+                    try:
+                        row = json.loads(text)
+                    except ValueError:
+                        continue
+                    adm = row.get("admissions")
+                    if isinstance(adm, list) and adm:
+                        rows_admitted += 1
+        summary = out.splitlines()[0] if out else out
+        if "experienceLedger=" not in summary:
             fails.append("check7 live summary should carry the ledger "
-                         "reading and the round-absent mark\n%s"
-                         % (out.splitlines()[0] if out else out))
+                         "reading\n%s" % (summary or out[:200]))
+        rounds_m = re.search(r"rounds=(\d+)", summary)
+        if rows_admitted:
+            if rounds_m is None:
+                fails.append("check7 round ledger has admissions rows so "
+                             "the live summary should read rounds=N\n%s"
+                             % (summary or out[:200]))
+            elif int(rounds_m.group(1)) != rows_total:
+                fails.append("check7 rounds=%s should equal the %d rows "
+                             "of the round ledger\n%s"
+                             % (rounds_m.group(1), rows_total, summary))
+        elif "rounds=absent" not in summary:
+            fails.append("check7 round ledger has no admissions rows so "
+                         "the live summary should read rounds=absent\n%s"
+                         % (summary or out[:200]))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

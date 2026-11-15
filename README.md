@@ -81,7 +81,7 @@ rocqwash/
 ├── seam/                 # seam_probe.py W13 四机制指纹探针 — W13 four-mechanism fingerprint probe
 ├── certify/              # freeze_manifest.py 两层冻结 + push_gate.py 推窗四判据/UNION v2 + frozen8.py 八件冻结名单 — two-tier freeze + push-window gate + UNION v2 + frozen-eight registry
 ├── watch/                # watch.py CI 监控/钉 IP 推送/ls-remote 确证 — CI monitoring / pin-IP push / ls-remote confirm
-├── tests/  workflows/    # 自测套件（64 例）/ CI 工作流占位 — test suite (64 cases) / CI placeholder
+├── tests/  workflows/    # 自测套件（70 例）/ CI 工作流占位 — test suite (70 cases) / CI placeholder
 └── README.md  LICENSE  .gitignore
 ```
 

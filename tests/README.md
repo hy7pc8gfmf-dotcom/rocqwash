@@ -9,10 +9,10 @@ bash tests/run_tests.sh          # 全绿 EXIT 0；任一红 EXIT 1；幂等可�
 套件自检（验证「任一红 EXIT 1」契约，注入一恒红例）：
 
 ```bash
-ROCQWASH_TESTS_FAIL_PROBE=1 bash tests/run_tests.sh   # 预期 64 过 / 1 红 / EXIT 1
+ROCQWASH_TESTS_FAIL_PROBE=1 bash tests/run_tests.sh   # 预期 70 过 / 1 红 / EXIT 1
 ```
 
-## 覆盖面（64 例）
+## 覆盖面（70 例）——现役数以 tests/run_tests.sh CASES 名册为准（加测后同步）
 
 | # | 用例 | 被测 | 判据 |
 |---|------|------|------|
