@@ -1,0 +1,18 @@
+== post-run git status --porcelain ==
+ M docs/scheduling-feedback.json
+== sha256 working vs committed ==
+--- docs/b-gate-audit.json
+3c70b52868b5c4db
+3c70b52868b5c4db
+cmp rc=0
+--- docs/scheduling-feedback.json
+e66ca0a1d1b862b6
+1ed190e168041c74
+cmp rc=1
+== produced blob hash (git hash-object) ==
+06998c8fbbcf3d88087d370fc1556bcb3fce8b08
+== committed face last-touch commit ==
+fa879e4 feat(evolution): two closing tickets - (1) calibration ledger wired read-side into scheduling: learning_feedback gains the optional calibration section (machine-vs-human agreement rate read from the calibration ledger, honest null when the ledger is absent or empty, admission semantics untouched per the layer law) and the dashboard renders it dual-form; (2) snapshot EOL normalization: pins become EOL-agnostic fingerprints (md5 of LF-normalized bytes, the same rule as .gitattributes text=auto eol=lf), both consistency and freshness layers normalize before hashing, snapshots rewritten to LF in-repo (removing the CRLF-via-API latent hazard - any future plain-git re-save can no longer shift the pin), upstream originals untouched. Sync tool/selftests/pin_repair vectors extended; migration idempotent with the mapping md untouched assertion.
+== determinism: rerun learning_feedback, cmp ==
+rerun rc=0
+rerun-vs-first cmp rc=0
