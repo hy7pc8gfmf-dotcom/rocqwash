@@ -67,6 +67,7 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
@@ -533,10 +534,11 @@ def rmtree(root):
 def selftest():
     """Temporary-fixture vectors; prints SELFTEST PASS, exits 0 on green."""
     fails = []
-    base = os.environ.get("TMP") or os.environ.get("TEMP") or ""
+    base = (os.environ.get("TMP") or os.environ.get("TEMP")
+            or os.environ.get("TMPDIR") or tempfile.gettempdir())
     if not base:
         sys.stderr.write("symbiosis_bus selftest: no scratch directory found "
-                         "(set TMP)\n")
+                         "(set TMP/TEMP/TMPDIR)\n")
         return 9
     root = os.path.join(base, "symbiosis_bus_selftest_%d" % os.getpid())
     os.makedirs(root, exist_ok=True)

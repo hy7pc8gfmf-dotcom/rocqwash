@@ -82,13 +82,16 @@ for ln in sorted(open(sys.argv[1]), key=lambda l: json.loads(l).get("seq", 0)):
 PY
 ```
 
-## 3. Real output samples (real runs of November 11, 2026 · not hand-written)
+## 3. Real output samples (real runs · not hand-written)
+
+> Measured: November 18, 2026 — real runs of the current tool at HEAD b98fe4e on this machine, tmp injection drill form.
+> The predecessor capture of November 11, 2026 (v37, commit 41e74b0) is archived in `backend-sentinel.md.zh.md`.
 
 **ci-red event line** (measured rc 0 with `--once --watch-repo org/repo --branch main --injector … --emit …
 --json … --sleep-scale 0`; tmp injection drill):
 
 ```json
-{"action": "fix-content", "branch": "main", "conclusion": "failure", "evidence": ["failing files 1/1: ids=[501]", "registered family: A-content-red (first by classification order)"], "family": "A-content-red", "kind": "ci-red", "note": "ts=off (--sleep-scale 0; deterministic output)|classification=rocqwash-ci-triage/1 (ci_triage subprocess --offline)", "repo": "org/repo", "run": 178, "run_number": 9, "schema": "rocqwash-sentinel-event/1", "seq": 1, "sha": "abc123def"}
+{"action": "fix-content", "branch": "main", "conclusion": "failure", "evidence": ["red jobs 1/1: ids=[501]", "rostered families: A-content-red (first match by classification precedence)"], "family": "A-content-red", "kind": "ci-red", "note": "ts=off (--sleep-scale 0; deterministic output)|classification=rocqwash-ci-triage/1 (ci_triage subprocess --offline)", "repo": "org/repo", "run": 178, "run_number": 9, "schema": "rocqwash-sentinel-event/1", "seq": 1, "sha": "abc123def"}
 ```
 
 **blocking + build-signal event lines** (measured rc 0 with `--once --watch-ledgers … --watch-buildlog …
@@ -96,32 +99,37 @@ PY
 
 ```json
 {"dependents": ["B"], "kind": "blocking", "ledger": "base.json", "n": 1, "note": "ts=off (--sleep-scale 0; deterministic output)|TOP chain root = first name in chain_graph rocqwash-chain-graph/1 top_order (self field judges chain-root washability; chain_graph.py:88 precedent)", "schema": "rocqwash-sentinel-event/1", "self": {"probed": true, "rc": 0, "verdict": "RC0", "washable": true}, "seq": 1, "top_root": "A"}
-{"hits": ["BUILD-FAIL: round 1", "Error: Unable to locate library | A"], "hits_total": 2, "kind": "build-signal", "log": "build.log", "note": "ts=off (--sleep-scale 0; deterministic output)|tokens BUILD-FAIL/EXIT=134/Error: (classification-spectrum A/C tokens; ci_triage.py:95-118 same source)", "offset_after": 56, "offset_before": 0, "schema": "rocqwash-sentinel-event/1", "seq": 2, "truncated": false}
+{"hits": ["BUILD-FAIL: round 1", "Error: Unable to locate library | A"], "hits_total": 2, "kind": "build-signal", "log": "/tmp/sentinel_drill/build.log", "note": "ts=off (--sleep-scale 0; deterministic output)|tokens BUILD-FAIL/EXIT=134/Error: (classification-spectrum A/C tokens; ci_triage.py:95-118 same source)", "offset_after": 64, "offset_before": 0, "schema": "rocqwash-sentinel-event/1", "seq": 2, "truncated": false}
 ```
 
-**Per-round report** (rocqwash-sentinel/1 · overwrite-written · excerpt of the same run):
+**Per-round report** (rocqwash-sentinel/1 · overwrite-written · excerpt of the same run, per-event `note` field omitted for width):
 
 ```json
 {
  "actions": [],
- "events": [ { "action": "fix-content", "family": "A-content-red",
-               "kind": "ci-red", "run": 178, "seq": 1,
-               "schema": "rocqwash-sentinel-event/1" } ],
+ "events": [ { "action": "fix-content", "branch": "main",
+               "conclusion": "failure",
+               "evidence": ["red jobs 1/1: ids=[501]",
+                            "rostered families: A-content-red (first match by classification precedence)"],
+               "family": "A-content-red", "kind": "ci-red", "run": 178,
+               "run_number": 9, "schema": "rocqwash-sentinel-event/1",
+               "seq": 1, "sha": "abc123def" } ],
+ "injector": "/tmp/sentinel_drill/injector.json",
  "mode": "once",
  "round": 1,
  "schema": "rocqwash-sentinel/1",
  "sleep_scale": 0.0,
  "sources": { "ci": [ { "branches": ["main"], "new_runs": 1,
                         "red_runs": 1, "repo": "org/repo", "runs_seen": 1 } ] },
- "state_file": ".sentinel-state.json",
  "ts_enabled": false
 }
 ```
 
-**Whole background-watcher block measured** (November 11, 2026 · tmp drill form: `--loop --interval 1 --max-rounds 2
---sleep-scale 0 --injector …`): the watcher self-stopped after 2 rounds · events.jsonl received 2 lines (seq 1, 2) ·
-`grep -c '"kind": "ci-red"'` → `1` (rc 0) · process count back to zero. **The production form does not carry `--injector`/
-`--sleep-scale`** (those two are the offline-drill pins: README-cw.md:88-92 discipline ③).
+**Whole background-watcher block measured** (November 18, 2026 · tmp drill form: `--loop --interval 1 --max-rounds 2
+--sleep-scale 0 --watch-repo org/repo --branch main --injector …`): the watcher self-stopped after 2 rounds ·
+events.jsonl received 1 line (seq 1 — the second round booked zero new runs through the seen layer) ·
+`grep -c '"kind": "ci-red"'` → `1` (rc 0) · process exit 0. **The production form does not carry `--injector`/
+`--sleep-scale`** (those two are the offline-drill pins: README-cw.md:183-190 discipline ③).
 
 ## 4. Exit-code branch table (watcher face · a failing result is data, not a tool failure)
 
@@ -130,7 +138,7 @@ PY
 | 0 | inspection round completed (CI failing/blockage states already booked as **events** · not a tool failure) | the background watcher ends the process on this code · the main flow reads events.jsonl and decides what follows |
 | 1 | — (the watcher has no level 1: failing states travel in the event stream · never as an exit code) | never occurs; if it appears, the `cw.sh` route is abnormal — recheck it as a 9 |
 | 2 | usage error (missing mode / both modes given / all three sources missing / `--branch` before `--watch-repo` / malformed repo / negative value / loop-only flags with once) | should be stopped before the background watcher starts — the §5 pseudocode places it behind a front `--once` precheck |
-| 9 | signal source unreachable (CI HTTP 4xx/5xx · netrc missing · token empty · runs/jobs malformed · injector missing/malformed/canned not covered · ledgers directory missing · state malformed · subprocess rc≠0) | fail-loud, stop at once (never keep running in a broken state · tools/cw_sentinel.py:727 hard-error note) · fix the source by hand and restart the watcher |
+| 9 | signal source unreachable (CI HTTP 4xx/5xx · netrc missing · token empty · runs/jobs malformed · injector missing/malformed/canned not covered · ledgers directory missing · state malformed · subprocess rc≠0) | fail-loud, stop at once (never keep running in a broken state · tools/cw_sentinel.py:236-238 honesty rules) · fix the source by hand and restart the watcher |
 
 ## 5. dynamic-workflow embed pseudocode
 
@@ -172,24 +180,26 @@ phase "consume-checkpoint" {
 
 ## 6. Honesty notes
 
-- All output samples in this file were produced by real runs of this repository's `tools/cw_sentinel.py` (v37 41e74b0)
-  in the tmp injection drill on November 11, 2026, not hand-written; the `"note": "ts=off…"` in the sample event lines is
-  the deterministic drill-form annotation of `--sleep-scale 0` (tools/cw_sentinel.py:301-306) — production
-  event lines carry a real `ts`. Line numbers throughout anchor to the 41e74b0 commit state (concurrent multi-agent
-  development · working-tree line numbers drift).
+- All output samples in this file were produced by real runs of this repository's `tools/cw_sentinel.py`
+  (HEAD b98fe4e) in the tmp injection drill on November 18, 2026, not hand-written; the `"note": "ts=off…"` in the
+  sample event lines is the deterministic drill-form annotation of `--sleep-scale 0` (tools/cw_sentinel.py:51,688) —
+  production event lines carry a real `ts`. The predecessor samples (v37 41e74b0, captured November 11, 2026)
+  showed the classifier's then-Chinese evidence wording; the current classifier emits the English wording shown
+  (tools/ci_triage.py:1004,1006); their verbatim record is the sibling `.zh.md` archive. Line numbers throughout
+  anchor to the HEAD b98fe4e commit state (concurrent multi-agent development · working-tree line numbers drift).
 - `org/repo`, run 178, the md5 values, and similar content in the samples are tmp fixture data, not signals from any
   real repository.
 - The consumer grep targets depend on the event lines' sort_keys byte order (rocqwash interface discipline ·
-  README-cw.md:82-86); if the upstream tool changes the key order, the grep form breaks while the python3 form is
+  README-cw.md:175-181); if the upstream tool changes the key order, the grep form breaks while the python3 form is
   unaffected — prefer re-structured parsing.
 - The normative home of the five joint disciplines of the three-tool interfaces is the `README-cw.md` "workflow
-  cooperation interface" section (README-cw.md:71-140); this block expands its ⑤ background-watcher form and is
-  verbatim-compatible with it.
+  cooperation interface" section (README-cw.md:161-199); this block expands its ⑤ background-watcher form
+  (README-cw.md:200-218) and is verbatim-compatible with it.
 
 (English brief) Workflow block ①: run the v37 real-time sentinel as a background
 bash task (`nohup bash cw.sh sentinel --loop … --emit events.jsonl &`), consume the
 JSONL event stream from the main session (grep or stdlib-python), branch on exit
 codes 0/2/9 (red is data, not tool failure — it travels in events, not exit codes).
 Default is report-only; `--on-red` is an explicit bypass action. `--state-file` is
-required for loop idempotency. See `README-cw.md` §"workflow cooperation interface" for the
+required for loop idempotency. See `README-cw.md` §"workflow cooperation interface" (README-cw.md:161-199) for the
 normative five-discipline contract.

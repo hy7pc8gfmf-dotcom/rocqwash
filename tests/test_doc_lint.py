@@ -20,12 +20,12 @@ Dependencies.  Python 3 standard library only (os, subprocess, sys); runs
   real-repository touch (the checker's --selftest synthesizes a tmp
   mini-repo fixture it writes and cleans itself).
 
-Evidence.  The checker's --selftest frozen vector group (V1 consistent repo zero
-  drift; V2 tool table missing hint; V3 count drift; V4 flag phantom reference;
-  V5 CLI three codes plus --help-cap 0 -> 2; V6 JSON idempotence byte-identical)
-  is self-documented in tools/doc_lint.py; this shell re-asserts the marker and
-  usage face and samples the exit-code convention (0=consistent, 1=drift,
-  2=usage error, 9=missing; a missing required input of the audited repo exits 9).
+Evidence.  The checker's --selftest frozen vector group (V1 consistent repo
+  zero drift; V2 missing hint; V3 count drift; V4 phantom reference; V5 CLI
+  codes plus --help-cap 0 -> 2; V6 JSON idempotence; V7 the derived help
+  cap, registration auto-follow, over-cap face kept) is self-documented in
+  tools/doc_lint.py; this shell re-asserts the marker and usage face and
+  samples the exit codes (0=consistent, 1=drift, 2=usage, 9=missing input).
 
 Exit-codes.  0 = all three checks pass; 1 = at least one check failing
   (the failing checks are listed loudly, never silent).

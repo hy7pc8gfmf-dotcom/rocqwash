@@ -1,6 +1,6 @@
 # tests/ — rocqwash self-test suite
 
-> Purpose.  The repository's self-test suite: 86 statically rostered cases (the
+> Purpose.  The repository's self-test suite: 87 statically rostered cases (the
 >   `CASES` roster in `tests/run_tests.sh`) covering every tool family with
 >   positive and negative judgments; the per-case tables below are the evidence
 >   surface for each roster entry, and the live count is always the roster.
@@ -19,8 +19,8 @@
 > Evidence.  Every case below cites the tool face it drives and the exact
 >   criteria it asserts.  `tools/doc_lint.py` check 2 pins the roster count;
 >   its two count-anchor shapes are kept verbatim as data faces (backticked,
->   so the normalization lint's masking applies): `覆盖面（86 例）` and
->   `预期 86 过` — both read 86 and must stay in step with the roster.
+>   so the normalization lint's masking applies): `覆盖面（87 例）` and
+>   `预期 87 过` — both read 87 and must stay in step with the roster.
 >
 > Exit-codes.  Suite level: 0 = all green (SKIP not counted red), 1 = any red;
 >   a case exits 111 = SKIP when the canonical environment is absent; the
@@ -35,10 +35,10 @@ bash tests/run_tests.sh          # all green EXIT 0; any red EXIT 1; idempotent 
 Suite self-check (verifies the "any red EXIT 1" contract; injects one always-red case):
 
 ```bash
-ROCQWASH_TESTS_FAIL_PROBE=1 bash tests/run_tests.sh   # expected: 86 passing / 1 failing / EXIT 1
+ROCQWASH_TESTS_FAIL_PROBE=1 bash tests/run_tests.sh   # expected: 87 passing / 1 failing / EXIT 1
 ```
 
-## Coverage (86 cases) — the live count is the CASES roster in tests/run_tests.sh (sync after adding a case)
+## Coverage (87 cases) — the live count is the CASES roster in tests/run_tests.sh (sync after adding a case)
 
 | # | Case | Under test | Criteria |
 |---|------|------|------|
@@ -307,3 +307,4 @@ ROCQWASH_TESTS_FAIL_PROBE=1 bash tests/run_tests.sh   # expected: 86 passing / 1
 | 84 | `t_auto_merge` | `tools/auto_merge.py` (the X5 auto-merge gate agent; the six-enum mergeability judger: merge-ok / hold-red / hold-conflict / already-landed / superseded-landed-elsewhere / escalate-unknown; the calibration set S-1..S-5 pinned (`techdocs/automerge-历史PR判读样本-20261116.md`); the safety rail = head support on the supply/* allowlist + the 3/day budget cap + the merge ledger per-row JSONL + the post-merge failing revert arc (content -> the `git revert -m 1` prescription; transient -> the rerun window; unrecognized -> escalate); zero network; facts collected by the caller; dry run by default; `--apply` only records the account) | `tests/test_auto_merge.py` five checks: --selftest rc=0 with the `AUTO-MERGE-SELFTEST PASS` frozen marker (24 vectors: the five calibration pins, the unrecognized-family escalation, the merged-anchor-beats-red and integration-beats-conflict ordering pins, the supply/* whitelist both ways, the daily budget cap, dry-run zero-write, the duplicate authorization/prescription refusals, the revert arc four families, byte-identical report, CLI codes) + --help face + exit-code spots (bogus=2 / no --facts=2 / absent/malformed facts=9) + the five fixtures `auto_merge_s1..s5.json` judged through the real CLI face to their pinned verdicts + rail dry-run zero-write and the foreign-branch refusal rc=1; tmp fixtures, zero network, zero repository writes |
 | 85 | `t_selfheal_guards` | `.github/scripts/selfheal_rocqwash.py` (the X6 agent; the three self-heal guardrail reinforcement point vectors: the heal_leg attempt cap (run_attempt==1, stateless, at most once) / the cancel-intent never-revive gate (:144-145; the cap precedes the intent gate, the order pinned) / the live re-check before the rerun POST (the run re-fetched before the POST: in_progress/cancelled/transport error all loud skip; only a still-completed run reaches exactly one rerun-failed-jobs POST) + the transient-only family allowlist + the reconcile cancel-intent account (cancelled=intent, never revived, zero POSTs)) | `tests/test_selfheal_guards.py` five vector groups, 20 checks: the attempt-cap skip + attempt echo + zero POST + the cap preceding the live GET; the cancel-intent skip + zero POST + the intent gate preceding the live GET + the cap-beats-intent order pin; the live re-check four-way split (in_progress/cancelled/transport-error all skip with zero POST; still completed = dispatched, exactly one GET + exactly one POST in order); the content-red family never healed, zero network touched; the reconcile account with two cancel rows, zero POST; the script module loaded by path via importlib with gh_api/time stubbed in-process (the stubs identify the runs/runs-list/jobs/rerun shapes by path); zero network, zero real sleep, zero repository writes |
 | 86 | `t_jargon_map_sync` | `tools/jargon_map_sync.py` (the P1 casting agent; the jargon map sync tool: the `docs/jargon-to-standard-mapping-v1.md` detection face -> the `seeds/jargon/jargon-map.json` application face, one-way deterministic sync; the single-form standard criteria = parenthetical stripping (fullwidth RE_FW_PAREN + the md work-track ASCII parenthetical convention) + the em-dash re-judged as rewrite_or_delete + slash and fullwidth-slash alternation rejects; the six guard-mark annotations rejected; existing entries upserted preserving id/exempts/cross_track_note; the count label always equals entries; plan defaults to zero writes) | `tests/test_jargon_map_sync.py` six checks: --selftest rc=0 with the SYNC-SELFTEST PASS frozen marker (the tool's own tmp-fixture vectors), --help rc=0, --bogus=2, a missing --map=9, the live plan face read-only IN-SYNC over the standing map, and a tmp end-to-end arc (plan pending rc=1 zero-write, apply writes once, second apply byte-identical); zero network, zero writes outside mkdtemp (the 20261117 normwave59 P1 hookup) |
+| 87 | `t_tool_selftests` | the tools/ selftest meta enumerator: every `tools/*.py` file (leading-'_' names excluded) must hold a declared `--selftest` face or a registered `# selftest-exempt: <basis>` marker line, so a tool self-proof absence stays visible on every suite run and on both CI faces | `tests/test_tool_selftests.py`: the universe derives from the tools/ directory at run time (never hard-coded); one subprocess per declared face (`python -B <tool> --selftest`, per-tool cap 120 seconds); rc=0 = PASS, rc=111 = SKIP carrying the tool's own loud reason, a missing face without a registered basis = FAIL, a red or timed-out face = FAIL with a bounded excerpt; exit 1 lists the failing tool names; zero network, zero writes outside the tools' own tmp fixtures |

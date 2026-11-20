@@ -1,62 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""test_registry_fix_orphan_add.py - ORPHAN-ADD apply-path tests for
-tools/registry_fix.py (tests/ · 20261114 gap-class agent)
+"""test_registry_fix_orphan_add.py — ORPHAN-ADD apply-path tests for tools/registry_fix.py (rocqwash tests/).
 
-Background: registry_audit --fix-plan emits ORPHAN-ADD prescriptions in two
-directions.
-  order-only    order book carries the module while the _CoqProject book
-                lacks it. The prescription template is placeholder-free
-                ("X.v" or "Sub/X.v") and _CoqProject rows carry no anchor,
-                so the prescription is mechanically solvable: append the
-                template row to the _CoqProject book. This is the apply
-                path under test, gated behind the opt-in flag --orphan-add.
-  project-only  _CoqProject carries the module while order lacks it. The
-                template embeds "#R<SEQ>-<MD5_8>" placeholders and the
-                sequence number is a registry-side decision (mechanical
-                anchor fabrication is forbidden by the tool contract), so
-                it stays on the skip list under any flag.
+Purpose.  Pin the ORPHAN-ADD apply path behind the opt-in flag --orphan-add: registry_audit --fix-plan
+  emits ORPHAN-ADD prescriptions in two directions.  order-only prescriptions are mechanically solvable
+  (placeholder-free template, "X.v" or "Sub/X.v"; _CoqProject rows carry no anchor) and are the apply path
+  under test; project-only prescriptions embed "#R<SEQ>-<MD5_8>" sequence placeholders (a registry-side
+  decision; mechanical anchor fabrication is forbidden by the tool contract) and stay on the skip list under
+  any flag.  A paired ".v.v" suffix-twin key would double-register the module and is skipped as
+  ORPHAN-ADD-SKIP-SUFFIX-TWIN for human adjudication.  Checks: 1 default-off parity (frozen legacy classes
+  untouched); 2 dry run under the flag (rc=0, zero write, the order-only prescription staged, project-only
+  stays skipped); 3 apply under the flag (rc=0, all assertions PASS including orphan resolution, exactly one
+  appended tail row, order book bytes identical to the flag-off run); 4 project-only stays non-mechanical;
+  5 suffix-twin guard (no row appended for the twin); 6 blast injection (rc=2, rollback restores both books
+  byte-for-byte); 7 stale-prescription guards (a coqproject row already hashing to the key ->
+  ORPHAN-ADD-SKIP-KEY-PRESENT; a key missing from the order book -> staging AssertBlast
+  ORPHAN-ADD-KEY-NOT-IN-ORDER, rc=2, zero write); 8 determinism (identical book bytes and per-item md5 accounts).
 
-A paired-project-only key whose basename equals the order-only key after
-stripping repeated ".v" suffixes is a suffix-typo signature (e.g. order
-"X.v" vs _CoqProject "X.v.v"): the module is already registered under a
-misspelled row, so appending a second spelling would double-register it.
-Such entries are skipped as ORPHAN-ADD-SKIP-SUFFIX-TWIN for human
-adjudication.
-
-Checks (all on mkdtemp fixtures; zero writes to the real repo; zero
-network; zero compile; subprocess calls use -B):
-  1  default-off parity: without --orphan-add the tool keeps its frozen
-     behavior (no ORPHAN-ADD items, both orphan keys on the skip list,
-     report counts unchanged) - pins the untouched legacy classes
-  2  --orphan-add dry run: rc=0, zero write, the order-only prescription
-     appears as a staged ORPHAN-ADD item, project-only stays skipped
-  3  --orphan-add --apply: rc=0, all assertions PASS (including orphan
-     resolution), exactly one appended row at the _CoqProject tail, order
-     book bytes identical to the flag-off apply run
-  4  project-only direction stays non-mechanical under the flag (skip
-     kind unchanged)
-  5  suffix-twin guard: a paired ".v.v" registration is skipped with
-     ORPHAN-ADD-SKIP-SUFFIX-TWIN and no row is appended for it
-  6  blast injection (ROCWASH_REGISTRY_FIX_INJECT_BLAST=post-write):
-     rc=2, rollback restores both books byte-for-byte, backup evidence
-     present
-  7  stale-prescription guards: a coqproject row already hashing to the
-     key (e.g. registered after the audit, or an extension-less row the
-     audit .v-suffix criterion cannot see) -> skip ORPHAN-ADD-SKIP-KEY-
-     PRESENT with no second spelling appended; a key missing from the
-     order book -> staging AssertBlast ORPHAN-ADD-KEY-NOT-IN-ORDER,
-     rc=2, zero write (work-dir not created)
-  8  determinism: two fresh fixtures under the flag produce identical
-     book bytes and identical per-item md5 accounts
-
-Usage:
-  python3 tests/test_registry_fix_orphan_add.py     # via tests/run_tests.sh
+Interface.  python3 tests/test_registry_fix_orphan_add.py     # via tests/run_tests.sh
   python3 -B tests/test_registry_fix_orphan_add.py  # manual (-B: no cache)
 
-Zero-touch rule: every check runs on self-built mkdtemp fixtures cleaned
-in a finally block. Exit codes: 0 = all checks pass; 1 = any check red
-(fail-loud listing, no silent swallow).
+Dependencies.  Python 3 standard library only; every check runs on self-built mkdtemp fixtures
+  cleaned in a finally block; zero writes to the real repository, zero network, zero compile;
+  subprocess calls use -B.
+
+Evidence.  Per-check subprocess reports (items / skip / assertions / md5 accounts) are parsed; the
+  byte-for-byte rollback comparison and the two-fixture determinism pair pin crash safety and
+  reproducibility.
+
+Exit-codes.  0 = all checks pass; 1 = any check failing (fail-loud listing, no silent swallow).
 """
 import io
 import json

@@ -1,60 +1,33 @@
 #!/bin/bash
-# wrapper/gate7_probe.sh — gate7 提取执行闸探针正典启动层（canonical gate7 probe launcher）
-# 2026-10-31 席 rqadapt · 适配任务：组件 gate7 探针链（仓外件
-#   ConstructiveWorld-Set/scripts/gates/gate7_extract_run.py · 在其仓只读禁改）
-#
-# 定位 Positioning:
-#   gate7 正本（提取执行闸·红线律 IV 4a/4b：Separate Extraction 驱动单发编译＋
-#   .ml/.mli 双面 Obj.magic 账＋名presence差·--gate 对 baseline 判红绿）在本机由各
-#   战役席（nw7/nw8 判例 _nw7_gate7_run.sh / _nw8_gate7_v5b.sh）各自手造启动层：
-#   ①source Live toolchain env.sh ②unset COQLIB ROCQLIB ③ulimit -s 65532
-#   ④guard 只包 python 进程（shim 内禁再套＝同注册表死锁判例）⑤seat 自造 coqc shim。
-#   本文件将其**正典化**为仓内唯一启动面：环境 canonical 化＋guard 接线＋coqc shim
-#   接线（wrapper/coqc_shim.sh）＋order 装配；**判据零复制**——红绿/魔数/擦除候选
-#   一切判词仍归 gate7 正本唯一出处，本层只是其新入口（防双源漂移）。
-#
-# 用法 Usage:
-#   bash wrapper/gate7_probe.sh --tree <world 目录(.v+.vo 已建)> 
-#        (--order <order 文件> | --module <名> [--module <名>...])
-#        [--workdir <目录>] [--timeout <秒>] [--json <出账>]
-#        [--coqc <shim>] [--gate-script <gate7.py>] [--dry-run]
-#        [-- <gate7 其余形参逐字透传，如 --gate --baseline B --baseline-out O>]
-#   例 Example:
-#     bash wrapper/gate7_probe.sh --tree "$SB/world" --module UpAblD1S6_UpReqRealFEP \
-#          --workdir "$SB/g7_work" --json "$SB/logs/gate7_probe.json" --timeout 600
-#     bash wrapper/gate7_probe.sh --tree <world> --order <order.txt> -- \
-#          --gate --baseline gate7_extract_baseline.json --json out.json
-#
-# 环境旋钮 Env knobs（缺省＝本机 Live 判例正典值）:
-#   GATE7_PROBE_SCRIPT  gate7 正本路径（缺省 ConstructiveWorld-Set 仓外正典路径）
-#   GATE7_PROBE_ROCQ    rocq 绝对路径（透传给 wrapper/coqc_shim.sh 同名旋钮）
-#   GATE7_PROBE_ENV     toolchain 环境源（缺省 Live/toolchain/env.sh；缺失＝响亮警告
-#                       后继续——shim 用绝对路径不依赖 PATH·不静默）
-#   GATE7_PROBE_REG     guard 登记表目录（缺省 /tmp/cw_reg_gate7_probe；席位惯例
-#                       自设如 /tmp/cw_reg_<seat>，双车道与其它席位互不排队）
-#   GATE7_PROBE_FRONT/-MID/-MAXWAIT  guard 档位（缺省 0/1/600＝战役正典形）
-#
-# 契约 Contract:
-#   1. guard 只包 python 进程（正典形 -Front 0 -Mid 1 -MaxWaitSec 600）；gate7 调
-#      shim 的编译子进程全在其进程树内＝一切编译仍整经温控；shim 内零 guard
-#      （死锁判例·见 coqc_shim.sh 头注）；双车道 -Reg 分道互不阻塞。
-#   2. python 一律 `python3 -B`——禁向只读正本仓（ConstructiveWorld-Set）写
-#      __pycache__（gate7 import 同目录 gate6_statement_census）。
-#   3. --module 形：order 文件由本层装配到 <workdir>/order_gate7_probe.txt
-#      （逐行一名·gate7 正本自容 .v 后缀剥离）；--order 形：文件原样直传不改动。
-#   4. 写盘面 ROOT 声明（CONTRIBUTING §3.5）：仅 <workdir>（缺省
-#       $PWD/gate7_probe_work）内的 order 文件与 gate7 工件＋用户指定的 --json/
-#       --baseline-out 路径；**不写两仓正本与各 seat 域任何路径**；重跑幂等
-#       （gate7 正本自清 workdir 旧 .ml/.mli 后重产）。
-#   5. 判据零复制：本层不产生任何红绿/魔数判词；gate7 正本 stdout/JSON 是唯一判据源。
-#   6. 退出码 1:1 透传：其余情形＝guard 退出码＝gate7 自身退出码
-#      （0 绿/报告-only；1 闸回归；2 gate7 用法-IO 错）。
-#
-# 退出码 Exit codes:
-#   0   = gate7 绿/报告-only（或 --dry-run 出账后）
-#   2   = 本层用法错（未知形参/缺 --tree/order·module 缺一/二者同给）
-#   9   = 文件缺失（gate7 正本/--tree/--order/--module 的 .v/python3/shim——fail-loud）
-#   其余 = guard 透传＝gate7 自身退出码（含 1 闸红）
+# wrapper/gate7_probe.sh — canonical gate7 extraction-run probe launcher
+# Purpose.  Canonicalizes the hand-built per-effort launch steps for the
+#   gate7 extraction-run gate into one in-repo entry face: toolchain
+#   environment, guard wiring, coqc-shim wiring and order assembly.
+#   Criterion-free by design: pass/fail verdicts, magic numbers and
+#   erase-candidate rules stay owned solely by the upstream gate7 script.
+# Interface.  Usage: bash wrapper/gate7_probe.sh --tree <world dir with
+#   built .v+.vo> (--order <file> | --module <name>...) [--workdir <dir>]
+#   [--timeout <sec>] [--json <out>] [--coqc <shim>]
+#   [--gate-script <gate7.py>] [--dry-run]
+#   [-- <gate7 native args passed through verbatim>]
+#   Env knobs: GATE7_PROBE_SCRIPT/-ROCQ/-ENV/-REG/-FRONT/-MID/-MAXWAIT
+#   (upstream gate7 path; rocq pass-through; toolchain env source: missing
+#   = loud warning then continue; guard registry dir; guard tiers 0/1/600).
+# Dependencies.  bash; python3 on PATH; wrapper/coqc_shim.sh; wrapper/guard.sh;
+#   the upstream gate7 script; Live/toolchain/env.sh (optional); no nested guard.
+# Contract.  Guard wraps only the python3 process; python runs as `python3 -B`
+#   (no __pycache__ into the read-only upstream repository); writes stay in
+#   the workdir plus user-given --json/--baseline-out paths; reruns are
+#   idempotent (gate7 clears stale .ml/.mli and regenerates).
+# Evidence.  tests/test_gate7_wrapper.py runs 13 subprocess judges over this
+#   face (syntax, help, usage errors, missing inputs, shim argv contract,
+#   zero-write --dry-run canonical form); --dry-run prints the assembled
+#   guard and gate7 command lines and exits 0.
+# Exit-codes.  0 = gate7 passing/report-only (or --dry-run output written);
+#   2 = usage error (unknown argument, --tree missing, --order/--module
+#   one missing or both given); 9 = missing file (gate7 script, --tree,
+#   --order/--module .v, python3, shim); otherwise the guard pass-through
+#   = the gate7 exit code (0 pass; 1 gate regression; 2 usage/IO error).
 set -u
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -95,7 +68,7 @@ done
 
 fail9() { echo "wrapper/gate7_probe.sh: $1" >&2; echo "  (fail-loud exit 9：文件缺失不模拟任何行为)" >&2; exit 9; }
 
-# --- 用法/文件面 fail-loud（先于任何 guard/编译行为） -----------------------
+# --- usage/file-face fail-loud checks (before any guard/compile behavior) ---
 [ -n "$TREE" ] || { echo "wrapper/gate7_probe.sh: 缺 --tree <world>" >&2; exit 2; }
 [ ${#MODULES[@]} -gt 0 ] || [ -n "$ORDER" ] || \
   { echo "wrapper/gate7_probe.sh: --order 与 --module 必给其一" >&2; exit 2; }
@@ -114,7 +87,7 @@ else
   done
 fi
 
-# --- 环境正典化（nw7/nw8 判例逐项） ----------------------------------------
+# --- environment canonicalization (item-by-item from the stored precedent launch scripts) ---
 if [ -f "$ENVSH" ]; then
   # shellcheck disable=SC1090
   . "$ENVSH"
@@ -124,7 +97,7 @@ fi
 unset COQLIB ROCQLIB
 ulimit -s 65532 2>/dev/null || true
 
-# -- workdir 装配 ------------------------------------------------------------
+# -- workdir assembly --------------------------------------------------------
 [ -n "$WORKDIR" ] || WORKDIR="$PWD/gate7_probe_work"
 mkdir -p "$WORKDIR" || fail9 "workdir 不可建: $WORKDIR"
 if [ -z "$ORDER" ]; then
@@ -133,7 +106,7 @@ if [ -z "$ORDER" ]; then
   for m in "${MODULES[@]}"; do printf '%s\n' "$m" >> "$ORDER"; done
 fi
 
-# -- gate7 形参装配（判据零复制·形参 1:1 对齐正本 argparse） ------------------
+# -- gate7 argument assembly (zero criterion copying; arguments 1:1 with the upstream argparse) ---
 CMD=(python3 -B "$GATE7_SCRIPT"
      --tree "$TREE"
      --order "$ORDER"
@@ -152,5 +125,5 @@ if [ "$DRYRUN" = "1" ]; then
   exit 0
 fi
 
-# -- guard 只包 python 进程（退出码 exec 透传·无改写） -----------------------
+# -- guard wraps only the python process (exit code passes through exec unchanged) ---
 exec bash "$GUARD" -Reg "$REG" -Front "$FRONT" -Mid "$MID" -MaxWaitSec "$MAXWAIT" -- "${CMD[@]}"

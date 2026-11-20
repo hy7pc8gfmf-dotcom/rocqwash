@@ -1,7 +1,7 @@
 """mcp_server.py - rocqwash MCP stdio server (rocqwash tools/).
 
 Purpose.  Expose the repository tool capability surface over the Model
-  Context Protocol (MCP) stdio transport: 25 registered capabilities,
+  Context Protocol (MCP) stdio transport: 31 registered capabilities,
   each spec transcribed from its docs/CAPABILITY-INDEX.md entry line.
   Default deny for network and heavy capabilities (`sentinel_status`,
   `net_probe`, `ci_triage`, `pushci_status`): a failed tool result
@@ -11,24 +11,25 @@ Purpose.  Expose the repository tool capability surface over the Model
   into the protocol stream; every call runs under ROCQWASH_MCP_TIMEOUT
   (default 300) and a timed-out child is reported as failed.
 
-Interface.  `python -I mcp_server.py`; ROCQWASH_HOME must point at the
-  repository root. Newline-delimited JSON-RPC 2.0 over stdin and
-  stdout: methods `initialize`, `tools/list`, `tools/call`;
-  notifications get no response; one compact JSON line per response
-  on stdout, diagnostics on stderr only. Contract: docs/mcp.md.
+Interface.  `python -I mcp_server.py [--selftest]`; the flag gate runs
+  before the service loop: --selftest exits with the frozen
+  interface-shape vectors (no stdin read, no service loop), --help
+  exits 0, an unknown flag exits 2, no flag serves; the service face
+  needs ROCQWASH_HOME at the repository root and answers one compact
+  JSON-RPC 2.0 line per request (contract: docs/mcp.md).
 
-Dependencies.  Python 3 standard library only (json, os, subprocess,
-  sys): no third-party package, no MCP SDK, no transport import
-  (zero-dependency law); registered CLIs resolve under ROCQWASH_HOME.
+Dependencies.  Python 3 standard library only (argparse, json, os,
+  subprocess, sys); registered CLIs resolve under ROCQWASH_HOME.
 
-Evidence.  Suite lane tests/t_mcp_face.py asserts the 25-name tools/list
-  face, default deny, the error codes and exit 0 on stdin end of file.
+Evidence.  tests/t_mcp_face.py asserts the 31-name roster and the wire
+  contract; --selftest self-proofs the frozen interface-shape vectors.
 
-Exit-codes.  Process exit 0 when stdin reaches end of file; JSON-RPC
-  error codes -32700, -32600, -32601, -32602, -32603 on the wire; a
-  tool result carries the child exit code with isError true on nonzero.
+Exit-codes.  0 green (selftest pass, --help, stdin end of file); 1
+  selftest red (red list on stderr); 2 usage error (unknown flag);
+  wire error codes per docs/mcp.md.
 """
 
+import argparse
 import json
 import os
 import subprocess
@@ -41,6 +42,10 @@ DEFAULT_TIMEOUT_S = 300
 ALLOW_NET_ENV = "ROCQWASH_MCP_ALLOW_NET"
 TIMEOUT_ENV = "ROCQWASH_MCP_TIMEOUT"
 HOME_ENV = "ROCQWASH_HOME"
+# Frozen selftest vector: the M1 roster (25 standing specs plus six
+# additions); a roster change re-freezes this value and EXPECTED_TOOLS
+# in tests/t_mcp_face.py in the same round.
+SELFTEST_ROSTER_COUNT = 31
 
 PARSE_ERROR = -32700
 INVALID_REQUEST = -32600
@@ -822,6 +827,199 @@ TOOL_SPECS = [
             "network face, no subprocess, no side effects."
         ),
     },
+    # ---- the MCP roster-expansion work stream 1 (the M1 ticket): six
+    # read/plan
+    # faces over the terminology seed, the sweep judgments, and the standing
+    # account reports. Each spec is transcribed from its
+    # docs/CAPABILITY-INDEX.md section 2 entry line (the gap_cluster entry
+    # lands with this increment), additive after the block above: the
+    # existing specs and schemas untouched. Layer law: zero apply face, zero
+    # ledger-append face, zero credential face, zero network gate; the two
+    # plan faces write only caller-named output files, and the two account
+    # faces declare their single fixed derived-report writes.
+    {
+        "name": "termbase",
+        "kind": "cli",
+        "cli": os.path.join("tools", "termbase.py"),
+        "net_gated": False,
+        "fixed_args": [],
+        "arg_map": (
+            ("lookup", "--lookup"),
+            ("schema_check", "--schema-check"),
+            ("selftest", "--selftest"),
+            ("db", "--db"),
+            ("json_out", "--json"),
+        ),
+        "schema": _object_schema(
+            {
+                "lookup": {"type": "string", "description": "term to look up against the current-term faces; CLI flag --lookup"},
+                "schema_check": {"type": "boolean", "description": "validate the database schema only; CLI flag --schema-check"},
+                "selftest": {"type": "boolean", "description": "run the selftest vectors; CLI flag --selftest"},
+                "db": {"type": "string", "description": "database path (default: the built-in seed); CLI flag --db"},
+                "json_out": {"type": "string", "description": "write the report to this path instead of stdout; CLI flag --json"},
+            }
+        ),
+        "description": (
+            "Read-only terminology lookup thin layer over the E3 seed "
+            "(tools/termbase.py --lookup; schema validation fails loud). "
+            "Zero network face; zero repository writes; the only output faces "
+            "are stdout and the caller-named --json report."
+        ),
+    },
+    {
+        "name": "verdict_diff",
+        "kind": "cli",
+        "cli": os.path.join("tools", "verdict_diff.py"),
+        "net_gated": False,
+        "fixed_args": [],
+        "arg_map": (
+            ("results_lane", "--results-lane"),
+            ("expected", "--expected"),
+            ("batches", "--batches"),
+            ("baseline", "--baseline"),
+            ("json_out", "--json"),
+            ("md_out", "--md"),
+        ),
+        "schema": _object_schema(
+            {
+                "results_lane": {"type": "string", "description": "glob of per-lane ledgers, e.g. DIR/results-lane*.tsv; CLI flag --results-lane"},
+                "expected": {"type": "string", "description": "expected universe JSON for the MISSING face (alternative to --batches); CLI flag --expected"},
+                "batches": {"type": "string", "description": "sweep batches plan JSON as the expected universe (alternative to --expected); CLI flag --batches"},
+                "baseline": {"type": "string", "description": "prior judgment-table report for the convergence diff; CLI flag --baseline"},
+                "json_out": {"type": "string", "description": "write the report JSON (schema rocqwash-verdict-diff/1) to this path; CLI flag --json"},
+                "md_out": {"type": "string", "description": "write the human-readable markdown table to this path; CLI flag --md"},
+            },
+            required=("results_lane",),
+        ),
+        "description": (
+            "Mechanical judge for vacuity probe sweep results: merges per-lane "
+            "ledgers into the judgment table plus a named exception list, with "
+            "an optional baseline convergence diff (tools/verdict_diff.py "
+            "--results-lane). Zero network face; outputs go to stdout and the "
+            "caller-named --json/--md paths. The tool's pre-argparse --selftest "
+            "route is not exposed (the registered chain_graph precedent); "
+            "callers needing it use the CLI directly."
+        ),
+    },
+    {
+        "name": "learning_feedback",
+        "kind": "cli",
+        "cli": os.path.join("tools", "learning_feedback.py"),
+        "net_gated": False,
+        "fixed_args": [],
+        "arg_map": (
+            ("selftest", "--selftest"),
+        ),
+        "schema": _object_schema(
+            {
+                "selftest": {"type": "boolean", "description": "run the seven selftest vectors on temporary fixtures (zero repository paths); CLI flag --selftest"},
+            }
+        ),
+        "description": (
+            "Scheduling feedback face over the three standing ledgers: the "
+            "round ledger, the round state, and the experience ledger are read "
+            "strictly read-only and cast into the scheduling feedback face "
+            "(schema rocqwash.scheduling-feedback/1). The default run writes "
+            "exactly one derived report, docs/scheduling-feedback.json (a "
+            "deterministic regeneration; the three inputs are never written); "
+            "missing or corrupt inputs are named in the errors list and exit 1 "
+            "fail-loud (tools/learning_feedback.py). --selftest runs the seven "
+            "vectors on temporary fixtures. Zero network face."
+        ),
+    },
+    {
+        "name": "b_gate_audit",
+        "kind": "cli",
+        "cli": os.path.join("tools", "b_gate_audit.py"),
+        "net_gated": False,
+        "fixed_args": [],
+        "arg_map": (
+            ("selftest", "--selftest"),
+        ),
+        "schema": _object_schema(
+            {
+                "selftest": {"type": "boolean", "description": "run four offline vectors on temporary files; CLI flag --selftest"},
+            }
+        ),
+        "description": (
+            "Measure the B-level generalization gate from round records: reads "
+            "the round ledger, round state and taxonomy files strictly "
+            "read-only and writes the derived audit report "
+            "docs/b-gate-audit.json (schema rocqwash.b-gate-audit/1, sorted "
+            "keys, deterministic) plus a stdout summary; a not-ready verdict "
+            "is data and exits 0, read errors are named in the errors field "
+            "and exit 1 fail-loud (tools/b_gate_audit.py). --selftest runs the "
+            "vectors offline on temporary files. Zero network face."
+        ),
+    },
+    {
+        "name": "evolution_dashboard",
+        "kind": "cli",
+        "cli": os.path.join("tools", "evolution_dashboard.py"),
+        "net_gated": False,
+        "fixed_args": [],
+        "arg_map": (
+            ("repo", "--repo"),
+            ("exp_ledger", "--exp-ledger"),
+            ("rounds", "--rounds"),
+            ("reports", "--reports"),
+            ("json_out", "--json-out"),
+            ("md_out", "--md-out"),
+            ("stdout", "--stdout"),
+            ("selftest", "--selftest"),
+        ),
+        "schema": _object_schema(
+            {
+                "repo": {"type": "string", "description": "repository root (default: the parent of tools/); CLI flag --repo"},
+                "exp_ledger": {"type": "string", "description": "experience ledger path (default docs/exp-ledger.jsonl under the repo root; an explicit path must exist); CLI flag --exp-ledger"},
+                "rounds": {"type": "string", "description": "round ledger path (default docs/round-ledger.jsonl under the repo root; an explicit path must exist); CLI flag --rounds"},
+                "reports": {"type": "array", "description": "vacgen report file or directory, repeatable (default docs/vacgen-reports under the repo root); CLI flag --reports"},
+                "json_out": {"type": "string", "description": "write the JSON face to this file; CLI flag --json-out"},
+                "md_out": {"type": "string", "description": "write the markdown face to this file; CLI flag --md-out"},
+                "stdout": {"type": "string", "enum": ["markdown", "json"], "description": "full face printed to stdout (default markdown); CLI flag --stdout"},
+                "selftest": {"type": "boolean", "description": "frozen fixture vectors; zero writes outside one temporary directory; CLI flag --selftest"},
+            }
+        ),
+        "description": (
+            "Self-evolution dashboard over the experience ledger, the round "
+            "ledger, and vacgen v2 TODO-SEAT report faces "
+            "(tools/evolution_dashboard.py). The plan face prints to stdout by "
+            "default and writes only the caller-named --json-out/--md-out "
+            "files; absent accounts are data (reported as present=false), not "
+            "faults. Zero network face."
+        ),
+    },
+    {
+        "name": "gap_cluster",
+        "kind": "cli",
+        "cli": os.path.join("tools", "gap_cluster.py"),
+        "net_gated": False,
+        "fixed_args": [],
+        "arg_map": (
+            ("ledger", "--ledger"),
+            ("reports", "--reports"),
+            ("out", "--out"),
+            ("json", "--json"),
+        ),
+        "schema": _object_schema(
+            {
+                "ledger": {"type": "array", "description": "experience ledger JSONL (schema rocqwash-exp/1), repeatable; CLI flag --ledger"},
+                "reports": {"type": "array", "description": "vacgen report JSON file or a directory of *.json files, repeatable; CLI flag --reports"},
+                "out": {"type": "string", "description": "write the gap ledger JSON (schema rocqwash-gap-ledger/1) to this caller-named file; CLI flag --out"},
+                "json": {"type": "boolean", "description": "print the gap ledger JSON to stdout; CLI flag --json"},
+            }
+        ),
+        "description": (
+            "Aggregate TODO-SEAT and gap entries from the experience ledger "
+            "and the vacgen report faces into a family-shape-keyed gap ledger "
+            "(tools/gap_cluster.py). Aggregation is a pure function of the "
+            "input bytes: fixed ordering rules, no wall clock, basenames only, "
+            "so equal inputs give byte-identical output; the only write is the "
+            "explicit caller-named --out gap ledger; --json prints to stdout; "
+            "zero gaps is data (empty cluster list, exit 0); missing or "
+            "corrupt input exits 9 fail-loud. Zero network face."
+        ),
+    },
 ]
 
 TOOLS_BY_NAME = {spec["name"]: spec for spec in TOOL_SPECS}
@@ -1082,7 +1280,109 @@ def _dispatch(message):
     return _error(msg_id, METHOD_NOT_FOUND, "Method not found: {0}".format(method))
 
 
-def main():
+def _selftest():
+    """Run the frozen interface-shape vectors; return 0 green or 1 red.
+
+    Zero network face, zero stdin read, zero writes: the vectors inspect
+    module state only (the spec table, the name map and the schema
+    validation behavior of _validate_arguments).  The roster count is a
+    frozen vector (the M1 roster: 25 standing specs plus six additions),
+    the same freeze discipline as EXPECTED_TOOLS in tests/t_mcp_face.py;
+    a roster change re-freezes both.
+    """
+    failures = []
+
+    def check(name, cond, detail=""):
+        if not cond:
+            failures.append("{0}: {1}".format(name, detail or "assertion red"))
+
+    # V1 roster count: the spec table matches the frozen roster size.
+    check(
+        "V1 roster count",
+        len(TOOL_SPECS) == SELFTEST_ROSTER_COUNT,
+        "TOOL_SPECS holds {0} specs, the frozen vector expects {1}".format(
+            len(TOOL_SPECS), SELFTEST_ROSTER_COUNT
+        ),
+    )
+
+    # V2 name map: TOOLS_BY_NAME is the complete identity mapping of the
+    # spec table, with no duplicate or empty name.
+    names = [spec.get("name") for spec in TOOL_SPECS]
+    check(
+        "V2 spec names are non-empty strings",
+        all(isinstance(name, str) and name for name in names),
+        "a spec name is missing, empty, or not a string",
+    )
+    check(
+        "V2 spec names unique",
+        len(set(names)) == len(names),
+        "a duplicate spec name is present",
+    )
+    check(
+        "V2 name map complete",
+        len(TOOLS_BY_NAME) == len(TOOL_SPECS)
+        and set(TOOLS_BY_NAME) == set(names)
+        and all(TOOLS_BY_NAME[name] is spec for name, spec in zip(names, TOOL_SPECS)),
+        "TOOLS_BY_NAME is not the identity mapping of TOOL_SPECS",
+    )
+
+    # V3 schema validation shape: every spec carries a closed object
+    # schema, and _validate_arguments enforces it (empty arguments are
+    # accepted exactly when the required list is empty; an unknown
+    # argument is refused).
+    for spec in TOOL_SPECS:
+        name = spec["name"]
+        schema = spec.get("schema")
+        shape_ok = (
+            isinstance(schema, dict)
+            and schema.get("type") == "object"
+            and isinstance(schema.get("properties"), dict)
+            and isinstance(schema.get("required"), list)
+            and set(schema["required"]) <= set(schema["properties"])
+            and schema.get("additionalProperties") is False
+        )
+        check(
+            "V3 schema shape {0}".format(name),
+            shape_ok,
+            "schema is not a closed object schema",
+        )
+        if not shape_ok:
+            continue
+        try:
+            _validate_arguments(spec, {})
+        except InvalidParams:
+            empty_refused = True
+        else:
+            empty_refused = False
+        check(
+            "V3 empty arguments {0}".format(name),
+            empty_refused == bool(schema["required"]),
+            "empty-argument verdict does not match the required list",
+        )
+        try:
+            _validate_arguments(spec, {"no_such_argument": "x"})
+        except InvalidParams:
+            check("V3 unknown argument {0}".format(name), True)
+        else:
+            check(
+                "V3 unknown argument {0}".format(name),
+                False,
+                "an unknown argument was accepted",
+            )
+
+    if failures:
+        for line in failures:
+            sys.stderr.write("MCP-SERVER-SELFTEST FAIL {0}\n".format(line))
+        return 1
+    sys.stdout.write(
+        "MCP-SERVER-SELFTEST PASS (roster {0} specs, name map complete, "
+        "schema validation green)\n".format(len(TOOL_SPECS))
+    )
+    return 0
+
+
+def _serve():
+    """Serve the MCP stdio loop until stdin reaches end of file."""
     _log(
         "rocqwash MCP stdio server ready: methods initialize/tools/list/tools/call; "
         "allow-net={0}".format(os.environ.get(ALLOW_NET_ENV) == "1")
@@ -1110,6 +1410,26 @@ def main():
         if response is not None:
             _emit(response)
     return 0
+
+
+def main(argv=None):
+    """Parse the CLI flag gate, then route to the selected face; the
+    service loop is the one no-flag face."""
+    parser = argparse.ArgumentParser(
+        prog="mcp_server.py",
+        description="rocqwash MCP stdio server: newline-delimited JSON-RPC 2.0 "
+        "over stdin and stdout (docs/mcp.md).",
+    )
+    parser.add_argument(
+        "--selftest",
+        action="store_true",
+        help="run the frozen interface-shape vectors and exit; the service "
+        "loop, stdin and the network are not touched",
+    )
+    args = parser.parse_args(argv)
+    if args.selftest:
+        return _selftest()
+    return _serve()
 
 
 if __name__ == "__main__":

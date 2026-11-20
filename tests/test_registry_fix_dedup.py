@@ -1,37 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""test_registry_fix_dedup.py — DEDUP-family unit tests for tools/registry_fix.py
-(tests/ · RQW09 duplicates-family executor agent · 20261114)
+"""test_registry_fix_dedup.py — DEDUP-family unit tests for tools/registry_fix.py (rocqwash tests/).
 
-The DUP-family apply path already exists in tools/registry_fix.py
-(stage_dedup + --apply + assertion A-fix-1 + injectable blast hook); this
-file does not reinvent it. It pins the DEDUP contract from the prescription
-producer's semantics (tools/registry_audit.py --fix-plan, schema
-rocqwash-registry-audit/1) so the family behavior is guarded by the suite:
-
-  1. fix_plan contract: keep_line = min line number (keep-first-in-order,
-     NOT prefer-canonical-anchor), drop_lines = rest ascending.
+Purpose.  Pin the DEDUP contract of tools/registry_fix.py (stage_dedup + --apply +
+  assertion A-fix-1 + injectable blast hook) from the prescription producer's semantics
+  (tools/registry_audit.py --fix-plan, schema rocqwash-registry-audit/1), guarding the
+  family behavior in the suite; the apply path already exists and is not reinvented.  Checks:
+  1. fix_plan contract: keep_line = min line number (keep-first-in-order, NOT
+     prefer-canonical-anchor), drop_lines = rest ascending.
   2. Dry run: rc=0, mode DRY-RUN, writes is None, book bytes unchanged.
-  3. Apply on a tmp copy: keep-first row survives verbatim (dedup is
-     content-preserving; anchor normalization is REANCHOR's job, not
-     DEDUP's), exactly the drop lines are removed, per-item md5 accounts
-     match the on-disk bytes, post re-audit reports duplicates=0.
-  4. Blast hook (ROCWASH_REGISTRY_FIX_INJECT_BLAST=post-write): rc=2,
-     both books restored byte-identical, rollback evidence in the report.
-  5. Stale-plan blast (plan/book drift): rc=2 DEDUP-KEEP-KEY-MISMATCH,
-     zero write, work dir not created.
-  6. CLI contract spot checks: help=0 / bogus=2 / no-input=2 /
-     missing-audit-json=9 / bad-schema=2 / no-fix-plan=2 / same-param
-     break=2 / missing-anchor-src-dir=9.
+  3. Apply on a tmp copy: keep-first row survives verbatim (anchor normalization is
+     REANCHOR's job, not DEDUP's); exactly the drop lines are removed; per-item md5
+     accounts match the on-disk bytes; post re-audit reports duplicates=0.
+  4. Blast hook (ROCWASH_REGISTRY_FIX_INJECT_BLAST=post-write): rc=2, both books
+     restored byte-identical, rollback evidence in the report.
+  5. Stale-plan blast (plan/book drift): rc=2 DEDUP-KEEP-KEY-MISMATCH, zero write, work dir not created.
+  6. CLI contract spot checks: help=0 / bogus=2 / no-input=2 / missing-audit-json=9 /
+     bad-schema=2 / no-fix-plan=2 / same-param break=2 / missing-anchor-src-dir=9.
 
-Fixtures are synthetic tmp books only; the real Main/Set registries are
-never touched. Zero network, zero compile. python -B keeps __pycache__ off.
+Interface.  python3 tests/test_registry_fix_dedup.py    # via run_tests.sh
+  python -B tests/test_registry_fix_dedup.py  # manual (-B: no __pycache__)
 
-Usage:
-  python3 tests/test_registry_fix_dedup.py    # via run_tests.sh
-  python -B tests/test_registry_fix_dedup.py  # manual
+Dependencies.  Python 3 standard library only; fixtures are synthetic tmp books only
+  (the real Main/Set registries are never touched); zero network, zero compile; python -B keeps __pycache__ off.
 
-Exit codes: 0 = all checks pass; 1 = any check red (fail loud).
+Evidence.  Each check prints one "[n/6] ... OK" line; the keep-first direction is
+  pinned from the producer side, per-item md5 accounts are compared against the
+  on-disk bytes, and an independent re-audit after apply must report duplicates=0.
+
+Exit-codes.  0 = all checks pass; 1 = any check failing (fail loud).
 """
 import hashlib
 import io

@@ -1,20 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""test_scan_station.py — wrapper/scan_station.py 自测（tests/·Mac 适配席 rqadapt·20261031）
+"""test_scan_station.py — selftest for wrapper/scan_station.py (rocqwash tests/).
 
-九判 subprocess 实跑（每例正/负判优先）：
-  1 裸调指认卡        rc=0·卡含正本绝对路径与 md5·pin_match=True
-  2 附断言正判        --expect-md5 <实md5> --identify → rc=0
-  3 附断言负判        --expect-md5 <伪md5> --identify → rc=2（不出 PASS）
-  4 嵌记断言          --check-pin --identify → rc=0（正本未漂·嵌记吻合）
-  5 透传正判          --selftest → rc=0 且 stdout 含 PASS（正本 E364 冻结向量组经站可达）
-  6 透传 rc 透传律    --file /nonexistent → rc=9（正本口径原样可达）
-  7 正本缺失          --root <空根> --identify → rc=9
-  8 站自检            --station-selftest → rc=0 且 PASS
-  9 透传正判(文件面)  --file tests/fixtures/names_sample.v → rc=0 且 stdout 含 "RED stations:"
+Purpose.  Nine subprocess checks against the scan-station wrapper, expected
+  outcome pinned per check:
+  1 bare call: rc=0, the identification card carries the canonical file's absolute path and md5, pin_match=True
+  2 assertion positive: --expect-md5 <real md5> --identify -> rc=0
+  3 assertion negative: --expect-md5 <fake md5> --identify -> rc=2 (no PASS)
+  4 pin assertion: --check-pin --identify -> rc=0 (canonical file undrifted, pin matches)
+  5 pass-through positive: --selftest -> rc=0 and stdout carries PASS (the canonical file's frozen vector group is reachable through the station)
+  6 pass-through rc rule: --file /nonexistent -> rc=9 (the canonical tool's exit-code convention relayed unchanged)
+  7 canonical file missing: --root <empty root> --identify -> rc=9
+  8 station self-check: --station-selftest -> rc=0 and PASS
+  9 pass-through positive (file face): --file tests/fixtures/names_sample.v -> rc=0 and stdout carries "RED stations:"
 
-幂等：零写盘（无 --json/--hits-csv/--baseline 调用·不触仓不触沙箱）。
-退出码：0=九判全过；1=任一红。
+Interface.  python3 tests/test_scan_station.py    # suite lane (run_tests.sh)
+  python3 -B tests/test_scan_station.py  # manual (-B keeps __pycache__ off)
+
+Dependencies.  Python 3 standard library only (hashlib, os, subprocess, sys);
+  runs wrapper/scan_station.py as a subprocess; idempotent, zero disk writes
+  (no --json/--hits-csv/--baseline calls; no repository or sandbox touch);
+  the fixture tests/fixtures/names_sample.v is read-only.
+
+Evidence.  Every check prints one judge line with PASS/FAIL plus the measured
+  rc/stdout/stderr detail; the wrapper's --selftest and --station-selftest
+  frozen vector groups are exercised live through the station.
+
+Exit-codes.  0 = all nine checks pass; 1 = at least one check failing.
 """
 import os
 import subprocess

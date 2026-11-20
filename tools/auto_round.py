@@ -22,7 +22,7 @@ Dependencies.  Python 3 standard library only; the `git` executable on
 Evidence.  --selftest runs fixture vectors on throwaway git repositories:
   commit marking, ledger row shape, both admission gears, soft stop,
   oscillation alert, rollback archive-then-revert, salvage round trip,
-  refusal branches, query faces, zero-network import surface.
+  refusal branches, query faces, zero network (audit-hook observed).
 
 Exit-codes.  0 = the face completed or answered (a nothing-to-do skip is
   data); 1 = a gate refused (pending class, soft stop, verify gate red,
@@ -136,6 +136,11 @@ AUTONOMY_NAME = "autonomy.json"
 ROUND_REF_ROOT = "refs/rocqwash/rounds"
 DRIFT_REF_ROOT = "refs/rocqwash/drift"
 SELFTEST_MARK = "AUTO-ROUND-SELFTEST PASS"
+# Audit events that constitute a network attempt (V18).  socket.connect
+# covers an outbound connection; urllib.Request covers a URL open driven
+# through the standard library opener.  A module loaded into sys.modules
+# is not network behavior, so the vector records attempts, not imports.
+NETWORK_ATTEMPT_EVENTS = ("socket.connect", "urllib.Request")
 GEARS = ("auto", "gated")
 MODES = ("auto", "gated", "salvage", "rollback")
 
@@ -1424,6 +1429,15 @@ def selftest():
     """Fixture vectors; prints the PASS mark and exits 0 on green."""
     fails = []
     skips = []
+    # V18 instrument: an audit hook records network-attempt events for the
+    # whole selftest run.  A module sitting in sys.modules is not network
+    # behavior, so the criterion observes attempts instead.
+    net_events = []
+    sys.addaudithook(
+        lambda event, args: net_events.append(event)
+        if event in NETWORK_ATTEMPT_EVENTS
+        else None
+    )
     tmp = tempfile.mkdtemp(prefix="auto_round_selftest_")
 
     def check(name, cond, detail=""):
@@ -1527,12 +1541,12 @@ def selftest():
         else:
             selftest_repo_vectors(tmp, check)
 
-        # V18 zero network: no network module loaded or imported anywhere.
-        # the scan tokens are assembled at run time so this vector never
-        # trips over its own source literals
-        loaded = [m for m in ("socket", "urllib", "ftplib", "smtplib",
-                              "http") if m in sys.modules]
-        check("V18 no net modules", not loaded, str(loaded))
+        # V18 zero network: observed attempts, not module presence.  The
+        # audit hook installed at selftest start recorded every
+        # socket.connect and urllib.Request event; any recorded event is
+        # a red.  The source scan tokens are assembled at run time so
+        # this vector never trips over its own source literals.
+        check("V18 no network attempt", not net_events, str(net_events))
         with open(__file__, "r", encoding="utf-8") as handle:
             source = handle.read()
         for mod in ("socket", "urllib", "ftplib", "smtplib", "http.client"):

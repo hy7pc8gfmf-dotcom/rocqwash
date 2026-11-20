@@ -73,7 +73,7 @@ V_FILE_RE = re.compile(r"[A-Za-z0-9_./][A-Za-z0-9_./-]*\.v\b")  # word boundary;
 # shell metacharacters; a value containing any of these is refused at command
 # construction. The set covers both executor shells the tool can land on:
 # the POSIX sh specials (first half) and the cmd.exe-active specials `%`
-# (variable expansion) and `^` (escape) — subprocess shell=True runs cmd.exe
+# (variable expansion) and `^` (escape): subprocess shell=True runs cmd.exe
 # on Windows, so a value carrying % or ^ would execute differently per
 # platform (same input, different command), which the determinism contract
 # forbids (T0-5 platform-defect family).

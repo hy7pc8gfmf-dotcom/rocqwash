@@ -5,12 +5,16 @@
 
 Purpose.  Spawn the expanded MCP stdio server as a child process and drive
   one newline-delimited JSON-RPC session line by line, asserting the
-  25-capability face: the RQW08 legacy 8, the RQW13 batch-1 zero-network 13,
+  31-capability face: the RQW08 legacy 8, the RQW13 batch-1 zero-network 13,
   the engine-body ticket's three capabilities (graduated from
-  docs/drafts/mcp-tool-specs-engine-body.md by the integration agent), and
-  the symbiosis ticket's one read-only capability (symbiosis_status, a
+  docs/drafts/mcp-tool-specs-engine-body.md by the integration agent), the
+  symbiosis ticket's one read-only capability (symbiosis_status, a
   capability_index-style file face over docs/symbiosis_sop.md, registered
-  from the symbiosis ticket's spec section 1.1), each new capability
+  from the symbiosis ticket's spec section 1.1), and the MCP
+  roster-expansion work stream 1's six capabilities (the M1 ticket, five
+  INDEX entries already standing plus the gap_cluster entry that lands with
+  the
+  same increment), each new capability
   transcribed from its docs/CAPABILITY-INDEX.md section 2 entry line (the
   symbiosis INDEX entry line lands with the integration increment).
 
@@ -22,7 +26,7 @@ Interface.  `python3 tests/t_mcp_face.py` (rostered in tests/run_tests.sh
 Probes (one session, in order; zero network):
   1  initialize -> protocolVersion echo plus serverInfo name rocqwash-mcp
   2  notifications/initialized -> no response line
-  3  tools/list -> exactly the 25 expected names in registration order,
+  3  tools/list -> exactly the 31 expected names in registration order,
      each with a description and a closed-object inputSchema
   4  live-call spot checks (three of the new batch, all zero network):
      4a http_backoff (no arguments; fixed --selftest) -> exit code: 0 with
@@ -75,6 +79,13 @@ EXPECTED_TOOLS = [
     # a capability_index-style file face over docs/symbiosis_sop.md; its
     # INDEX entry line lands with the integration increment)
     "symbiosis_status",
+    # the MCP roster-expansion work stream 1 (the M1 ticket's six read/plan
+    # faces:
+    # termbase/verdict_diff/learning_feedback/b_gate_audit read,
+    # evolution_dashboard/gap_cluster plan; each spec transcribed from its
+    # docs/CAPABILITY-INDEX.md section 2 entry line)
+    "termbase", "verdict_diff", "learning_feedback", "b_gate_audit",
+    "evolution_dashboard", "gap_cluster",
 ]
 
 

@@ -1,0 +1,966 @@
+{
+ "_abl1_4b_compile.py": {
+  "positionals": [],
+  "value_flags": [],
+  "bool_flags": []
+ },
+ "_gen_fin_mac.py": {
+  "positionals": [],
+  "value_flags": [
+   "--source",
+   "--module",
+   "--world",
+   "--world-name",
+   "--outdir",
+   "--requires"
+  ],
+  "bool_flags": []
+ },
+ "_http_backoff.py": {
+  "positionals": [],
+  "value_flags": [],
+  "bool_flags": []
+ },
+ "ai_flavor.py": {
+  "positionals": [],
+  "value_flags": [
+   "--file",
+   "--tree",
+   "--json",
+   "--word-map"
+  ],
+  "bool_flags": [
+   "--selftest"
+  ]
+ },
+ "ai_flavor_apply.py": {
+  "positionals": [],
+  "value_flags": [
+   "--file",
+   "--json",
+   "--emit-handoff",
+   "--apply-handoff",
+   "--state",
+   "--provider"
+  ],
+  "bool_flags": [
+   "--selftest"
+  ]
+ },
+ "auto_merge.py": {
+  "positionals": [],
+  "value_flags": [
+   "--facts",
+   "--head-branch",
+   "--allow-prefix",
+   "--daily-cap",
+   "--ledger",
+   "--merge-sha",
+   "--post-merge",
+   "--json"
+  ],
+  "bool_flags": [
+   "--apply",
+   "--selftest"
+  ]
+ },
+ "auto_round.py": {
+  "positionals": [],
+  "value_flags": [
+   "command",
+   "--repo-root",
+   "--autonomy",
+   "--state",
+   "--ledger",
+   "--classes",
+   "--files",
+   "--hits",
+   "--class-confidence",
+   "--message",
+   "--class",
+   "--confidence",
+   "--note",
+   "--set",
+   "--to",
+   "--from",
+   "--emit",
+   "refined",
+   "--limit",
+   "--round"
+  ],
+  "bool_flags": [
+   "--selftest",
+   "--continue",
+   "--dry-run",
+   "--promote"
+  ]
+ },
+ "axiom_guard.py": {
+  "positionals": [],
+  "value_flags": [
+   "--repo",
+   "--out",
+   "--rocq",
+   "--coqchk",
+   "--allow-axiom",
+   "--timeout"
+  ],
+  "bool_flags": [
+   "--keep",
+   "--selftest"
+  ]
+ },
+ "b_gate_audit.py": {
+  "positionals": [],
+  "value_flags": [],
+  "bool_flags": [
+   "--selftest"
+  ]
+ },
+ "baseline_diff.py": {
+  "positionals": [],
+  "value_flags": [
+   "old",
+   "new",
+   "--json",
+   "--md"
+  ],
+  "bool_flags": []
+ },
+ "bus_feeder.py": {
+  "positionals": [],
+  "value_flags": [
+   "command",
+   "--swap",
+   "--ledger"
+  ],
+  "bool_flags": [
+   "--selftest",
+   "--dry-run"
+  ]
+ },
+ "calibration_ledger.py": {
+  "positionals": [],
+  "value_flags": [
+   "--report",
+   "--rc-file",
+   "--leg-map",
+   "--default-leg",
+   "--ledger",
+   "--batch",
+   "--ts",
+   "--signal-threshold",
+   "--signals-out"
+  ],
+  "bool_flags": [
+   "--strict",
+   "--dry-run",
+   "--selftest"
+  ]
+ },
+ "chain_graph.py": {
+  "positionals": [],
+  "value_flags": [
+   "ledgers",
+   "--json",
+   "--md",
+   "--top"
+  ],
+  "bool_flags": []
+ },
+ "ci_triage.py": {
+  "positionals": [],
+  "value_flags": [
+   "--offline",
+   "--repo",
+   "--run",
+   "--netrc",
+   "--baseline-seconds",
+   "--baseline-step",
+   "--timeout",
+   "--retry-max",
+   "--json"
+  ],
+  "bool_flags": [
+   "--logs",
+   "--no-dump-filter"
+  ]
+ },
+ "contrib_intake.py": {
+  "positionals": [],
+  "value_flags": [
+   "--contrib-repo",
+   "--contrib-ref",
+   "--base-repo",
+   "--base-ref",
+   "--paths",
+   "--order-path",
+   "--project-path",
+   "--lane-prefix",
+   "--jargon-map",
+   "--rocq-cmd",
+   "--json"
+  ],
+  "bool_flags": []
+ },
+ "cw_doctor.py": {
+  "positionals": [],
+  "value_flags": [
+   "--json",
+   "--workdir",
+   "--registry",
+   "--src",
+   "--sample",
+   "--world",
+   "--worker",
+   "--donor",
+   "--endpoints",
+   "--guard",
+   "--guard-reg",
+   "--guard-maxwait",
+   "--timeout",
+   "--rocq-cmd",
+   "--injector"
+  ],
+  "bool_flags": []
+ },
+ "cw_sentinel.py": {
+  "positionals": [],
+  "value_flags": [
+   "--interval",
+   "--max-rounds",
+   "--watch-repo",
+   "--branch",
+   "--watch-ledgers",
+   "--watch-buildlog",
+   "--state-file",
+   "--emit",
+   "--emit-max-bytes",
+   "--on-red",
+   "--on-red-preset",
+   "--on-red-arg",
+   "--netrc",
+   "--timeout",
+   "--retry-max",
+   "--net-retries",
+   "--subproc-timeout",
+   "--injector",
+   "--sleep-scale",
+   "--json"
+  ],
+  "bool_flags": [
+   "--once",
+   "--loop",
+   "--rebuild-state"
+  ]
+ },
+ "doc_lint.py": {
+  "positionals": [],
+  "value_flags": [
+   "--repo",
+   "--json",
+   "--help-cap"
+  ],
+  "bool_flags": []
+ },
+ "evolution_dashboard.py": {
+  "positionals": [],
+  "value_flags": [
+   "--repo",
+   "--exp-ledger",
+   "--rounds",
+   "--reports",
+   "--json-out",
+   "--md-out",
+   "--stdout"
+  ],
+  "bool_flags": [
+   "--selftest"
+  ]
+ },
+ "evolve.py": {
+  "positionals": [],
+  "value_flags": [
+   "--draft-out",
+   "--json",
+   "--repo-root",
+   "--top",
+   "--baseline",
+   "--jargon-map",
+   "--watch-repo",
+   "--sentinel-state",
+   "--sentinel-state-seed",
+   "--sentinel-branch",
+   "--sentinel-events",
+   "--sentinel-injector",
+   "--suite-ledger",
+   "--registry-git",
+   "--registry-ref",
+   "--git-path-order",
+   "--git-path-project",
+   "--registry-baseline"
+  ],
+  "bool_flags": [
+   "--suite-now"
+  ]
+ },
+ "exp_port.py": {
+  "positionals": [],
+  "value_flags": [
+   "command",
+   "--tool",
+   "--points",
+   "--evidence",
+   "--batch",
+   "--id",
+   "--ts",
+   "--source-file",
+   "--correlation-id",
+   "--ledger",
+   "--limit"
+  ],
+  "bool_flags": [
+   "--selftest",
+   "--dry-run"
+  ]
+ },
+ "flaky_guard.py": {
+  "positionals": [],
+  "value_flags": [
+   "--probe",
+   "--move",
+   "--restore",
+   "--log",
+   "--json",
+   "--green-rounds",
+   "--budget",
+   "--probe-timeout",
+   "--repo",
+   "--roster",
+   "--ledger",
+   "--suite",
+   "--py"
+  ],
+  "bool_flags": [
+   "--detect",
+   "--status",
+   "--selftest",
+   "--no-probe",
+   "--apply"
+  ]
+ },
+ "gap_cluster.py": {
+  "positionals": [],
+  "value_flags": [
+   "--ledger",
+   "--reports",
+   "--out"
+  ],
+  "bool_flags": [
+   "--json"
+  ]
+ },
+ "i18n_pipeline.py": {
+  "positionals": [],
+  "value_flags": [
+   "--manifest",
+   "--stage",
+   "--json"
+  ],
+  "bool_flags": [
+   "--selftest"
+  ]
+ },
+ "i18n_translate.py": {
+  "positionals": [],
+  "value_flags": [
+   "--segments",
+   "--direction",
+   "--emit",
+   "--ingest",
+   "--provider",
+   "--prompts",
+   "--policy-ref",
+   "--translated-out",
+   "--ledger-out",
+   "--netred-ledger",
+   "--json",
+   "--timeout"
+  ],
+  "bool_flags": [
+   "--selftest"
+  ]
+ },
+ "i18n_verify.py": {
+  "positionals": [],
+  "value_flags": [
+   "--verify-target",
+   "--emit-tenpoint",
+   "--ingest-tenpoint",
+   "--faces",
+   "--ai-flavor-tool",
+   "--norm-lint-tool",
+   "--doc-lint-tool",
+   "--repo",
+   "--jargon-map",
+   "--ledger",
+   "--timestamp",
+   "--json"
+  ],
+  "bool_flags": [
+   "--selftest"
+  ]
+ },
+ "jargon_apply.py": {
+  "positionals": [],
+  "value_flags": [
+   "--tree",
+   "--file",
+   "--jargon-map",
+   "--json",
+   "--guarded-out",
+   "--a2-table"
+  ],
+  "bool_flags": [
+   "--plan",
+   "--apply",
+   "--guarded-interactive",
+   "--selftest"
+  ]
+ },
+ "jargon_map_sync.py": {
+  "positionals": [],
+  "value_flags": [
+   "--md",
+   "--map",
+   "--json"
+  ],
+  "bool_flags": [
+   "--apply",
+   "--migrate",
+   "--selftest"
+  ]
+ },
+ "lean_sweep.py": {
+  "positionals": [],
+  "value_flags": [
+   "--batches",
+   "--out",
+   "--json",
+   "--worktree",
+   "--lake",
+   "--guard",
+   "--core",
+   "--lanes",
+   "--skip-ledgers",
+   "--taxonomy",
+   "--max-shot-items",
+   "--big-item-bytes",
+   "--liveness-interval",
+   "--bisect-max",
+   "--timeout-s"
+  ],
+  "bool_flags": [
+   "--fire"
+  ]
+ },
+ "learning_feedback.py": {
+  "positionals": [],
+  "value_flags": [],
+  "bool_flags": [
+   "--selftest"
+  ]
+ },
+ "ledger_sync.py": {
+  "positionals": [],
+  "value_flags": [
+   "--probe",
+   "--ledger",
+   "--out",
+   "--report",
+   "--policy"
+  ],
+  "bool_flags": []
+ },
+ "mcp_server.py": {
+  "positionals": [],
+  "value_flags": [],
+  "bool_flags": []
+ },
+ "net_probe.py": {
+  "positionals": [],
+  "value_flags": [
+   "--endpoints",
+   "--rounds",
+   "--interval",
+   "--jitter",
+   "--seed",
+   "--json"
+  ],
+  "bool_flags": [
+   "--stable-window"
+  ]
+ },
+ "netname_normalize.py": {
+  "positionals": [],
+  "value_flags": [
+   "--dir",
+   "--map",
+   "--json"
+  ],
+  "bool_flags": [
+   "--apply"
+  ]
+ },
+ "norm_lint.py": {
+  "positionals": [],
+  "value_flags": [
+   "--tree",
+   "--file",
+   "--jargon-map",
+   "--cjk-threshold",
+   "--cjk-whitelist",
+   "--json",
+   "--ai-flavor-map",
+   "--md"
+  ],
+  "bool_flags": [
+   "--selftest"
+  ]
+ },
+ "periscope.py": {
+  "positionals": [],
+  "value_flags": [
+   "--config",
+   "--out",
+   "--rounds",
+   "--netrc"
+  ],
+  "bool_flags": [
+   "--dry-run",
+   "--selftest"
+  ]
+ },
+ "pin_repair.py": {
+  "positionals": [],
+  "value_flags": [
+   "--seed"
+  ],
+  "bool_flags": [
+   "--selftest",
+   "--plan",
+   "--apply"
+  ]
+ },
+ "pushci.py": {
+  "positionals": [],
+  "value_flags": [
+   "--repo-path",
+   "--branch",
+   "--base-ref",
+   "--remote",
+   "--pr",
+   "--merge-method",
+   "--max-heal",
+   "--watch-interval",
+   "--probe-interval",
+   "--watch-max-rounds",
+   "--timeout",
+   "--retry-max",
+   "--steps",
+   "--injector",
+   "--git-caller",
+   "--sleep-scale",
+   "--netrc",
+   "--json"
+  ],
+  "bool_flags": [
+   "--pre-scan-gate4",
+   "--merge",
+   "--dry-run"
+  ]
+ },
+ "red_dispatch.py": {
+  "positionals": [],
+  "value_flags": [
+   "--event-file",
+   "--preset",
+   "--json",
+   "--state-file",
+   "--cooldown",
+   "--repo-path",
+   "--param",
+   "--on-args"
+  ],
+  "bool_flags": [
+   "--dry-run",
+   "--selftest"
+  ]
+ },
+ "registry_audit.py": {
+  "positionals": [],
+  "value_flags": [
+   "--order",
+   "--project",
+   "--git",
+   "--ref",
+   "--git-path-order",
+   "--git-path-project",
+   "--live-src",
+   "--anchor-src",
+   "--json",
+   "--md"
+  ],
+  "bool_flags": [
+   "--fix-plan"
+  ]
+ },
+ "registry_fix.py": {
+  "positionals": [],
+  "value_flags": [
+   "--audit-json",
+   "--order",
+   "--project",
+   "--anchor-src",
+   "--work-dir",
+   "--audit-tool",
+   "--json"
+  ],
+  "bool_flags": [
+   "--apply",
+   "--orphan-add"
+  ]
+ },
+ "registry_regen.py": {
+  "positionals": [],
+  "value_flags": [
+   "--base-repo",
+   "--base-ref",
+   "--contrib-repo",
+   "--contrib-ref",
+   "--pieces",
+   "--anchor-src",
+   "--dep-source",
+   "--seq",
+   "--base-path-order",
+   "--base-path-project",
+   "--contrib-path-order",
+   "--contrib-path-project",
+   "--out",
+   "--json"
+  ],
+  "bool_flags": [
+   "--apply"
+  ]
+ },
+ "registry_union.py": {
+  "positionals": [],
+  "value_flags": [
+   "--base",
+   "--main",
+   "--branch",
+   "--git",
+   "--ref-base",
+   "--ref-main",
+   "--ref-branch",
+   "--git-path",
+   "--kind",
+   "--reanchor",
+   "--anchor-src",
+   "--out",
+   "--json"
+  ],
+  "bool_flags": [
+   "--apply"
+  ]
+ },
+ "render_events.py": {
+  "positionals": [],
+  "value_flags": [
+   "--events",
+   "--dir",
+   "--md",
+   "--json",
+   "--top"
+  ],
+  "bool_flags": []
+ },
+ "repair_scope.py": {
+  "positionals": [],
+  "value_flags": [
+   "--repo",
+   "--check",
+   "--a2-table",
+   "--suite",
+   "--ledger",
+   "--json-out"
+  ],
+  "bool_flags": [
+   "--selftest",
+   "--classes",
+   "--lane-detect",
+   "--lane-apply",
+   "--doc-count-detect",
+   "--doc-count-apply"
+  ]
+ },
+ "repair_weekly.py": {
+  "positionals": [],
+  "value_flags": [
+   "--ledger",
+   "--date",
+   "--out",
+   "--json",
+   "--class",
+   "--target",
+   "--repair-outcome",
+   "--ticket",
+   "--evidence-file",
+   "--reason"
+  ],
+  "bool_flags": [
+   "--record",
+   "--apply",
+   "--selftest"
+  ]
+ },
+ "roster_resync.py": {
+  "positionals": [],
+  "value_flags": [
+   "--repo",
+   "--ledger",
+   "--json"
+  ],
+  "bool_flags": [
+   "--apply"
+  ]
+ },
+ "row_render.py": {
+  "positionals": [],
+  "value_flags": [
+   "--gaps",
+   "--emit",
+   "--ingest",
+   "--check-draft",
+   "--emit-tenpoint",
+   "--ingest-tenpoint",
+   "--draft-out",
+   "--provider",
+   "--vacgen",
+   "--prompts",
+   "--policy-ref",
+   "--ledger-out",
+   "--netred-ledger",
+   "--json",
+   "--timeout"
+  ],
+  "bool_flags": [
+   "--selftest"
+  ]
+ },
+ "scheduler_lite.py": {
+  "positionals": [],
+  "value_flags": [
+   "command",
+   "--gap-ledger",
+   "--reports",
+   "--rounds",
+   "--autonomy",
+   "--state",
+   "--ef-marker",
+   "--threshold",
+   "--interval-seconds",
+   "--now-utc",
+   "--out"
+  ],
+  "bool_flags": [
+   "--json"
+  ]
+ },
+ "select_audit.py": {
+  "positionals": [],
+  "value_flags": [
+   "--order",
+   "--select",
+   "--grep",
+   "--requires",
+   "--world",
+   "--json"
+  ],
+  "bool_flags": []
+ },
+ "selfevolve_round.py": {
+  "positionals": [],
+  "value_flags": [
+   "--seed"
+  ],
+  "bool_flags": [
+   "--dry-run",
+   "--pin-repair",
+   "--selftest"
+  ]
+ },
+ "symbiosis_bus.py": {
+  "positionals": [],
+  "value_flags": [
+   "command",
+   "--out",
+   "--swap",
+   "--ledger",
+   "--source-repo",
+   "--anchor",
+   "--a",
+   "--b"
+  ],
+  "bool_flags": [
+   "--selftest",
+   "--dry-run"
+  ]
+ },
+ "termbase.py": {
+  "positionals": [],
+  "value_flags": [
+   "--lookup",
+   "--db",
+   "--json"
+  ],
+  "bool_flags": [
+   "--schema-check",
+   "--selftest"
+  ]
+ },
+ "toolchain_dyld_doctor.py": {
+  "positionals": [],
+  "value_flags": [
+   "--worker",
+   "--donor",
+   "--coqc",
+   "--guard",
+   "--json"
+  ],
+  "bool_flags": [
+   "--smoke"
+  ]
+ },
+ "unclog.py": {
+  "positionals": [],
+  "value_flags": [
+   "--src",
+   "--world",
+   "--candidates",
+   "--chain-ledgers",
+   "--repo-path",
+   "--rounds",
+   "--top",
+   "--scan-ids",
+   "--pack",
+   "--probe-parallel",
+   "--rocq-cmd",
+   "--guard",
+   "--guard-reg",
+   "--guard-front",
+   "--guard-mid",
+   "--guard-maxwait",
+   "--timeout",
+   "--workdir",
+   "--json",
+   "--events",
+   "--interval",
+   "--loop-max",
+   "--sleep-scale",
+   "--injector",
+   "--state-file"
+  ],
+  "bool_flags": [
+   "--apply",
+   "--audit",
+   "--probe-resume",
+   "--once",
+   "--loop"
+  ]
+ },
+ "uplink.py": {
+  "positionals": [],
+  "value_flags": [
+   "--package",
+   "--digest",
+   "--manifest",
+   "--package",
+   "--source-seat",
+   "--landed-ref",
+   "--digest",
+   "--manifest",
+   "--register",
+   "--package",
+   "--out",
+   "--register",
+   "--signature"
+  ],
+  "bool_flags": [
+   "--selftest",
+   "--dry-run"
+  ]
+ },
+ "vacgen.py": {
+  "positionals": [],
+  "value_flags": [
+   "--in",
+   "--out",
+   "--toolchain",
+   "--snapshot",
+   "--audit-id",
+   "--name",
+   "--worktree",
+   "--lake",
+   "--guard",
+   "--core",
+   "--taxonomy",
+   "--census",
+   "--root",
+   "--cluster-table",
+   "--report",
+   "--exp-draft",
+   "--mathlib"
+  ],
+  "bool_flags": [
+   "--force",
+   "--preflight-all",
+   "--verify-anchors"
+  ]
+ },
+ "verdict_diff.py": {
+  "positionals": [],
+  "value_flags": [
+   "--results-lane",
+   "--expected",
+   "--batches",
+   "--baseline",
+   "--json",
+   "--md"
+  ],
+  "bool_flags": []
+ },
+ "wash_shape.py": {
+  "positionals": [],
+  "value_flags": [
+   "--file",
+   "--dir",
+   "--exclude",
+   "--only",
+   "--header-map",
+   "--header-map-preset",
+   "--anchor-src",
+   "--repo-root",
+   "--json",
+   "--interval",
+   "--sleep-scale",
+   "--max-rounds",
+   "--events",
+   "--injector"
+  ],
+  "bool_flags": [
+   "--apply",
+   "--loop"
+  ]
+ }
+}

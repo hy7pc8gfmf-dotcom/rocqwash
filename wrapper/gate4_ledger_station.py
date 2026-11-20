@@ -1,39 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-r"""gate4_ledger_station.py — verify/gate4_comment_guard.py --emit-ledger 台账指认包装
-（rocqwash wrapper/·Mac 适配席 rqadapt·20261031）
-
-在役组件 verify/gate4_comment_guard.py 冻结禁改（各在飞席位实时引用）——本席适配
-一律新文件落 wrapper/。背景：该守卫出生于 Set 仓 scripts/gates/，--emit-ledger 的
-默认豁免台账 TSV 按其出生地取「脚本同目录」，其 FATAL 文案仍指 scripts/gates/ 同目录
-（gate4_comment_guard.py:829-837）；rocqwash 全仓与 Set 仓 scripts/gates/ 原均无
-carrier_exemption_ledger_final.tsv（find/ls 实测），故默认 --emit-ledger 必 FATAL exit 2。
-
-本站双半修复（fix=wrapper 层显式 --ledger-tsv ＋ 随仓补台账件，两半并用）：
-
-  1. 随仓台账件：verify/carrier_exemption_ledger_final.tsv（表头四列
-     file/line/word/first_registry＝正本 load_exempt_tsv 只读口径；零在册行＝
-     诚实初盘——新登须经人工复核回填，本站不代登任何豁免条目）。
-  2. 显式注入：透传前缺 --ledger-tsv 时自动补 `--ledger-tsv <默认台账件>`
-     （调用方显式传了 --ledger-tsv 则原样尊重，不覆盖）；台账件缺席即
-     exit 2 拒透传，文案指向真实默认路径（不复制正本的 scripts/gates/ 陈旧指针）。
-
-站级旗标（本站自留·不转发）：
-  --root DIR          正本仓根（默认＝本站文件所在仓根；缺目录 exit 2）
-  --tsv PATH          注入用台账件（默认＝<root>/verify/carrier_exemption_ledger_final.tsv）
-  --identify          只出台账指认卡不透传（过 exit 0／台账缺席 exit 2）
-  --station-selftest  本站自身自检（六判·零写盘·不动正本）
-  -h / --help         本站帮助（正本帮助经 `gate4_ledger_station -- --help` 可达）
-
-正本自有旗标（--file/--tree/--tree-recursive/--json/--emit-ledger/--baseline 等）
-全数透传；`--` 之后的参数（含站级字样）亦全数透传（显式转发边界）。裸调（零参数）
-＝出台账指认卡不透传。
-
-退出码：0=过；2=站级用法错/台账缺席；9=正本缺失；其余＝正本口径透传
-（正本 --emit-ledger FATAL exit 2、判词 exit 0/1/2 等原样可达，fail-loud 不改写）。
-
-幂等律：本站零写盘——不写正本、不写台账、不写临时（run_tests.sh 幂等口径兼容；
-smoke 验证输出由调用者显式指定到自席沙箱）。
+r"""gate4_ledger_station.py - ledger-identification wrapper around verify/gate4_comment_guard.py --emit-ledger (rocqwash wrapper/).
+Purpose.  The live component `verify/gate4_comment_guard.py` is frozen (referenced live by in-flight components), so every
+  adaptation lands as a new file under `wrapper/`.  Background: the guard was born in the Set repository's `scripts/gates/`;
+  `--emit-ledger`'s default exemption ledger TSV resolves against the script's own directory by birthplace and its FATAL
+  text still points there (gate4_comment_guard.py:829-837); neither this repository nor the Set repository's `scripts/gates/`
+  carried `carrier_exemption_ledger_final.tsv` (verified by find/ls), so a default `--emit-ledger` run always exits FATAL
+  with exit 2.  Two-half fix, both halves together: (1) the repository ships the ledger file
+  `verify/carrier_exemption_ledger_final.tsv` (header columns file/line/word/first_registry per the canonical `load_exempt_tsv`
+  read-only contract; zero in-force rows is the honest initial state, new entries need human review backfill, this station
+  registers no exemption entry on anyone's behalf); (2) a missing `--ledger-tsv` before pass-through is auto-appended with
+  the default ledger file, an explicit caller `--ledger-tsv` is respected verbatim, and an absent ledger file exits 2
+  refusing pass-through, the message pointing at the real default path (not the canonical's stale `scripts/gates/` pointer).
+Interface.  python3 wrapper/gate4_ledger_station.py [--root DIR] [--tsv PATH] [--identify] [--station-selftest] [-h | --help]
+  [pass-through arguments...].  Station flags stay local, never forwarded: --root DIR sets the canonical repository root
+  (default: this station's repository root; missing directory exits 2); --tsv PATH sets the injection ledger file (default
+  <root>/verify/carrier_exemption_ledger_final.tsv); --identify prints the ledger identification card only, no pass-through
+  (exit 0; exit 2 when the ledger is absent); --station-selftest runs the station's own six judgments (zero writes, canonical
+  untouched); -h/--help prints the station help (canonical help reachable via `gate4_ledger_station -- --help`).  The canonical's
+  own flags (--file/--tree/--tree-recursive/--json/--emit-ledger/--baseline and the rest) pass through verbatim; arguments
+  after `--` (including station-flag spellings) also pass through (explicit forward boundary); bare invocation (zero arguments)
+  prints the identification card.
+Dependencies.  Python 3 standard library only (hashlib, os, subprocess, sys).  Runtime peers: the frozen canonical guard
+  `verify/gate4_comment_guard.py` (read-only; md5-stamped in the identification card) and the shipped ledger file, whose
+  header must carry the file/line columns per the canonical `load_exempt_tsv`.
+Evidence.  Zero-write idempotency contract: no canonical write, no ledger write, no temporaries; smoke verification
+  output goes to the caller's own sandbox (tests/run_tests.sh-compatible); --station-selftest asserts the six judgments.
+Exit-codes.  0 = pass; 2 = station usage error or ledger file absent; 9 = canonical missing; any other code = the
+  canonical's own contract passed through unchanged (--emit-ledger FATAL exit 2 and conclusion exit 0/1/2 arrive as-is;
+  fail-loud, never rewritten).
 """
 import hashlib
 import os
@@ -71,9 +66,10 @@ def _md5_of_file(path):
 
 
 def _tsv_rows(path):
-    """只读盘点：返回 (在册行数, 历史文件数)。口径承正本 load_exempt_tsv
-    （line 列整数＝在册，非整数〔含「-」〕＝历史清偿账文件级）。解析失败不静默：
-    以 (None, None) 回报，指认卡标注「行解析异常」。"""
+    """Read-only census: returns (in-force row count, historical file count).  The contract follows the
+    canonical `load_exempt_tsv` (an integer line column counts as in force; a non-integer value, including
+    "-", marks a historically settled file-level row).  Parse failures are not silent: (None, None) comes
+    back and the identification card flags the row-parse anomaly."""
     in_force, hist = 0, set()
     try:
         with open(path, encoding="utf-8") as f:

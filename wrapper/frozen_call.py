@@ -1,45 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""frozen_call.py — wrapper 层逐调断言：在役冻结组件调用前字节身份锁定（rocqwash
-wrapper/·20261031 席 rqadapt）
-
-缺口闭合：工单路径与实账执行路径已现分叉实例（seat_bksver gate4）——工单录
-「跑 ConstructiveWorld-Set 的 gate4」，实账 logs/gate4_bv_tree.json 只记工具名串
-「gate4_comment_guard.py v2.1 EXT」，实际执行副本的字节身份无机械锁定；同形副本
-四仓多布（rocqwash／ConstructiveWorld／work_M_wave1／ConstructiveWorld-Set），
-CW 沙箱现役与 ConstructiveWorld-Main 正本已另成第二 md5 家族——经本层调用，
-执行哪个字节副本当场断言、逐调入账，身份不再靠口头。
-
-断言锚＝同仓 wrapper/quad8_reconcile.py 出的四仓对账名单（两层冻结：tier1 逐副
-本 md5＋tier2 名单账文 md5·承 certify/freeze_manifest.py v1 口径——本件零改动
-只读 import 其 tier2_of；名单 tier2 自洽先验，动名单即拒执）。
-
-契约（fail-closed·禁假绿承 CONTRIBUTING §0）：
-  1. 被调副本必须在册（名单 roots[slug]/rel 逐字对得上）——在册位之外的同名件
-     拒执（exit 8）：工单指定 Set 副本而实跑他副本即在此现形；
-  2. 被调副本现盘 md5 必须≡名单在册值——漂移拒执（exit 8）；
-  3. 名单 tier2 自洽先验——名单被改拒执（exit 2）；
-  4. 断言过→逐调入账（JSONL：ts/invoked/registered/md5/manifest_tier2/argv）→
-     exec 透传（退出码＝被调命令退出码·rc 无改写）；
-  5. 拒执不执行任何命令（零副作用）＋拒因入账（REJECT 行）。
-
-用法：
-  python3 wrapper/frozen_call.py [--manifest LIST.json] [--log LEDGER.jsonl] \
-      -- <被调副本路径> [args...]
-  例：python3 wrapper/frozen_call.py -- \
-        /Users/apple/Desktop/ConstructiveWorld-Set/scripts/gates/gate4_comment_guard.py --file x.v
-  python3 wrapper/frozen_call.py --selftest
-
-缺省：--manifest＝同仓 wrapper/quad8_manifest.json（本席 freeze 在册）；
---log＝seat_rqadapt/账/quad8_call_ledger.jsonl（本席沙箱账·env QUAD8_CALLLOG 可覆）。
-
-执行映射：.py→<python3> -B（scan/mac_stmt_scan.py 无 shebang 无执行位·实测在卷）；
-.sh→bash；他类直接 execv（承 shebang＋执行位）。零编译零网络零树写（账行落
---log 显式指认路径）。
-
-退出码：2＝名单缺失/畸形/tier2 破；8＝断言拒执（不在册/漂移）；9＝被调副本或
-名单路径缺失；其余＝被调命令退出码（exec 透传）。
---selftest 0=五判绿／1=红（断言响亮）。
+"""frozen_call.py - wrapper-layer per-call assertion: byte-identity lock for an in-service frozen component before each invocation (rocqwash wrapper/).
+Purpose.  Identical frozen-component copies are deployed across the four registered
+  repositories, and a task instruction may name one copy while another copy is the one that
+  actually runs; this layer closes that gap mechanically: before each invocation the invoked
+  copy is asserted against the reconciliation manifest (same-repo `wrapper/quad8_reconcile.py`
+  freeze output; two-layer freeze, tier1 per-copy md5 plus tier2 md5 of the tier1 ledger
+  text, per the `certify/freeze_manifest.py` v1 semantics); the copy must be registered at
+  its exact path and its on-disk md5 must equal the registered value; every call is recorded
+  as a JSONL ledger row and the command then runs with its exit code passed through
+  unchanged; refusals run no command (fail-closed, no spurious pass per CONTRIBUTING §0).
+Interface.  python3 wrapper/frozen_call.py [--manifest LIST.json] [--log LEDGER.jsonl] -- <copy-path> [args...]
+  | --selftest.  --manifest defaults to the same-repo `wrapper/quad8_manifest.json`; --log
+  defaults to `seat_rqadapt/账/quad8_call_ledger.jsonl` (env `QUAD8_CALLLOG` overrides).
+  Execution mapping: `.py` -> `python3 -B` (`scan/mac_stmt_scan.py` ships no shebang and no
+  executable bit, verified on the volume); `.sh` -> bash; other types execv directly
+  (shebang plus executable bit).  Zero compile, zero network, zero tree writes (ledger rows
+  land only on the explicit --log path).
+Dependencies.  Python 3 standard library only.  The frozen peer `certify/freeze_manifest.py`
+  is imported read-only (`md5_bytes`, `tier2_of`; missing peer = fail-loud exit 9); the
+  manifest schema is self-owned (`rocqwash-quad8-manifest/1`).
+Evidence.  --selftest runs the five fixture judgments over a temporary fixture repository
+  (registered-copy passthrough with a PASS ledger row; unregistered refusal rc 8 with a
+  REJECT row and no child run; drift refusal rc 8; manifest tier2 tamper refused at load
+  rc 2; missing copy fail-loud rc 9).  tests/run_tests.sh case t_frozen_call and
+  tests/test_clean_mode.py exercise this face by subprocess.
+Exit-codes.  2 = manifest missing, malformed or tier2 broken; 8 = assertion refusal
+  (unregistered or drifted); 9 = invoked copy or manifest path missing; otherwise = the
+  invoked command's exit code (passthrough, never rewritten).  --selftest: 0 = five
+  judgments passing, 1 = failing (assertions fail loud).
 """
 import argparse
 import io
@@ -69,7 +58,7 @@ _CERTDIR = os.path.join(REPO, "certify")
 if _CERTDIR not in sys.path:
     sys.path.insert(0, _CERTDIR)
 try:
-    import freeze_manifest as _v1  # noqa: E402  （在役冻结件·只 import 不改）
+    import freeze_manifest as _v1  # noqa: E402  (frozen in-service peer; imported read-only)
 except Exception as _e:  # pragma: no cover
     print("FAIL-LOUD: 冻结同侪 certify/freeze_manifest.py 不可导入: %s" % _e,
           file=sys.stderr)
@@ -77,7 +66,7 @@ except Exception as _e:  # pragma: no cover
 
 
 def load_manifest(path):
-    """名单载入＋schema/tier2 先验。破→exit 2（fail-closed）。"""
+    """Load the manifest; enforce the schema and the tier2 prior. Broken -> exit 2 (fail-closed)."""
     if not os.path.isfile(path):
         print("FAIL-LOUD: 名单缺失: %s（先跑 wrapper/quad8_reconcile.py freeze）"
               % path, file=sys.stderr)
@@ -102,7 +91,7 @@ def load_manifest(path):
 
 
 def registered_map(doc):
-    """{abs_path: (slug/rel, md5)}——名单键面→绝对路径映射。"""
+    """Registered-copy map: {abs_path: (slug/rel, md5)} over the manifest roots."""
     out = {}
     for rel, md5 in doc["tier1"]:
         slug, rpath = rel.split("/", 1)
@@ -119,12 +108,12 @@ def append_log(log_path, record):
         os.makedirs(parent, exist_ok=True)
         with io.open(log_path, "a", encoding="utf-8", newline="\n") as fh:
             fh.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
-    except Exception as e:  # 账面失败不打断断言主路——响亮 stderr
+    except Exception as e:  # a ledger write failure must not break the assertion path; report loudly on stderr
         print("frozen_call: 账行写入失败（%s）: %s" % (log_path, e), file=sys.stderr)
 
 
 def dispatch_argv(copy):
-    """执行映射：.py→python3 -B；.sh→bash；他类直执。"""
+    """Execution mapping: .py -> python3 -B; .sh -> bash; other types exec directly."""
     ext = os.path.splitext(copy)[1].lower()
     if ext == ".py":
         return [sys.executable, "-B", copy]
@@ -203,7 +192,7 @@ def selftest():
             return (p.returncode, p.stdout.decode("utf-8", "replace"),
                     p.stderr.decode("utf-8", "replace"))
 
-        # 夹具名单：真 v1 口径 tier2（同侪 import 产）
+        # fixture manifest: a real v1-semantics tier2, produced through the peer import
         tier1 = [["rq/verify/gate4_comment_guard.py",
                   _v1.md5_bytes(open(child, "rb").read())]]
         man = os.path.join(tmp, "m.json")
@@ -216,7 +205,7 @@ def selftest():
             fh.write("\n")
         log = os.path.join(tmp, "call_ledger.jsonl")
 
-        # 判① PASS：在册副本调用→子命令实跑（CHILD-OK stdout）＋账行 PASS 咬合
+        # judgment 1 PASS: a registered-copy call runs the child command (CHILD-OK on stdout) and the PASS ledger row matches
         rc, so, se = run(["--manifest", man, "--log", log, "--", child])
         assert rc == 0 and "CHILD-OK" in so, \
             "判① 应透传子命令 rc0+stdout 实测 %d\n%s%s" % (rc, so, se)
@@ -225,7 +214,7 @@ def selftest():
             and lines[-1]["registered"] == "rq/verify/gate4_comment_guard.py", lines[-1]
         print("判① PASS 透传＋逐调入账 PASS: rc0·CHILD-OK·账行 PASS 咬合")
 
-        # 判② 不在册拒执 rc8＋REJECT 账行＋子命令未跑（无 CHILD-OK）
+        # judgment 2 unregistered refusal: rc 8, REJECT ledger row, child command not run (no CHILD-OK)
         rc, so, se = run(["--manifest", man, "--log", log, "--", other])
         assert rc == 8 and "不在册" in se and "CHILD-OK" not in so, \
             "判② 应拒执 rc8 实测 %d\n%s%s" % (rc, so, se)
@@ -233,7 +222,7 @@ def selftest():
         assert lines[-1]["verdict"] == "REJECT" and "不在册" in lines[-1]["reason"], lines[-1]
         print("判② 不在册拒执 PASS: rc8·REJECT 账行·子命令未跑")
 
-        # 判③ 漂移拒执 rc8（在册位字节被改）
+        # judgment 3 drift refusal: rc 8 (registered-copy bytes modified)
         w("verify/gate4_comment_guard.py",
           "#!/usr/bin/env python3\nprint('CHILD-DRIFT')\n")
         rc, so, se = run(["--manifest", man, "--log", log, "--", child])
@@ -241,7 +230,7 @@ def selftest():
             "判③ 应漂移拒执 rc8 实测 %d\n%s%s" % (rc, so, se)
         print("判③ 漂移拒执 PASS: rc8·漂移字节未执行")
 
-        # 判④ 名单 tier2 篡改→拒入 rc2
+        # judgment 4 manifest tier2 tamper: refused at load with rc 2
         bad = json.load(io.open(man, encoding="utf-8"))
         bad["tier1"][0][1] = "0" * 32
         bad_man = os.path.join(tmp, "bad.json")
@@ -254,7 +243,7 @@ def selftest():
             "判④ 应拒入 rc2 实测 %d\n%s%s" % (rc, so, se)
         print("判④ 名单篡改拒入 PASS: rc2·tier2 先验咬合")
 
-        # 判⑤ 被调副本缺失 rc9
+        # judgment 5 missing invoked copy: rc 9
         os.remove(child)
         rc, so, se = run(["--manifest", man, "--log", log, "--", child])
         assert rc == 9 and "缺失" in se, \
@@ -289,7 +278,7 @@ def main():
     if args.selftest:
         sys.exit(selftest())
     # Clean mode: the canonical call face is the default in-repo frozen
-    # manifest or the canonical campaign call log; report and refuse.
+    # manifest or the canonical effort call log; report and refuse.
     # Explicit --manifest and --log together define a caller-owned face and
     # stay available (the fixture selftest children pass both).
     if _clean_mode() and args.command \
@@ -301,7 +290,7 @@ def main():
               "--manifest and --log for caller-owned faces")
         sys.exit(9)
     cmd = list(args.command)
-    if cmd and cmd[0] == "--":  # argparse REMAINDER 保 -- 原样入列（实测）·剥引子
+    if cmd and cmd[0] == "--":  # argparse REMAINDER keeps the leading -- in the list (verified); strip it here
         cmd = cmd[1:]
     if not cmd:
         print("FAIL-LOUD: 用法：frozen_call.py [--manifest M] [--log L] -- "

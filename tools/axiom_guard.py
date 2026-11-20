@@ -1,86 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""axiom_guard.py — repo-wide axiom guard over every .v file (rocqwash tools/).
-
-    Purpose.  The community-standard trust question for a proof corpus is
-      "what does each theorem actually rest on?" (kernel recheck plus a
-      Print Assumptions census; the audit report section 3.2 names the
-      absence of exactly this as the repo's most serious misalignment).
-      This guard answers it mechanically for the whole repository: every .v
-      file is compiled and classified, and every file that compiles is
-      judged at two levels.  The repo standard is strict: every statement
-      must be Closed (zero axioms) and the axiom whitelist is empty by
-      default.
-
-    Interface.  python3 tools/axiom_guard.py --repo DIR [--out DIR]
-      [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC]
-      [--keep].  Compiler and kernel-checker paths resolve per flag, then
-      environment: --rocq / ROCWASH_ROCQ, --coqchk / ROCWASH_COQCHK.
-      --out DIR receives the deterministic report volume
-      (axiom-guard-report.json); without --out the summary goes to stdout
-      only and no file is written.
-
-    Faces.
-      1. Inventory: every .v under the repo except .git, sorted by relative
-         path (POSIX form in the report).  23 files at the reference HEAD.
-      2. Compile classification (three ways): each file is copied
-         byte-identical into a private temp workdir and compiled there
-         (rocq c -native-compiler no -q -Q <source dir> ""), so the .vo
-         output face is temp-only and the repository tree is never written:
-           compile-ok         rc 0 -> proceeds to detection;
-           compile-broken     rc != 0 (or timeout) -> recorded in the debt
-                              register with the error tail (judged no
-                              further: assumptions cannot be printed for a
-                              file that does not compile);
-           skip-no-toolchain  toolchain not configured -> the whole run
-                              exits 111 before any work (see exit codes).
-         The -Q mapping of the source directory makes sibling .vo worlds
-         resolvable when they are built; an unbuilt Require is an honest
-         compile-broken entry whose error tail names the missing library.
-      3. Light face (pre-screen, per theorem): statement names are extracted
-         from the file with a comment/string masking scanner; census copies
-         of the file plus one "Print Assumptions <name>." line per statement
-         compile under a separate _census filename (the base .vo stays
-         intact for the heavy face); each output block maps back to its
-         statement in order (batched pass; on any marker-count mismatch the
-         file falls back to one compile per statement for exact
-         attribution).  Verdicts: closed / axioms / census-error (recorded,
-         not judged).
-      4. Heavy face (authority): coqchk -o -Q <source dir> "" -Q <workdir>
-         "" <module> on the base .vo of the temp copy; the CONTEXT SUMMARY
-         "* Axioms:" section is parsed (stdlib index-relaxation entries live
-         in other sections and are never judged).  This is the authoritative
-         judgment per the graded-detection design; the token-quarantine face
-         is intentionally NOT implemented: token-level .vo scanning can
-         quarantine suspicious artifacts but cannot decide closedness (the
-         gate5 precedent), so it would add verdicts it cannot back.
-      5. Verdict: a compile-ok file is red when either face reports an axiom
-         outside the whitelist, or the heavy face cannot deliver a summary
-         (unjudgeable is not green).  Compile-broken files are debt, not
-         red.  Run verdict PASS = zero red files.
-
-    Dependencies.  Python 3 standard library only; rocq and coqchk binaries
-      from the environment or flags (never downloaded, never simulated).
-
-    Evidence.  Deterministic: sorted inputs, no wall clock in report or
-      logic, same input tree yields the byte-identical report.  The write
-      face is exactly: caller-named --out report file + private temp workdir
-      (removed unless --keep).  The destructive matrix pins this contract.
-      Thermal contract: this tool does not embed a guard; wrap the whole
-      invocation in tools/cpu_guard.sh for guarded runs — compile children
-      stay inside the guard's process tree (the
-      verify/extract_magic_check.py contract form).
-
-    Exit-codes.  0 = PASS (zero red files; compile-broken files recorded as
-      debt); 1 = red (axiom found outside the whitelist, or an unjudgeable
-      heavy face); 2 = usage error; 9 = fail-loud environment (a configured
-      binary path does not exist, or --repo is missing); 111 = honest skip
-      (rocq or coqchk not configured via flag or environment — reported,
-      not simulated, following the verify/ rc 111 skip convention).
-
-    Usage:
-      python3 tools/axiom_guard.py --repo . --out /tmp/evid/t0-2
-      ROCWASH_ROCQ=/path/rocq ROCWASH_COQCHK=/path/coqchk python3 tools/axiom_guard.py --repo .
+"""axiom_guard.py - repo-wide axiom guard over every .v file (rocqwash tools/).
+Purpose.  Answer "what does each theorem actually rest on?" mechanically
+  for the whole repository: every .v file is compiled in a private temp
+  workdir and judged at two levels (a per-theorem Print Assumptions
+  census plus the coqchk kernel recheck); the standard is strict - every
+  statement Closed, the axiom whitelist empty by default.
+Interface.  python3 tools/axiom_guard.py --repo DIR [--out DIR]
+  [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC]
+  [--keep] | --selftest.  Binary paths resolve per flag then
+  environment (--rocq / ROCWASH_ROCQ, --coqchk / ROCWASH_COQCHK);
+  --out DIR receives axiom-guard-report.json (stdout summary only
+  without it); --selftest runs the frozen offline vectors and exits.
+Dependencies.  Python 3 standard library only; rocq and coqchk binaries
+  from the environment or flags (never downloaded, never simulated).
+Evidence.  Deterministic: sorted inputs, no wall clock in report or
+  logic, same input tree yields the byte-identical report; write face =
+  caller-named --out report plus private temp workdir (removed unless
+  --keep); the destructive matrix pins this contract.  Thermal: no
+  embedded guard, wrap guarded runs in tools/cpu_guard.sh (compile
+  children stay in the guard's process tree).  Selftest vectors are
+  offline: zero network, zero toolchain launch, zero real-repo touch.
+Exit-codes.  0 PASS (zero red files; compile-broken recorded as debt);
+  1 red (axiom outside the whitelist, an unjudgeable heavy face, or a
+  selftest red); 2 usage error; 9 fail-loud environment (configured
+  binary missing or --repo absent); 111 honest skip (toolchain
+  unconfigured, reported not simulated, the verify/ rc 111 convention).
+Usage:  python3 tools/axiom_guard.py --repo . --out /tmp/evid/t0-2
+  python3 tools/axiom_guard.py --selftest
 """
 import argparse
 import hashlib
@@ -92,6 +39,43 @@ import shutil
 import subprocess
 import sys
 import tempfile
+
+# Judgment faces (detail migrated from the header to hold the 30-line
+# annotation budget):
+#   1. Inventory: every .v under the repo except .git, sorted by relative
+#      path (POSIX form in the report).
+#   2. Compile classification: each file is copied byte-identical into a
+#      private temp workdir and compiled there (rocq c -native-compiler
+#      no -q -Q <source dir> ""), so the .vo output face is temp-only and
+#      the repository tree is never written: compile-ok proceeds to
+#      detection; compile-broken (rc != 0 or timeout) is recorded in the
+#      debt register with the error tail (assumptions cannot be printed
+#      for a file that does not compile); skip-no-toolchain exits 111
+#      before any work.  The -Q mapping of the source directory makes
+#      sibling .vo worlds resolvable when they are built; an unbuilt
+#      Require is an honest compile-broken entry whose error tail names
+#      the missing library.
+#   3. Light face (pre-screen, per theorem): statement names are extracted
+#      from the file with a comment/string masking scanner; census copies
+#      of the file plus one "Print Assumptions <name>." line per statement
+#      compile under a separate _census filename (the base .vo stays
+#      intact for the heavy face); each output block maps back to its
+#      statement in order (batched pass; on any marker-count mismatch the
+#      file falls back to one compile per statement for exact
+#      attribution).  Verdicts: closed / axioms / census-error (recorded,
+#      not judged).
+#   4. Heavy face (authority): coqchk -o on the base .vo of the temp copy;
+#      the CONTEXT SUMMARY "* Axioms:" section is parsed (stdlib
+#      index-relaxation entries live in other sections and are never
+#      judged).  This is the authoritative judgment per the
+#      graded-detection design; the token-quarantine face is intentionally
+#      not implemented: token-level .vo scanning can quarantine suspicious
+#      artifacts but cannot decide closedness (the gate5 precedent), so it
+#      would add verdicts it cannot back.
+#   5. Verdict: a compile-ok file is red when either face reports an axiom
+#      outside the whitelist, or the heavy face cannot deliver a summary
+#      (unjudgeable is not green).  Compile-broken files are debt, not
+#      red.  Run verdict PASS = zero red files.
 
 PROG = "axiom_guard"
 SCHEMA = "rocqwash-axiom-guard/1"
@@ -166,7 +150,7 @@ def statement_names(text):
 
 def run_cmd(argv, timeout):
     """Subprocess run with merged stdout/stderr and a hard timeout; the
-    caller decides every verdict from (rc, output, error) — no silent
+    caller decides every verdict from (rc, output, error) - no silent
     fallback.  error is None on a clean launch, "timeout" on a timeout,
     and an OS-level message string when the binary cannot be launched."""
     try:
@@ -192,7 +176,7 @@ def error_tail(output, lines=ERROR_TAIL_LINES):
 def strip_tmp(output, work):
     """Normalize the run's private temp directory out of compiler output so
     error tails (which embed the .v copy path) stay byte-stable across
-    runs — determinism of the report volume (same input tree, same bytes)."""
+    runs - determinism of the report volume (same input tree, same bytes)."""
     return output.replace(work, "<axguard-tmp>")
 
 
@@ -405,7 +389,7 @@ def guard(repo, rocq, coqchk, allow_axioms, timeout, out_dir, keep):
                     if rel not in reds:
                         reds.append(rel)
             # light-face judgment (pre-screen; the heavy face stays
-            # authoritative — a light red alone still fails the file)
+            # authoritative - a light red alone still fails the file)
             for v in entry.get("light_census", []):
                 v["axioms"] = [a for a in v.get("axioms", [])
                                if a not in allow_axioms]
@@ -451,11 +435,162 @@ def _summarize(report):
         print("  RED  %s" % rel)
 
 
-def main():
+# ---- selftest (frozen offline vectors on the judgment faces; zero
+# network, zero toolchain launch, zero real-repo touch) ----
+
+# Heavy-face parse fixtures: coqchk CONTEXT SUMMARY shapes.
+COQCHK_OUT_CLEAN = ("""CONTEXT SUMMARY
+===============
+
+* Axioms: <none>
+
+""")
+COQCHK_OUT_AXIOMS = ("""CONTEXT SUMMARY
+===============
+
+* Axioms: Coq.Logic.Classical_Prop.classic
+    Coq.Logic.ClassicalUniqueChoice.classic_dep
+
+* Principles: <none>
+""")
+COQCHK_OUT_NO_SUMMARY = ("""CONTEXT SUMMARY
+===============
+
+* Principles: <none>
+""")
+
+# Light-face parse fixture: one closed statement then one with axioms.
+CENSUS_OUT_MIXED = ("head marker line\n"
+                    "Closed under the global context\n"
+                    "Axioms:\n"
+                    "    Coq.Logic.Classical_Prop.classic\n")
+CENSUS_STATEMENTS = [("t_closed_one", 2), ("t_axiom_one", 5)]
+
+# Name-extraction fixture: comment and string decoys must not census.
+SAMPLE_V_TEXT = ("(* Theorem decoy_in_comment : False. *)\n"
+                 "Theorem t_closed_one : True.\n"
+                 "Proof. exact I. Qed.\n"
+                 "\n"
+                 "Definition hidden := \"Theorem decoy_in_string : False.\"\n"
+                 "\n"
+                 "Theorem t_axiom_one : True.\n"
+                 "Proof. exact I. Qed.\n")
+
+
+def selftest():
+    """Frozen offline vectors over the judgment faces (heavy summary
+    parsing, census attribution, name extraction, exit-code contract);
+    zero network, zero toolchain launch, zero real-repo touch.  Returns
+    0 when every vector is green, 1 with the failing names on stdout."""
+    failures = []
+    total = [0]
+
+    def vec(name, ok, detail):
+        total[0] += 1
+        print(("PASS " if ok else "FAIL ") + name + " - " + detail)
+        if not ok:
+            failures.append(name)
+
+    script = os.path.abspath(__file__)
+    tmp = tempfile.mkdtemp(prefix="rocqwash_axiom_guard_selftest_")
+    try:
+        # heavy-face summary parsing (the authoritative judgment input)
+        status, names = parse_axioms_summary(COQCHK_OUT_AXIOMS)
+        vec("summary-axioms-hit",
+            status == "axioms" and names == [
+                "Coq.Logic.Classical_Prop.classic",
+                "Coq.Logic.ClassicalUniqueChoice.classic_dep"],
+            "status=%s names=%s" % (status, names))
+        status, names = parse_axioms_summary(COQCHK_OUT_CLEAN)
+        vec("summary-none-clean", status == "clean" and names == [],
+            "status=%s names=%s" % (status, names))
+        status, names = parse_axioms_summary(COQCHK_OUT_NO_SUMMARY)
+        vec("summary-absent-unjudgeable", status == "no-summary"
+            and names == [], "status=%s names=%s" % (status, names))
+        # light-face census attribution (ordered blocks, mismatch fallback)
+        verdicts = parse_census_blocks(CENSUS_OUT_MIXED, CENSUS_STATEMENTS)
+        ok = (verdicts is not None and len(verdicts) == 2
+              and verdicts[0]["verdict"] == "closed"
+              and verdicts[0]["axioms"] == []
+              and verdicts[1]["verdict"] == "axioms"
+              and verdicts[1]["axioms"] == [
+                  "Coq.Logic.Classical_Prop.classic"])
+        vec("census-attribution", ok, "verdicts=%s" % (verdicts,))
+        vec("census-mismatch-falls-back",
+            parse_census_blocks("Closed under the global context\n",
+                                CENSUS_STATEMENTS) is None,
+            "one marker against two statements must yield None")
+        # name extraction behind the masking scanner (decoys never census)
+        got = statement_names(SAMPLE_V_TEXT)
+        vec("statement-names-masked",
+            got == [("t_closed_one", 2), ("t_axiom_one", 7)],
+            "got=%s" % (got,))
+        masked = mask_comments_strings(SAMPLE_V_TEXT)
+        lines = masked.splitlines()
+        vec("masking-blanks-decoys",
+            "decoy" not in masked
+            and lines[1].startswith("Theorem t_closed_one")
+            and lines[6].startswith("Theorem t_axiom_one"),
+            "comment and string bodies blanked; real statements intact")
+        # report determinism helpers
+        vec("tail-and-tmp-normalize",
+            len(error_tail("\n".join("ln%d" % k
+                                     for k in range(20)))) == ERROR_TAIL_LINES
+            and strip_tmp("x " + tmp + " y", tmp) == "x <axguard-tmp> y",
+            "tail bounded at %d lines; temp path normalized"
+            % ERROR_TAIL_LINES)
+        # flag face: --selftest parses standalone (no --repo needed)
+        vec("selftest-flag-face",
+            build_parser().parse_args(["--selftest"]).selftest is True
+            and build_parser().parse_args([]).selftest is False,
+            "--selftest defaults to False and parses without --repo")
+        # exit-code contract (same family as the documented tool codes)
+        def spawn(argv, env=None):
+            try:
+                p = subprocess.run([sys.executable, "-B", script] + argv,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, timeout=60,
+                                   env=env)
+            except subprocess.TimeoutExpired:
+                return None, "timeout"
+            out = p.stdout.decode("utf-8", "replace") \
+                if isinstance(p.stdout, bytes) else (p.stdout or "")
+            return p.returncode, out
+
+        rc, out = spawn([])
+        vec("exit-usage-error-rc2", rc == 2,
+            "no arguments exits %s (usage error)" % rc)
+        rc, out = spawn(["--repo", os.path.join(tmp, "absent-repo")])
+        vec("exit-repo-absent-rc9", rc == 9,
+            "missing --repo directory exits %s (fail-loud)" % rc)
+        skip_env = dict(os.environ)
+        skip_env.pop("ROCWASH_ROCQ", None)
+        skip_env.pop("ROCWASH_COQCHK", None)
+        rc, out = spawn(["--repo", tmp], env=skip_env)
+        vec("exit-unconfigured-rc111", rc == 111,
+            "unconfigured toolchain exits %s (honest skip)" % rc)
+        rc, out = spawn(["--repo", tmp,
+                         "--rocq", os.path.join(tmp, "no-rocq"),
+                         "--coqchk", os.path.join(tmp, "no-coqchk")])
+        vec("exit-binary-absent-rc9", rc == 9,
+            "configured but missing binaries exit %s (fail-loud)" % rc)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    print("selftest: %d vector(s), %d FAIL" % (total[0], len(failures)))
+    if failures:
+        print("selftest RED: %s" % ", ".join(failures))
+        return 1
+    return 0
+
+
+def build_parser():
+    """The flag face; extracted so --selftest runs standalone (no --repo
+    required) and the usage face stays single-source."""
     ap = argparse.ArgumentParser(
         description="Repo-wide axiom guard (compile tri-classification, "
                     "per-theorem assumption census, coqchk kernel recheck).")
-    ap.add_argument("--repo", required=True, help="repository root")
+    ap.add_argument("--repo", help="repository root (required unless "
+                                   "--selftest)")
     ap.add_argument("--out", help="report directory (report JSON written "
                                   "here; absent = stdout only)")
     ap.add_argument("--rocq", default=os.environ.get("ROCWASH_ROCQ", ""),
@@ -469,8 +604,17 @@ def main():
                     help="per-subprocess timeout seconds (default 600)")
     ap.add_argument("--keep", action="store_true",
                     help="keep the temp workdir (debug face)")
-    args = ap.parse_args()
+    ap.add_argument("--selftest", action="store_true",
+                    help="run the frozen offline vector group and exit")
+    return ap
 
+
+def main():
+    args = build_parser().parse_args()
+    if args.selftest:
+        sys.exit(selftest())
+    if not args.repo:
+        build_parser().error("--repo is required (usage error)")
     if not os.path.isdir(args.repo):
         print("FAIL-LOUD: --repo directory missing: %s" % args.repo,
               file=sys.stderr)

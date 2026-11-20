@@ -153,7 +153,7 @@ def main():
         judge(10, "born 语法 bash -n", rc == 0, "rc=%s err=%r" % (rc, err[:200]))
 
         rc, out, err = sh(["bash", BORN, "-h"])
-        judge(11, "born -h 用法面", rc == 0 and "born_world" in out and "用法 Usage" in out,
+        judge(11, "born -h 用法面", rc == 0 and "born_world" in out and "Interface." in out,
               "rc=%s out[:80]=%r" % (rc, out[:80]))
 
         rc, out, err = sh(["bash", BORN, "--bogus"])

@@ -14,6 +14,9 @@ Interface.  python3 tools/doc_lint.py [--repo DIR] [--json OUT]
   [{kind,target,status,detail}], verdict consistent|drift, counts,
   out_of_scope, registry, args; sort_keys on write; no wall-clock field;
   every path repo-relative — same-input reruns are byte-identical).  The
+  --help-cap default is derived at run time (the measured registry size
+  plus the HELP_CAP_MARGIN margin constant; an explicit value wins), so a
+  new tool registration raises the cap with zero manual steps.  The
   checks list rows with kind in {tool_table,count,flag}, status in
   {ok,drift}, and a single-line detail (clipped at 300 chars).  The full
   three-check contract lives in the extended contract block below.
@@ -35,7 +38,11 @@ Evidence.  --selftest vectors (tmp mini-repo fixtures; the consistency
   reference) -> rc 1, flag drift; V5 CLI codes (--help 0; --bogus 2;
   missing --repo 9) plus --help-cap 0 -> 2; V6 JSON idempotence (same
   repo, two runs, different --json paths, byte-identical — the report
-  never embeds its own json path).  Suite membership tests/test_doc_lint.py.
+  never embeds its own json path).  V7 the derived help cap (the default =
+  the measured registry size + the margin: the cap auto-follows a new
+  tools/ registration with zero manual steps; under an explicit smaller
+  cap the over-cap report face keeps its semantics: help not run,
+  citations unproven, rc 1).  Suite membership tests/test_doc_lint.py.
 
 Exit-codes.  0 = consistent (zero drift across the three checks); 1 =
   drift (any row drifted; a failing result is data, not a tool failure;
@@ -92,9 +99,13 @@ import tempfile
 # archives are exempt — annotation standard card 5.2, archive files are not
 # canonical faces) is checked one by one against each tool's real --help
 # output (a real subprocess --help run; rc != 0 / timeout = tool failure,
-# fail-loud 9; capped at --help-cap tools).  The tool set = cw.sh routes
-# union tools/ non-underscore .py; over-cap tools are truncated in canonical
-# order and listed honestly as "help not run; N citations unproven".
+# fail-loud 9; capped at the --help-cap tools, the default cap derived at
+# run time as the measured registry size plus the HELP_CAP_MARGIN margin
+# constant, an explicit value winning over the derivation).  The tool set =
+# cw.sh routes union the tools/ entry-point scripts whose name does not
+# start with `_`; over-cap tools are truncated
+# in canonical order and listed honestly as "help not run; N citations
+# unproven".
 # Attribution rules: tool references have two tiers (tier-1 strong = an
 # on-disk path form / cli/rocqwash / a cw.sh route form; tier-2 weak = a bare
 # name — a route name, a tool stem, or an on-disk out-of-scope tool stem); a
@@ -139,11 +150,25 @@ import tempfile
 PROG = "doc_lint"
 SCHEMA = "rocqwash-doclint/1"
 
-DEFAULT_HELP_CAP = 61     # check 3 --help real-run tool cap (raised 20->24->25->26->27->28->32->47->48->49->50->53->55->57->58->61, one bump per tool registration; the same precedent every time: registry_rel sorted order puts wash/probe_engine.py last; the 55->57 bump covers the measured registry 57 after the repair-weekly and selfevolve-round route registrations clear the wash/cure_applier.py + wash/probe_engine.py over-cap residue left behind by the two un-routed tools/ entry points; the 57->58 bump covers the jargon-map-sync registration joining the registry (the P1 sync tool face, routed in the same work stream); the 58->61 bump covers the three recursive-three-gap batch tools joining the registry (tools/b_gate_audit.py, tools/learning_feedback.py, tools/pin_repair.py) and clears the re-created over-cap residue on the sorted-order tail (verify/erasure_classifier.py, wash/cure_applier.py, wash/probe_engine.py); an over-cap tool has an empty help set and every doc flag cited against it is misjudged phantom)
+HELP_CAP_MARGIN = 5       # the derived-cap margin: the check-3 cap defaults to the measured registry size plus this constant at run time (the retired DEFAULT_HELP_CAP manual constant grew only by hand edits, 20->61, one edit per tool registration, and sat exactly at the measured registry 61 at retirement, so the next registration would have truncated the sorted-order tail; a truncated tool keeps an empty help set and every doc flag cited against it is misjudged phantom - the derivation removes that manual path by construction)
 HELP_TIMEOUT = 60         # --help subprocess second cap (local-file hang guard; fail-loud)
 DETAIL_CAP = 300          # checks[].detail clip (the cw_doctor non_form ln[:120] form)
 DRIFT_LINE_CAP = 20       # check 3 per-file phantom/dangling list cap (the total is honest; the cw_doctor cap-20 form)
 LIST_CAP = 20             # the out_of_scope/registry overflow list cap (the total is honest)
+
+
+def derived_help_cap(registry_rel):
+    """The check-3 default cap, derived at run time from the measured
+    registry (the check-1 registry_rel list: the routed cw.sh paths union
+    the generic tools/ entry-point scripts, a .py file whose name does not
+    start with `_`): every registered tool gets a real --help run plus
+    HELP_CAP_MARGIN spare slots, and an explicit --help-cap value wins
+    over the derivation.  Doc_lint's own data source for "the registered
+    tool faces" is this measured registry (check 1 already builds it
+    before check 3 runs), so the derivation reads the same source instead
+    of re-scanning help outputs; the retirement of the manual constant
+    means a new tool registration raises the cap with zero manual steps."""
+    return len(registry_rel) + HELP_CAP_MARGIN
 
 PSEUDO_ROUTES = ("help",)  # the pseudo-route (the cw.sh:49 header row; the cw.sh:187 special routing)
 
@@ -549,6 +574,7 @@ class LintCtx(object):
 
     def __init__(self, repo, registry_rel, route_map, help_cap):
         self.repo = repo
+        self.help_cap = help_cap   # the effective cap (derived default or the explicit value)
         self.route_map = dict(route_map)
         self.stem_map = {}
         for rel in registry_rel:
@@ -900,7 +926,7 @@ def check_flags(repo, ctx):
                            "detail": clip("over the help cap %d, --help not"
                                           " run; %d doc citations unproven (the"
                                           " flag check is incomplete for this"
-                                          " tool)" % (DEFAULT_HELP_CAP, n))})
+                                          " tool)" % (ctx.help_cap, n))})
     return checks, total_drift, files
 
 
@@ -923,7 +949,7 @@ def _refs_for(ctx, files, tool_rel):
 
 def run(args):
     """Main flow: value validation (2) -> audited-repo prechecks (9) -> checks 1/2/3 one by one -> the report (0/1)."""
-    if args.help_cap < 1:
+    if args.help_cap is not None and args.help_cap < 1:
         raise UsageError("--help-cap must be >= 1, got %d" % args.help_cap)
     repo = args.repo
     if not os.path.isdir(repo):
@@ -949,11 +975,14 @@ def run(args):
     print("[count] CASES=%d checks=%d" % (cases_n, len(cnt_checks)))
 
     # check 3: the flags
-    ctx = LintCtx(repo, registry_rel, route_map, args.help_cap)
+    help_cap = args.help_cap
+    if help_cap is None:
+        help_cap = derived_help_cap(registry_rel)
+    ctx = LintCtx(repo, registry_rel, route_map, help_cap)
     flag_checks, flag_drift, files = check_flags(repo, ctx)
     print("[flag] docs=%d help_run=%d/%d (cap %d) drift=%d"
           % (len(files), len(ctx.help_order), len(registry_rel),
-             args.help_cap, flag_drift))
+             help_cap, flag_drift))
 
     checks = tt_checks + cnt_checks + flag_checks
     drift_n = sum(1 for c in checks if c["status"] == "drift")
@@ -979,10 +1008,10 @@ def run(args):
                          "capped": max(0, len(oos_list) - LIST_CAP)},
         "registry": {"scripts": registry_rel,
                      "help_run": ctx.help_order,
-                     "cap": args.help_cap,
+                     "cap": help_cap,
                      "overflow": ctx.overflow},
         "args": {"repo": os.path.basename(os.path.abspath(repo)),
-                 "help_cap": args.help_cap},
+                 "help_cap": help_cap},
     }
     print("--- checks ---")
     for c in checks:
@@ -1019,6 +1048,18 @@ ap = argparse.ArgumentParser(prog="tool_b",
                              description="演示器乙：--dir/--apply 两旗标")
 ap.add_argument("--dir", metavar="DIR", help="目标目录")
 ap.add_argument("--apply", action="store_true", help="落刀")
+ap.parse_args()
+'''
+
+MINI_TOOL_C = '''#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""tool_c.py: fixture tool three (the V7 cap-derivation vector's newly
+registered tools/ entry point; flag shape mirrors tool_a)"""
+import argparse
+ap = argparse.ArgumentParser(prog="tool_c",
+                             description="fixture tool three: --out/--mode")
+ap.add_argument("--out", metavar="OUT", help="report output path")
+ap.add_argument("--mode", metavar="M", help="run mode")
 ap.parse_args()
 '''
 
@@ -1163,6 +1204,11 @@ def selftest():
     V5  CLI codes (--help 0; --bogus 2; missing --repo 9; --help-cap 0 -> 2)
     V6  JSON idempotence (same repo, two runs, different --json paths,
         byte-identical)
+    V7  the derived help cap (the default = the measured registry size +
+        the margin constant; a new tools/ registration raises the cap with
+        zero manual steps; an explicit smaller cap keeps the over-cap
+        report face: help not run, citations unproven, the effective cap
+        named in the message)
     """
     tmp = tempfile.mkdtemp(prefix="rocqwash_doclint_self_")
     here = os.path.dirname(os.path.abspath(__file__))
@@ -1273,11 +1319,70 @@ def selftest():
         rep = json.loads(ba.decode("utf-8"))
         assert rep["schema"] == SCHEMA and "doclint" in rep["schema"]
 
+        # ---- V7 the derived help cap + the over-cap report face ----
+        # derivation: the default cap = the measured registry size + margin,
+        # and the whole registry gets its real --help run (zero overflow)
+        rep1 = json.loads(io.open(j1, encoding="utf-8").read())
+        n1 = len(rep1["registry"]["scripts"])
+        assert rep1["registry"]["cap"] == n1 + HELP_CAP_MARGIN, \
+            rep1["registry"]
+        assert rep1["registry"]["overflow"] == [], rep1["registry"]
+        assert sorted(rep1["registry"]["help_run"]) \
+            == sorted(rep1["registry"]["scripts"]), rep1["registry"]
+        # registration simulation: a third tools/ entry point joins the mini
+        # repo; the derived cap follows the registry (n + margin) and covers
+        # the new tool with zero manual steps (the retired manual constant
+        # sat at the registry size and truncated until hand-raised; the
+        # unrouted tool_c shows up as the check-1 missing-route drift by
+        # design, which is what makes this run exit 1)
+        v7 = os.path.join(tmp, "v7")
+        make_mini_repo(v7)
+        with io.open(os.path.join(v7, "tools", "tool_c.py"), "w",
+                     encoding="utf-8", newline="\n") as fh:
+            fh.write(MINI_TOOL_C)
+        j7 = os.path.join(tmp, "v7.json")
+        p = run(["--repo", v7, "--json", j7])
+        assert p.returncode == 1, p.stdout[-1200:]
+        rep = json.loads(io.open(j7, encoding="utf-8").read())
+        n7 = len(rep["registry"]["scripts"])
+        assert n7 == n1 + 1, rep["registry"]
+        assert rep["registry"]["cap"] == n7 + HELP_CAP_MARGIN, \
+            rep["registry"]
+        assert rep["registry"]["cap"] > rep1["registry"]["cap"], \
+            rep["registry"]
+        assert sorted(rep["registry"]["help_run"]) \
+            == sorted(rep["registry"]["scripts"]), rep["registry"]
+        assert rep["registry"]["overflow"] == [], rep["registry"]
+        assert not any("over the help cap" in c["detail"]
+                       for c in rep["checks"]), rep["checks"]
+        # over-cap semantics preserved: an explicit smaller cap truncates in
+        # canonical order and the over-cap report face names the EFFECTIVE
+        # cap (not the derivation input), the honesty face of the truncation
+        j7c = os.path.join(tmp, "v7c.json")
+        p = run(["--repo", v7, "--help-cap", "1", "--json", j7c])
+        assert p.returncode == 1, p.stdout[-1200:]
+        rep = json.loads(io.open(j7c, encoding="utf-8").read())
+        assert rep["registry"]["cap"] == 1, rep["registry"]
+        assert rep["registry"]["help_run"] == ["tools/tool_a.py"], \
+            rep["registry"]
+        assert rep["registry"]["overflow"] == ["tools/tool_b.py",
+                                               "tools/tool_c.py"], \
+            rep["registry"]
+        hit = [c for c in rep["checks"] if c["kind"] == "flag"
+               and c["status"] == "drift"
+               and c["target"] == "tools/tool_b.py"
+               and "over the help cap 1" in c["detail"]
+               and "unproven" in c["detail"]]
+        assert hit, rep["checks"]
+        assert rep["counts"]["flag"]["drift"] >= 1, rep["counts"]
+
         print("DOC-LINT-SELFTEST PASS: the consistent repo with zero drift /"
               " the missing tool-table row (hint) / the count drift (3 vs 2) /"
               " the phantom flag (--bogus-flag) / the CLI codes + the cap value"
-              " validation / the JSON idempotence byte-identical — all six"
-              " vectors pass")
+              " validation / the JSON idempotence byte-identical / the derived"
+              " help cap (default = registry + margin, a new registration"
+              " auto-follows, the over-cap face preserved): all seven vectors"
+              " pass")
         return 0
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -1307,10 +1412,14 @@ def main():
                     help="the report output path (rocqwash-doclint/1;"
                          " sort_keys determinism)")
     ap.add_argument("--help-cap", dest="help_cap", type=int,
-                    default=DEFAULT_HELP_CAP, metavar="N",
-                    help="the check-3 --help real-run tool cap (default 32;"
-                         " over-cap tools truncate in canonical order and are"
-                         " listed honestly)")
+                    default=None, metavar="N",
+                    help="the check-3 --help real-run tool cap (default:"
+                         " derived at run time = the measured registry size"
+                         " plus the margin constant, so a new tool"
+                         " registration raises the cap with zero manual"
+                         " steps; an explicit value wins; over-cap tools"
+                         " truncate in canonical order and are listed"
+                         " honestly)")
     args = ap.parse_args(argv)
 
     try:

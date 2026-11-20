@@ -1,22 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""test_retrofit_dryrun.py — verify/retrofit_gate7_irr.py 干跑自测（rocqwash tests/）。
+"""test_retrofit_dryrun.py — dry-run selftest for `verify/retrofit_gate7_irr.py` (rocqwash tests/).
 
-被测件形制：retrofit_gate7_irr.py 无 CLI 参数，SRC/OUT/FROZEN_MD5 硬编码席位路径
-（retrofit_gate7_irr.py:7-11）。本测以模块导入＋常量补丁方式，把其真实 main()
-驱动到 tests/fixtures/retrofit_cn_sample.v（含中文注释样例）上，并守卫 io.open
-写通道——写请求被截获到内存，**任何字节都不落盘**（dry-run 不落盘的机械化证明）。
+Purpose.  Drive the real main() of `verify/retrofit_gate7_irr.py` over the fixture
+  `tests/fixtures/retrofit_cn_sample.v` (a Chinese-comment sample) and mechanically prove
+  the dry run writes nothing.  The tool takes no CLI arguments; SRC/OUT/FROZEN_MD5 are
+  hardcoded module paths (`retrofit_gate7_irr.py:7-11`), so the test imports the module,
+  patches the constants, and guards the io.open write channel: write requests are
+  intercepted into memory and no byte reaches disk (the mechanical proof of a no-write
+  dry run).  Criteria (all pass -> exit 0, any failure -> nonzero):
+  R1 the fixture and the module anchor table mod.M are mechanically co-sourced
+    (in-memory rebuild md5 == on-tree fixture md5);
+  R2 the dry-run main() passes all built-in assertions (token-stream identity,
+    line-count arithmetic, output ASCII — asserted inside main);
+  R3 exactly one write-mode open, target exactly the patched OUT, and that
+    path does not exist after the dry run (nothing on disk);
+  R4 output CJK -> 0, non-ASCII -> 0, all five fields present;
+  R5 the source fixture md5 is unchanged across the run (read-only).
 
-判据（全过 exit 0，任一失锐非零）：
-  R1 fixture 与模块锚表 mod.M 机械同源（内存重建 md5 == present in the tree fixture md5）；
-  R2 dry run main() 全断言通过（含 token 流恒等、行数算术、输出 ASCII——main 内建）；
-  R3 全程写模式 open 恰好 1 次、目标恰为补丁后的 OUT、该路径干跑后不存在（不落盘）；
-  R4 干跑产物 CJK→0、非 ASCII→0、五字段齐备；
-  R5 源样例件干跑前后 md5 不变（只读）。
+Interface.  python3 tests/test_retrofit_dryrun.py            # run the test (no file change);
+  python3 tests/test_retrofit_dryrun.py --regen  # rebuild the fixture from mod.M (maintenance).
 
-用法：
-  python3 tests/test_retrofit_dryrun.py            # 跑测（不改任何文件）
-  python3 tests/test_retrofit_dryrun.py --regen    # 由 mod.M 重建 fixture（维护用）
+Dependencies.  Python 3 standard library only (hashlib, importlib.util, io, os, re, sys, types);
+  imports `verify/retrofit_gate7_irr.py` as a module (main() only executes under __main__).
+
+Evidence.  R3 is the mechanical no-write proof (write count == 1, sentinel path absent,
+  original OUT md5 stable); R1 pins fixture drift (FAIL-LOUD FIXTURE-DRIFT); R4/R5 pin output and source integrity by md5.
+
+Exit-codes.  0 = all criteria pass; 1 = any criterion failing (fail loud).
 """
 import hashlib
 import importlib.util
@@ -43,14 +54,17 @@ FIELDS = ("Mission.", "Dependencies.", "References.", "Constructivity.", "Build.
 def load_tool():
     spec = importlib.util.spec_from_file_location("retrofit_gate7_irr", TOOL)
     mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)  # main() 仅在 __main__ 下执行，导入安全
+    spec.loader.exec_module(mod)  # main() only executes under __main__, so importing is safe
     return mod
 
 
 def wrap_anchor(anchor, ln):
-    """把锚串包进单行注释且保证嵌套注释深度归零、锚串逐字连续。
-    锚内自带「*)」（如 399 行「…转写） *）」收口续行锚）时不得再补尾缀；
-    深度模拟不可包（锚中「*)」提前归零且后随字符）→ 返回 None fail-loud。"""
+    """Wrap the anchor string into a single-line comment while keeping the
+    nested-comment depth at zero and the anchor text verbatim-contiguous.
+    An anchor that itself carries "*)" (e.g. the line-399 closing continuation
+    anchor) must not receive an extra suffix; an anchor that cannot be wrapped
+    as a single-line comment (its "*)" closes the depth early with characters
+    trailing) returns None (fail loud)."""
     line = "(* " + anchor
     depth, i = 1, 0
     while i < len(anchor):
@@ -68,11 +82,13 @@ def wrap_anchor(anchor, ln):
 
 
 def build_fixture_text(mod):
-    """由 mod.M 锚表机械合成 843 行（842 行＋末换行）中文注释样例。
-    形制断言源自 retrofit_gate7_irr.py main()：
-      L34 以「(* ====」起且自闭合（strip_comments 深度守恒）· L35 空行 ·
-      L36 恰为 'Require Import S01_BaseRing.'；
-      每个锚行含对应中文锚串；其余行纯 ASCII（coverage 断言要求未映射行零 CJK）。"""
+    """Synthesize the 843-line (842 lines plus trailing newline) Chinese-comment
+    sample mechanically from the mod.M anchor table.  Shape assertions come
+    from `retrofit_gate7_irr.py` main(): L34 opens with "(* ====" and is
+    self-closing (strip_comments depth conservation), L35 is empty, L36 is
+    exactly 'Require Import S01_BaseRing.'; every anchor line carries its
+    Chinese anchor string; the remaining lines are pure ASCII (the coverage
+    assertion requires zero CJK on unmapped lines)."""
     n_lines = 842
     lines = ["(* rocqwash selftest filler line %d *)" % (i + 1) for i in range(33)]
     lines.append("(* ==== legacy header separator (replaced wholesale) ==== *)")  # L34
@@ -107,7 +123,7 @@ def main(argv):
         print("REGEN %s (%d bytes, md5 %s)" % (FIXTURE, len(text.encode()), md5_of(FIXTURE)))
         return 0
 
-    # R1: fixture 与锚表同源
+    # R1: the fixture and the anchor table share one source
     expected_text = build_fixture_text(mod)
     if not os.path.exists(FIXTURE):
         print("FAIL-LOUD: fixture missing: %s （--regen 重建）" % FIXTURE)
@@ -119,7 +135,8 @@ def main(argv):
     n_cjk_lines = sum(1 for l in expected_text.split("\n") if CJK_RE.search(l))
     assert n_cjk_lines >= 50, "中文注释样例应含 ≥50 行中文（实测 %d）" % n_cjk_lines
 
-    # 常量补丁：源=present in the tree fixture；OUT=从不存在的哨兵路径（干跑后必须仍不存在）
+    # Constant patch: source = the on-tree fixture; OUT = a sentinel path that
+    # never exists (and must still not exist after the dry run)
     mod.SRC = FIXTURE
     mod.FROZEN_MD5 = fixture_md5_before
     sentinel_out = os.path.join(HERE, ".dryrun_sentinel_never_written.v")
@@ -127,9 +144,10 @@ def main(argv):
     orig_out_md5_before = md5_of(orig_out) if os.path.exists(orig_out) else None
     mod.OUT = sentinel_out
 
-    # 写通道守卫：所有写模式 open 截获到内存；已「虚拟写入」路径的后续读
-    # （main 末尾 md5_of(OUT) 回读，retrofit_gate7_irr.py:204）由内存副本供给——
-    # 全程零字节落盘。
+    # Write-channel guard: every write-mode open is intercepted into memory;
+    # a later read of a virtually written path (the md5_of(OUT) readback at the
+    # end of main, retrofit_gate7_irr.py:204) is served from the memory copy —
+    # zero bytes reach disk for the whole run.
     writes = []
     written = {}
     real_open = mod.io.open
@@ -154,11 +172,13 @@ def main(argv):
 
     mod.io = types.SimpleNamespace(open=guarded_open)
 
-    # R2: dry run main()——任一内建 fail-loud 断言（md5/行形/锚/coverage/ASCII/token 恒等）
-    #     失败即抛 AssertionError → 本测非零退出。
+    # R2: dry-run main() — any built-in fail-loud assertion (md5/line shape/
+    #     anchors/coverage/ASCII/token identity) raises AssertionError and the
+    #     test exits nonzero.
     mod.main()
 
-    # R3: 恰一次写请求，目标=补丁后 OUT，且该路径不存在（不落盘铁证）
+    # R3: exactly one write request, target = the patched OUT, and that path
+    #     does not exist (the on-disk proof of a no-write run)
     assert len(writes) == 1, "写模式 open 应恰 1 次，实测 %d" % len(writes)
     wpath, wbuf = writes[0]
     assert wpath == sentinel_out, "写目标应为哨兵 OUT，实测 %s" % wpath
@@ -168,7 +188,7 @@ def main(argv):
     else:
         assert md5_of(orig_out) == orig_out_md5_before, "原席位 OUT md5 被改（违规）: %s" % orig_out
 
-    # R4: 产物 CJK→0 / 非 ASCII→0 / 五字段齐备
+    # R4: output CJK -> 0 / non-ASCII -> 0 / all five fields present
     out_text = "".join(wbuf)
     assert not CJK_RE.search(out_text), "产物残留 CJK"
     assert not CJKPUNCT_RE.search(out_text), "产物残留 CJK 标点"
@@ -179,7 +199,8 @@ def main(argv):
     n_src = len(expected_text.split("\n"))  # 843
     assert n_out == len(mod.HEADER) - mod.HEADER_OLD_LINES + n_src, "行数算术 %d" % n_out
 
-    # R5: 源样例只读（干跑前后 md5 恒等）
+    # R5: the source sample is read-only (md5 identical before and after the
+    #     dry run)
     assert md5_of(FIXTURE) == fixture_md5_before, "源样例 md5 变化（被写）"
 
     print("RETROFIT-DRYRUN PASS: main() 全断言过；写请求 %d 次全部截获（零落盘）；"

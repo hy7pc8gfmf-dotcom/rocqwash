@@ -4,35 +4,40 @@ Purpose.  One mechanical round: census -> apply -> verify (py_compile /
   bash -n gates, norm_lint / doc_lint advisory) -> auto_round commit ->
   push -> route the CI judge (R13 sub-face 4).  Frozen faces stay
   excluded by jargon_apply; zero fixes = no-op pass; residue != 0 =
-  fail-loud red.
-Interface.  python3 tools/selfevolve_round.py [--dry-run] [--pin-repair
-  [--seed P]].  --pin-repair (A-batch leg, before census, never fatal)
-  plans the seed pins (tools/pin_repair.py --plan): no drift = clean
-  skip; absent pins = hosted structural blind (one ledger row, no
-  commit); drift = --apply + an independent auto_round commit (class
+  fail-loud red.  --pin-repair (A-batch leg, before census, never
+  fatal) plans the seed pins (tools/pin_repair.py --plan): no drift =
+  clean skip; absent pins = hosted structural blind (one ledger row,
+  no commit); drift = --apply + an independent auto_round commit (class
   R15-repair, rides the round push); refusal = loud; --dry-run plans
-  only.  Every round prints one cadence report JSON line: cadence_hint
-  from docs/scheduling-feedback.json via the finite in-code tier table
-  (alert: escalated >= 3, or repaired == 0 with >= 5 recorded repair
-  actions; slow: rate < 0.2; else normal; absent feedback = normal);
-  escalated >= 3 also appends one cadence-alert ledger row (loud).
+  only.  The cadence report line maps docs/scheduling-feedback.json
+  onto the finite in-code tier table (see read_cadence_hint); escalated
+  >= 3 also appends one cadence-alert ledger row (loud).
+Interface.  python3 tools/selfevolve_round.py [--dry-run] [--pin-repair
+  [--seed P]] | --selftest (frozen offline vectors, exits).
 Dependencies.  Standard library only; no network face added (judge
   routing reuses gh_dispatch); subprocess faces: jargon_apply.py,
   pin_repair.py (-I), auto_round.py, py_compile / bash -n, the lints;
   the ledger path reads env ROCQWASH_REPAIR_PLAN_LEDGER (default
   docs/repair-plan-ledger.jsonl).
-Evidence.  Vectors: zero-drift skip; hosted-blind ledger row; drift
-  apply + independent commit; refusal fail-loud; cadence tier fixtures.
+Evidence.  Vectors: zero-drift skip; hosted-blind ledger row; refusal
+  fail-loud; cadence tier fixtures.  Selftest vectors are offline: a
+  private temp cwd with stub executors, zero network, the default docs/
+  ledger resolving inside the temp volume, the real cron faces never
+  launched.
 Exit-codes.  0 green / clean no-op; 2 fail-loud red (apply residue,
-  admission refusal, push refusal); 3 census report unreadable; the
-  pin-repair leg and the cadence report never change the exit code.
+  admission refusal, push refusal); 3 census report unreadable; 1
+  selftest red; the pin-repair leg and the cadence report never change
+  the exit code.
 """
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
+import types
 
 REPO = os.environ.get("GITHUB_REPOSITORY", "hy7pc8gfmf-dotcom/rocqwash")
 PY = sys.executable or "python3"
@@ -112,6 +117,8 @@ def build_parser():
     ap.add_argument("--seed", default=PIN_REPAIR_SEED_DEFAULT,
                     help="seed path forwarded to pin_repair (default: "
                          + PIN_REPAIR_SEED_DEFAULT + ")")
+    ap.add_argument("--selftest", dest="selftest", action="store_true",
+                    help="run the frozen offline vector group and exit")
     return ap
 
 
@@ -313,8 +320,309 @@ def emit_cadence_report():
                              ledger_path()))
 
 
+# ---- selftest (frozen offline vectors; zero network, stub executors in
+# a private temp cwd, the default docs/ ledger resolving inside the temp
+# volume, the real cron faces never launched) ----
+
+# Census-plan fixtures (jargon_apply --json report shapes read in main:
+# the would_fix list, the fixes list, the bare count, unreadable JSON).
+CENSUS_ZERO = {"would_fix": []}
+CENSUS_TWO = {"would_fix": ["face_a.py", "face_b.py"]}
+CENSUS_COUNT = {"fixes": 3}
+
+# Pin-repair plan fixtures (pin_repair --plan one-JSON-line stdout forms
+# the plan leg routes on: none / hosted-absent / drifted).  The Python
+# forms feed the stub source; the json.dumps forms feed the parse vector.
+PLAN_NONE = {"action": "none", "ok": True, "drifted": []}
+PLAN_ABSENT = {"action": "plan", "ok": False,
+               "absent": ["seeds/pin-a"], "drifted": []}
+PLAN_DRIFT = {"action": "plan", "ok": False, "absent": [],
+              "drifted": ["seeds/pin-a"]}
+PLAN_NONE_LINE = json.dumps(PLAN_NONE)
+PLAN_ABSENT_LINE = json.dumps(PLAN_ABSENT)
+PLAN_DRIFT_LINE = json.dumps(PLAN_DRIFT)
+
+# Cadence feedback fixtures (docs/scheduling-feedback.json shapes judged
+# by read_cadence_hint against the finite tier table).
+FEEDBACK_ALERT_ESCALATED = {"repair_outcomes": {"escalated": 3,
+                                                "repaired": 1}}
+FEEDBACK_ALERT_ZERO_REPAIR = {"repair_outcomes": {"escalated": 0,
+                                                  "repaired": 0,
+                                                  "errors": 5}}
+FEEDBACK_SLOW = {"repair_outcomes": {"escalated": 0, "repaired": 2,
+                                     "repair_action_rate": 0.1}}
+FEEDBACK_NORMAL = {"repair_outcomes": {"escalated": 1, "repaired": 4,
+                                       "repair_action_rate": 0.5}}
+
+# Stub executors launched instead of the real ones: each prints or writes
+# exactly the report the round reads (or fails on demand) and never
+# touches anything outside the temp cwd.  Their per-vector behavior is
+# selected by a control file in the cwd (no environment seam needed).
+STUB_PIN_REPAIR = '''\
+import json
+import sys
+
+def read_mode(default):
+    try:
+        with open("pin-mode.txt", "r", encoding="utf-8") as fh:
+            got = fh.read().strip()
+    except OSError:
+        got = ""
+    return got or default
+
+mode = read_mode("none")
+if "--plan" in sys.argv[1:]:
+    if mode == "fail":
+        sys.stderr.write("stub plan failure\\n")
+        sys.exit(3)
+    reports = %(reports)r
+    print(json.dumps(reports[mode]))
+    sys.exit(0)
+if "--apply" in sys.argv[1:]:
+    with open("apply-ran.txt", "w", encoding="utf-8") as fh:
+        fh.write("apply\\n")
+    print(json.dumps({"action": "apply", "ok": True}))
+    sys.exit(0)
+sys.exit(5)
+''' % {"reports": {"none": PLAN_NONE, "absent": PLAN_ABSENT,
+                   "drift": PLAN_DRIFT}}
+
+STUB_JARGON_APPLY = '''\
+import json
+import sys
+
+def read_mode(default):
+    try:
+        with open("census-mode.txt", "r", encoding="utf-8") as fh:
+            got = fh.read().strip()
+    except OSError:
+        got = ""
+    return got or default
+
+mode = read_mode("zero")
+if "--plan" in sys.argv[1:]:
+    docs = %(docs)r
+    doc = docs[mode]
+    if doc is None:
+        with open("round-plan.json", "w", encoding="utf-8") as fh:
+            fh.write("{not json")
+    else:
+        with open("round-plan.json", "w", encoding="utf-8") as fh:
+            json.dump(doc, fh)
+    sys.exit(0)
+if "--apply" in sys.argv[1:]:
+    with open("apply-ran.txt", "w", encoding="utf-8") as fh:
+        fh.write("apply\\n")
+    sys.exit(5)  # residue: the apply gate refuses the round
+sys.exit(5)
+''' % {"docs": {"zero": CENSUS_ZERO, "two": CENSUS_TWO,
+                "count": CENSUS_COUNT, "broken": None}}
+
+
+def selftest():
+    """Frozen offline vectors over the judgment faces (executor report
+    parsing, the census zero / dry-run / residue / unreadable forms, the
+    pin-repair plan verdicts, the cadence tier table).  Zero network; the
+    round runs in a private temp cwd against stub executors, so the
+    default docs/ ledger lands inside the temp volume; the real cron
+    faces never launch.  Returns 0 when every vector is green, 1 with
+    the failing names on stdout."""
+    failures = []
+    total = [0]
+
+    def vec(name, ok, detail):
+        total[0] += 1
+        print(("PASS " if ok else "FAIL ") + name + " - " + detail)
+        if not ok:
+            failures.append(name)
+
+    script = os.path.abspath(__file__)
+    tmp = tempfile.mkdtemp(prefix="rocqwash_selfevolve_selftest_")
+    tools_dir = os.path.join(tmp, "tools")
+    docs_dir = os.path.join(tmp, "docs")
+    os.makedirs(tools_dir)
+    os.makedirs(docs_dir)
+    for name, source in (("pin_repair.py", STUB_PIN_REPAIR),
+                         ("jargon_apply.py", STUB_JARGON_APPLY)):
+        with open(os.path.join(tools_dir, name), "w",
+                  encoding="utf-8", newline="\n") as fh:
+            fh.write(source)
+    # the ledger seam stays on the tool's own relative default: the round
+    # runs with cwd=tmp, so its default docs/ ledger lands inside the
+    # temp volume and the standing ledger is never touched
+    ledger = os.path.join(docs_dir, "repair-plan-ledger.jsonl")
+    global FEEDBACK_PATH
+    saved_feedback = FEEDBACK_PATH
+
+    def spawn(argv):
+        """One round invocation of this script in the temp cwd; the child
+        env drops the ledger seam variable so the round resolves its
+        default docs/ path inside the temp volume (the standing ledger
+        never takes test rows, even on a host that exports the seam)."""
+        child_env = {k: v for k, v in os.environ.items()
+                     if k != LEDGER_ENV}
+        try:
+            p = subprocess.run([sys.executable, "-B", script] + argv,
+                               cwd=tmp, stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT, timeout=90,
+                               env=child_env)
+        except subprocess.TimeoutExpired:
+            return None, "timeout"
+        out = p.stdout.decode("utf-8", "replace") \
+            if isinstance(p.stdout, bytes) else (p.stdout or "")
+        return p.returncode, out
+
+    def set_mode(name, value):
+        with open(os.path.join(tmp, name), "w", encoding="utf-8",
+                  newline="\n") as fh:
+            fh.write(value)
+
+    def clear():
+        for name in ("apply-ran.txt", "round-plan.json",
+                     "round-apply.json"):
+            path = os.path.join(tmp, name)
+            if os.path.exists(path):
+                os.remove(path)
+        if os.path.exists(ledger):
+            os.remove(ledger)
+
+    def ledger_rows():
+        with open(ledger, "r", encoding="utf-8") as fh:
+            return [json.loads(ln) for ln in fh if ln.strip()]
+
+    try:
+        # executor report parsing (the plan reading face)
+        rep = executor_report(types.SimpleNamespace(
+            stdout="noise line\n" + PLAN_NONE_LINE + "\n"))
+        vec("executor-report-last-line-wins",
+            rep == {"action": "none", "ok": True, "drifted": []},
+            "parsed=%s" % (rep,))
+        vec("executor-report-rejects-non-dict",
+            executor_report(types.SimpleNamespace(stdout="[1, 2]\n")) is None
+            and executor_report(types.SimpleNamespace(stdout="nope\n")) is None
+            and executor_report(types.SimpleNamespace(stdout="")) is None,
+            "list / invalid / empty stdout all read as None")
+        # outcome_count forms (a broken value never invents an alert)
+        vec("outcome-count-forms",
+            outcome_count(True) == 0 and outcome_count(-3) == 0
+            and outcome_count([1, 2, 3]) == 3 and outcome_count("5") == 0,
+            "bool / negative / list / string read as 0 / 0 / 3 / 0")
+
+        # cadence tier table (fixtures through read_cadence_hint)
+        def cadence(doc, raw=None):
+            path = os.path.join(tmp, "feedback.json")
+            with open(path, "w", encoding="utf-8", newline="\n") as fh:
+                fh.write(raw if raw is not None
+                         else json.dumps(doc, sort_keys=True))
+            global FEEDBACK_PATH
+            FEEDBACK_PATH = path
+            return read_cadence_hint()
+
+        s = cadence(FEEDBACK_ALERT_ESCALATED)
+        vec("cadence-escalated-alert",
+            s["cadence_hint"] == "alert" and s["escalated"] == 3,
+            "hint=%s note=%s" % (s["cadence_hint"], s["note"]))
+        s = cadence(FEEDBACK_ALERT_ZERO_REPAIR)
+        vec("cadence-zero-repair-alert",
+            s["cadence_hint"] == "alert"
+            and s["repair_actions_total"] == 5,
+            "hint=%s note=%s" % (s["cadence_hint"], s["note"]))
+        s = cadence(FEEDBACK_SLOW)
+        vec("cadence-rate-slow", s["cadence_hint"] == "slow",
+            "hint=%s note=%s" % (s["cadence_hint"], s["note"]))
+        s = cadence(FEEDBACK_NORMAL)
+        vec("cadence-normal",
+            s["cadence_hint"] == "normal"
+            and s["repair_actions_total"] == 5,
+            "hint=%s note=%s" % (s["cadence_hint"], s["note"]))
+        s = cadence(None, raw="{not json")
+        vec("cadence-unreadable-stays-normal",
+            s["cadence_hint"] == "normal" and s["note"] == "invalid-json",
+            "hint=%s note=%s" % (s["cadence_hint"], s["note"]))
+        s = cadence({"other": 1})
+        vec("cadence-malformed-stays-normal",
+            s["cadence_hint"] == "normal" and s["note"] == "malformed",
+            "hint=%s note=%s" % (s["cadence_hint"], s["note"]))
+        FEEDBACK_PATH = os.path.join(tmp, "absent-feedback.json")
+        s = read_cadence_hint()
+        vec("cadence-absent-normal",
+            s["cadence_hint"] == "normal" and s["note"] == "absent",
+            "hint=%s note=%s" % (s["cadence_hint"], s["note"]))
+
+        # round forms through the real flag face (stub executors, temp cwd)
+        apply_ran = os.path.join(tmp, "apply-ran.txt")
+        clear()
+        set_mode("census-mode.txt", "zero")
+        rc, out = spawn([])
+        vec("census-zero-clean-noop-rc0",
+            rc == 0 and "clean no-op pass" in out
+            and not os.path.exists(apply_ran),
+            "rc=%s zero fixes exit clean (no apply face launched)" % rc)
+        clear()
+        set_mode("census-mode.txt", "two")
+        rc, out = spawn(["--dry-run"])
+        vec("census-dry-run-rc0-no-writes",
+            rc == 0 and "dry-run: 2 fixes would apply" in out
+            and not os.path.exists(apply_ran),
+            "rc=%s dry-run plans only (no apply face launched)" % rc)
+        clear()
+        set_mode("census-mode.txt", "count")
+        rc, out = spawn([])
+        vec("census-apply-residue-refused-rc2",
+            rc == 2 and "apply residue gate refused" in out
+            and os.path.exists(apply_ran),
+            "rc=%s residue gate refuses the round (fail-loud)" % rc)
+        clear()
+        set_mode("census-mode.txt", "broken")
+        rc, out = spawn([])
+        vec("census-unreadable-rc3",
+            rc == 3 and "census report unreadable" in out,
+            "rc=%s an unreadable plan report reads rc 3" % rc)
+        clear()
+        set_mode("census-mode.txt", "zero")
+        set_mode("pin-mode.txt", "none")
+        rc, out = spawn(["--pin-repair"])
+        vec("plan-none-clean-skip-no-row",
+            rc == 0 and "no pin drift" in out and not os.path.exists(ledger),
+            "rc=%s action=none skips clean (zero ledger rows)" % rc)
+        clear()
+        set_mode("pin-mode.txt", "absent")
+        rc, out = spawn(["--pin-repair"])
+        rows = ledger_rows() if os.path.exists(ledger) else []
+        vec("plan-absent-hosted-blind-row",
+            rc == 0 and len(rows) == 1 and rows[0]["ok"] is False
+            and rows[0]["note"].startswith("hosted-blind"),
+            "rc=%s rows=%s" % (rc, rows))
+        clear()
+        set_mode("pin-mode.txt", "drift")
+        rc, out = spawn(["--pin-repair", "--dry-run"])
+        vec("plan-drift-dry-would-apply-only",
+            rc == 0 and "would apply (1 drifted pin" in out
+            and not os.path.exists(apply_ran)
+            and not os.path.exists(ledger),
+            "rc=%s dry-run plans the apply without launching it" % rc)
+        clear()
+        set_mode("pin-mode.txt", "fail")
+        rc, out = spawn(["--pin-repair"])
+        rows = ledger_rows() if os.path.exists(ledger) else []
+        vec("plan-fail-loud-ledger-row",
+            rc == 0 and len(rows) == 1 and rows[0]["ok"] is False
+            and "exit 3" in rows[0]["note"],
+            "rc=%s a failed plan records one loud ledger row" % rc)
+    finally:
+        FEEDBACK_PATH = saved_feedback
+        shutil.rmtree(tmp, ignore_errors=True)
+    print("selftest: %d vector(s), %d FAIL" % (total[0], len(failures)))
+    if failures:
+        print("selftest RED: %s" % ", ".join(failures))
+        return 1
+    return 0
+
+
 def main(argv=None):
     args = build_parser().parse_args(argv)
+    if args.selftest:
+        return selftest()
     dry = args.dry_run
     if args.pin_repair:
         try:

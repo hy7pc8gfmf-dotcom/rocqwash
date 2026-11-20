@@ -183,7 +183,7 @@ rocqwash <subcommand> [args...]
   wash|verify|seam|certify|watch → dynamic per-module routing:
       · exactly one NON-underscore-prefixed .py in the module dir = generic
         per-file entry → auto-routed
-      · underscore-prefixed .py = campaign tool → NOT auto-run (prevents
+      · underscore-prefixed .py = effort / work stream tool → NOT auto-run (prevents
         accidental writes to external sandboxes)
       · no generic entry → exit 3; multiple generic entries → exit 4 (listed
         for manual disambiguation)

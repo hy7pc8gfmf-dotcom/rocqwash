@@ -1,6 +1,6 @@
 {
   "schema": "rocqwash.ci-triage-table/1",
-  "version": "1.3",
+  "version": "1.4",
   "updated": "2026-11-19",
   "whitepaper": "docs/ci-whitepaper-recursive-era-v1-20261116.md",
   "consumer_contract": "Match the failing job's step log against markers (first match by precedence order); apply prescription; respect auto_repairable and escalation; record outcome (repaired/escalated/watch-only-guard-correct) in the repair ledger.",
@@ -229,7 +229,9 @@
       "markers": [
         "source drifted from the pinned snapshot",
         "re-transcribe the seed per the sync discipline",
-        "jargon/snapshot-md5"
+        "jargon/snapshot-md5",
+        "provenance pins red",
+        "normalized snapshot md5"
       ],
       "precedence": 15,
       "family": "content-red",
@@ -263,6 +265,20 @@
       "auto_repairable": false,
       "prescription": "Never re-sign in this shape - the current bytes are the STALER side and a re-sign would regress the pin and mask newer content. Signature check: the sync tool zero-write plan verdicts IN-SYNC while snapshot-md5 drifts (seed entries match the table, so only the pin-vs-file pair is stale) - that is the race, not R15 drift. Repair: bring the dev tree to the run head (desk; the runner checkout is already there), verify the seed suite green locally on the exact red commit, then rerun-failed-jobs (precedent run 44506833563 attempt 2 all-green, repair ledger EXP-20261119-0002). Durable cure candidate (third live evidence): repo-relative in-repo pin sources would collapse the two-tree window and the hosted structural blindness in one desk-gated design change. DESIGN LANDED (provenance v2, November 19, 2026, schema face docs/pin-provenance-v2.md): the race's repo-source form is structurally dead - a repo source is judged against the blob sha recorded in its own commit, so no second tree's working bytes can enter the judgment; the external freshness layer remains canonical-only with a declared SKIP.",
       "guard": "The pinned absolute path crosses two trees (the runner checkout vs the dev tree working file); between the JOB_STARTED ref-sync and working-file catch-up the two disagree. Same words as R15, opposite disease - the discriminator is the sync plan verdict. Re-signing is R15-only, behind a non-race diagnosis. DESIGN LANDED: the v2 pin form removes the two-tree window for repo sources (the pin travels inside the commit); the two-tree wording above is the v1 form's record and still applies to the external freshness layer on the canonical face."
+    },
+    {
+      "id": "R18",
+      "title": "evidence snapshot re-laid by a doc-face wave (i18n x evidence-layer conflict)",
+      "markers": [
+        "provenance pins red",
+        "normalized snapshot md5",
+        "jargon/snapshot-md5"
+      ],
+      "precedence": 18,
+      "family": "content-red",
+      "auto_repairable": false,
+      "prescription": "Restore evidence semantics: the true bytes (desktop-authority md5, preserved by the wave in the .zh.md sibling) return to the primary snapshot slot; the re-laid face moves to a clearly-labeled non-evidence name (.docface-re-laid); pins re-sign to the normalized snapshot md5 (annotation 8876e13f..., terminology 0eb8bf56... - v2 standing values). The foreign pin registers as a reconciliation finding for the seat (annotation-copy divergence desktop vs Mac, live case f390121c). Verify with python -I tests/t_engines_seeds.py (jargon segment 9/0, all five layers green).",
+      "guard": "_snapshots/ files are corpus, not prose: the five-gate sweep exempts them by registration (basis: byte-exact external evidence), and doc-face re-lays never touch them; upstream changes re-sign only from the DESKTOP authority through the sync tool (normalized md5), never from a foreign copy. The suite's snapshot-md5 check is the tripwire - it caught R15, R17 and R18 within one face run each."
     }
   ]
 }

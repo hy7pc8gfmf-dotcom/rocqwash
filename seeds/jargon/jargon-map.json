@@ -26,7 +26,7 @@
         "role": "tool-repository track: standard cells for faces absent from the annotation-track mapping table",
         "pin": {
           "kind": "git-blob-sha",
-          "value": "d27b64028811d6696463cddb2e33747fc09d2d68"
+          "value": "83effa3f1ade70953ed89815bb6c38588a6e7ea3"
         }
       },
       {
@@ -166,9 +166,13 @@
       "standard_source": "annotation-whitepaper section 4 mapping table (annotation track)",
       "source_line": 93,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "\\*\\*公理审计",
+        "嵌入认证载体",
+        "表新增「探针"
+      ],
       "cross_track_note": "Glossary section 4 (paper track) row, line 156: | 探针／验证探针 | **公理审计语句**（指嵌入认证载体的 `Print Assumptions` 验证语句时；定义见 §2.1 公共项） | axiom-audit statements | 20260928 用户裁；非学术术语＋与库内 `*_g3/probe` 禁引件语义撞车；内部工程文书可用；判例＝论文9 终验措辞＋经验卡 E1050 |",
-      "note": null
+      "note": "Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J011",
@@ -190,9 +194,15 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (tool-repository track)",
       "source_line": 94,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "\\*\\*主定理\\*",
+        "\\*论文7\\ 正",
+        "中）｜旗舰（",
+        "旗舰认证面／",
+        "通过／旗舰→"
+      ],
       "cross_track_note": "Glossary section 4 (paper track) row, line 155: | 旗舰 | **主定理** | main theorem | 竞赛／旗舰隐喻 |",
-      "note": "Guarded row: the standard cell carries a context guard (main theorem when followed by a boundary or punctuation); per-row handling required before any machine apply."
+      "note": "Guarded row: the standard cell carries a context guard (main theorem when followed by a boundary or punctuation); per-row handling required before any machine apply. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J013",
@@ -262,9 +272,12 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 64,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "\\*\\*冲突勘注",
+        "\\*\\*闭合\\*\\*"
+      ],
       "cross_track_note": "Glossary section 4 (paper track) row, line 130: | 收口 | **闭合** | closure（作「闭合」义时保留） | — |",
-      "note": "JARGON base row; verb sense: close out, noun context: close-out. 17 files."
+      "note": "JARGON base row; verb sense: close out, noun context: close-out. 17 files. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J019",
@@ -778,9 +791,11 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (tool-repository track)",
       "source_line": 79,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "旗舰认证面／"
+      ],
       "cross_track_note": null,
-      "note": null
+      "note": "Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J062",
@@ -802,9 +817,13 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 27,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "1003\\ 增",
+        "据」·席\\ 1",
+        "检索·席\\ 1"
+      ],
       "cross_track_note": null,
-      "note": "Role noun; agent is the general term, the one-worker-per-seat topology wording (seat-worker) stays on ledger and identifier surfaces. Seat numbers/names never enter prose. 106 files (席)."
+      "note": "Role noun; agent is the general term, the one-worker-per-seat topology wording (seat-worker) stays on ledger and identifier surfaces. Seat numbers/names never enter prose. 106 files (席). Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J064",
@@ -814,9 +833,13 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 27,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "1003\\ 增",
+        "4\\.1\\ 席位",
+        "\\*\\*——席位"
+      ],
       "cross_track_note": null,
-      "note": "Role noun; agent is the general term, the one-worker-per-seat topology wording (seat-worker) stays on ledger and identifier surfaces. Seat numbers/names never enter prose. 106 files (席)."
+      "note": "Role noun; agent is the general term, the one-worker-per-seat topology wording (seat-worker) stays on ledger and identifier surfaces. Seat numbers/names never enter prose. 106 files (席). Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J065",
@@ -826,9 +849,15 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 27,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "1003\\ 增",
+        "4\\.1\\ 席位",
+        "\\*\\*——席位",
+        "据」·席\\ 1",
+        "检索·席\\ 1"
+      ],
       "cross_track_note": null,
-      "note": "Role noun; agent is the general term, the one-worker-per-seat topology wording (seat-worker) stays on ledger and identifier surfaces. Seat numbers/names never enter prose. 106 files (席)."
+      "note": "Role noun; agent is the general term, the one-worker-per-seat topology wording (seat-worker) stays on ledger and identifier surfaces. Seat numbers/names never enter prose. 106 files (席). Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J066",
@@ -850,9 +879,15 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 29,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "1003\\ 增",
+        "4\\.1\\ 席位",
+        "ce｜落刀：",
+        "日期.{1,3}变更.{1,3}落刀",
+        "查）｜落刀："
+      ],
       "cross_track_note": null,
-      "note": "Apply the change to the tree. Default-dry-run tools apply only under an explicit `--apply` flag (cw.sh tool table, 27 files)."
+      "note": "Apply the change to the tree. Default-dry-run tools apply only under an explicit `--apply` flag (cw.sh tool table, 27 files). Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J068",
@@ -874,9 +909,15 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 31,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "1003\\ 升",
+        "保留确认\\ 1",
+        "留；\\*\\*对账",
+        "笔\\*\\*（对账",
+        "锚面刷新工单"
+      ],
       "cross_track_note": null,
-      "note": "Cross-checking two surfaces against each other (doc-vs-implementation counts, ledger-vs-state). 33 files."
+      "note": "Cross-checking two surfaces against each other (doc-vs-implementation counts, ledger-vs-state). 33 files. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J070",
@@ -1198,9 +1239,19 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 80,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "1003\\ 增",
+        "4\\.1\\ 席位",
+        "\\*AI\\ 味词",
+        "\\*\\*《形式化",
+        "\\*\\*三轮术语",
+        "层源；回执＝",
+        "嵌入认证载体",
+        "据」·席\\ 1",
+        "笔\\*\\*（对账"
+      ],
       "cross_track_note": null,
-      "note": "In the 65-face consolidated base. 2 files."
+      "note": "In the 65-face consolidated base. 2 files. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J097",
@@ -1210,9 +1261,13 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 81,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "1003\\ 增",
+        "4\\.1\\ 席位",
+        "锚面刷新工单"
+      ],
       "cross_track_note": null,
-      "note": "In the 65-face consolidated base and gate4 extended family (gate4_comment_guard.py:173). 16 files."
+      "note": "In the 65-face consolidated base and gate4 extended family (gate4_comment_guard.py:173). 16 files. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J098",
@@ -1222,9 +1277,11 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (tool-repository track)",
       "source_line": 79,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "旗舰认证面／"
+      ],
       "cross_track_note": null,
-      "note": null
+      "note": "Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J099",
@@ -1270,9 +1327,11 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 88,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "\\*\\*四关通过"
+      ],
       "cross_track_note": null,
-      "note": "全绿 → all passing; 绿判四件套 → four-point pass criterion (Table C). 68 files."
+      "note": "全绿 → all passing; 绿判四件套 → four-point pass criterion (Table C). 68 files. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J103",
@@ -1318,9 +1377,11 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 95,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "1003\\ 增"
+      ],
       "cross_track_note": null,
-      "note": "Banned face in gate4 extended family. 10 files."
+      "note": "Banned face in gate4 extended family. 10 files. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J107",
@@ -1330,9 +1391,12 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 96,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "1003\\ 增",
+        "4\\.1\\ 席位"
+      ],
       "cross_track_note": null,
-      "note": "1 file."
+      "note": "1 file. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J108",
@@ -1342,9 +1406,14 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 97,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "1003\\ 增",
+        "4\\.1\\ 席位",
+        "笔\\*\\*（对账",
+        "锚面刷新工单"
+      ],
       "cross_track_note": null,
-      "note": "21 files."
+      "note": "21 files. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J109",
@@ -1426,9 +1495,11 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 116,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "消费\\ 归一\\*"
+      ],
       "cross_track_note": null,
-      "note": "Standard term — translation mapping, keep as normalize (净名归一 → name normalization). 24 files."
+      "note": "Standard term — translation mapping, keep as normalize (净名归一 → name normalization). 24 files. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J116",
@@ -1462,9 +1533,11 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 131,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "波（修订波次"
+      ],
       "cross_track_note": null,
-      "note": "gate4 extended family (战役组织族). 1 file."
+      "note": "gate4 extended family (战役组织族). 1 file. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J119",
@@ -1534,9 +1607,11 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 137,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "｜坑／踩坑→"
+      ],
       "cross_track_note": null,
-      "note": "Colloquial family. 1 file."
+      "note": "Colloquial family. 1 file. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J125",
@@ -1594,9 +1669,11 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 143,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "1003\\ 增"
+      ],
       "cross_track_note": null,
-      "note": "JARGON base v1.5 row (候令/候查 family). 1 file."
+      "note": "JARGON base v1.5 row (候令/候查 family). 1 file. Authority-snapshot carve-out: exempt anchors quote verbatim rows of seeds/jargon/_snapshots/terminology-general-project-20260921.md (md5-pinned authority text; regex scope verified tree-unique)."
     },
     {
       "id": "J130",

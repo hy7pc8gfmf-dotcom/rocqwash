@@ -16,7 +16,6 @@ docs/en/architecture.md
 docs/jargon-to-standard-mapping-v1.md
 docs/ops-live-run-log-20261111.md
 docs/ops-realtime-service-v1.0-20261111.md
-docs/ops-sentinel-长驻手册-v1.0-20261112.md
 docs/perf-profile-v1.0-20261111.md
 docs/push-gate-dual-door-assessment-v1.0-20261111.md
 docs/retro-triage-Main仓全史-20261112.md
@@ -126,3 +125,6 @@ wrapper/wash_station.py
 wrapper/watch_rq.sh
 更新账.md
 docs/norm-lint-baseline-20261113.md
+# md5-pinned read-only authority snapshot (jargon seed provenance source 3):
+# its Chinese body is the authority text itself and is never translated.
+seeds/jargon/_snapshots/terminology-general-project-20260921.md

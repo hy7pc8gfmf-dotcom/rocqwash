@@ -1,24 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""test_unclog.py — tools/unclog.py 自测壳（tests/·20261111 v37 集成席挂接）
+"""test_unclog.py — selftest shell for tools/unclog.py (rocqwash tests/).
 
-疏通堵塞闭环引擎（probe 归集→chain_graph 挑根→cure_applier apply→rescan/
-resprobe 复核→verdict 判定·五步闭环·schema rocqwash-unclog/1）挂接件：器自带
---selftest 十矢量冻结向量组（绿径/诚实墙＋零链根补判/cure-miss/轮尽/缺省关
-实证/JSON 幂等/frozen 在册红拒/--loop 哨态 JSONL/CLI 四码·全 --injector canned
-罐装零真编译零真网络）已由铸席自证（退出码口径 2/2/9 三向由本集成席实跑验证：
---bogus=2·无参=2·--src 缺路=9），本壳只把它接进套件总入口并加用法面冒烟：
-  1 --selftest rc=0 且 stdout 含 "UNCLOG-SELFTEST PASS" 冻结标记
-  2 --help rc=0（argparse 用法面在位）
-  3 --bogus rc=2／无输入面 rc=2／--src 缺路 rc=9（退出码口径抽验）
+Purpose.  Wire the blockage-clearing closed-loop engine (`probe` collection ->
+  `chain_graph` root picking -> `cure_applier` apply -> rescan/`resprobe`
+  recheck -> verdict decision; five-step loop, schema rocqwash-unclog/1) into
+  the suite entry point and add a usage-face smoke.  The engine's own
+  --selftest frozen vector group (passing path / honest wall + zero-chain-root
+  recheck / cure-miss / rounds exhausted / default-off evidence / JSON
+  idempotence / frozen registered failing-key rejection / --loop watcher-state
+  JSONL / CLI four codes, all --injector canned: zero real compile, zero real
+  network) is attested by the tool itself; this shell re-asserts:
+  1 --selftest rc=0 and stdout carries the frozen marker "UNCLOG-SELFTEST PASS"
+  2 --help rc=0 (the argparse usage face is present)
+  3 --bogus rc=2 / no-input rc=2 / --src missing path rc=9 (exit-code sampling)
 
-用法：
-  python3 tests/test_unclog.py        # 套件内经 run_tests.sh 调
-  python3 -B tests/test_unclog.py     # 手动（-B 禁 __pycache__）
+Interface.  python3 tests/test_unclog.py        # suite lane (run_tests.sh)
+  python3 -B tests/test_unclog.py     # manual (-B keeps __pycache__ off)
 
-零触律：零真编译零网络零触真仓零写盘（--selftest 自管 tmp 工作目录·本壳
-只探用法面不跑真闭环）；python3 -B 禁 __pycache__。
-退出码：0=三判全过；1=任一红（fail-loud 响亮列红·禁静默）。
+Dependencies.  Python 3 standard library only (os, subprocess, sys); runs
+  tools/unclog.py as a subprocess; zero real compile, zero network, no
+  real-repository touch, no disk writes (--selftest manages its own tmp working
+  directory; this shell probes the usage face only, never the real loop).
+
+Evidence.  Each check runs the live tool and compares rc and stdout against
+  the frozen marker and the 2/2/9 exit-code convention of tools/unclog.py;
+  failing checks print loudly, one FAIL line each, never silent.
+
+Exit-codes.  0 = all three checks pass; 1 = at least one check failing.
 """
 import os
 import subprocess
@@ -30,7 +39,8 @@ MARK = "UNCLOG-SELFTEST PASS"
 
 
 def run(args):
-    """子进程跑闭环引擎（stdout+stderr 合流·零写盘零网络零编译）。"""
+    """Run the closed-loop engine in a subprocess (stdout and stderr merged;
+    zero disk writes, zero network, zero real compile)."""
     p = subprocess.run([sys.executable, "-B", TOOL] + args,
                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     return p.returncode, p.stdout.decode("utf-8", errors="replace")

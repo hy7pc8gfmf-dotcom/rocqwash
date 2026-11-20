@@ -1,71 +1,71 @@
 #!/bin/bash
-# wrapper/born_world.sh — born 世界基正典形固化层（canonical born-world builder）
-# 2026-10-31 席 rqadapt · 适配任务：组件 编译世界基（各席 born 链手造形正典化）
+# wrapper/born_world.sh — canonical born-world builder: fresh-copy certified sources into a world directory and compile each module through the guard wrapper.
 #
-# gap（本轮补齐对象）：编译为固有 cwd 绑定形——各席 cd $SEAT/world ＋
-#   rocq c -Q <world> ""（gcl 草案明文「-Q <world> ""（cwd 隔离）」；判例
-#   seat_nw7/tools/_nw7_born.sh:10 cd、:13-15 `-Q . ""`；E552 装载遮蔽判例定式
-#   「cd 后单一 `-Q . ""` 绑定编译·遮蔽源彻底出局」）。但该正形全靠各席手造脚本
-#   逐份重写，且 nw5 代际雷（born 世界≠认证代 cp·自带旧代 .v/.vo ⇒ 假绿/装载体
-#   遮蔽）无机械防线。本件把三段正形固化为仓内唯一 born 入口：
+# Purpose.  Build a born world in the canonical three-step form: (1) every .v source is copied fresh
+#   from the certified runtree source tree into the world directory (in-world stale sources are never
+#   reused; the copy is byte-asserted with cmp); (2) the working directory is bound to the world
+#   directory (cd); (3) the compile carries the single binding `-Q . ""` after the cd — the
+#   cwd-isolation form — so dependencies resolve only from the world cwd and out-of-tree .vo files
+#   cannot shadow the build. Reusing a previous generation's .v/.vo products inside a world directory
+#   produces spurious passes and stale loads; the three mechanical defenses are listed in Contract 2.
+#   Every compile launch goes through the thermal-guard wrapper (`tools/cpu_guard.sh` wired through `wrapper/guard.sh`).
 #
-#     ① RUNTREE 认证代 cp   一切 .v 一律从认证代源树**现拷**入 world（禁自带旧代
-#                             ——nw5 判例·world_md5_assert 账）；可选 --assert-md5
-#                             对源做 manifest md5 断言（代际漂移现形 fail-loud）；
-#                             cp 后逐件 cmp 字节断言。
-#     ② cd world            固有 cwd 绑定形（_nw7_born.sh:10 判例）。
-#     ③ -Q <world> ""       cd 后单一 `-Q . ""`（≡gcl 草案 `-Q <world> ""` cwd
-#                             隔离·同物理目录同绑定）；依赖只从本 world cwd 解析，
-#                             外树 .vo 零遮蔽（E552 判例）。
-#   每发编译整经温控（tools/cpu_guard.sh 冻结正本·wrapper/guard.sh 直通层接线）。
-#
-# 用法 Usage:
-#   bash wrapper/born_world.sh --runtree <认证代源目录(.v)> --world <目标世界目录>
-#        (--module <名[.v]> [--module …] | --order <清单文件·逐行一名 #注释忽略>)
-#        [--assert-md5 <manifest>] [--rc-out <born rc 台账>]
-#        [--env <env.sh>] [--reg <dir>] [--dry-run] [-h|--help]
-#   例 Example:
+# Interface.  bash wrapper/born_world.sh --runtree <certified source dir (.v)> --world <target world dir>
+#      (--module <name[.v]> [--module ...] | --order <list file, one name per line, # comments ignored>)
+#      [--assert-md5 <manifest>] [--rc-out <born rc ledger>]
+#      [--env <env.sh>] [--reg <dir>] [--dry-run] [-h|--help]
+#   Example:
 #     bash wrapper/born_world.sh --runtree "$RUNTREE" --world "$SB/world" \
 #          --module A --module B --assert-md5 "$RUNTREE/md5_manifest.txt" \
 #          --rc-out "$SB/logs/born_world.rc"
 #
-# 环境旋钮 Env knobs:
-#   BORN_WORLD_RUNTREE  缺省认证代源树（缺省 /Users/apple/Desktop/ConstructiveWorld/
-#                       ConstructiveWorld_Live——本战役判例源：rqadapt world_copy_smoke
-#                       两件与其逐字节 SAME 实测 20261031）；--runtree 显式给值优先。
-#   BORN_WORLD_ROCQ     rocq 绝对路径（缺省 Live toolchain 正典路径·与 wrapper/
-#                       coqc_shim.sh 同旋钮值）；缺失 fail-loud exit 9。
-#   BORN_WORLD_ENV      toolchain 环境源（缺省 Live/toolchain/env.sh；缺失＝响亮
-#                       警告后继续——rocq 用绝对路径不依赖 PATH·不静默）。
-#   BORN_WORLD_REG      guard 登记表目录（缺省 /tmp/cw_reg_born_world；席位惯例
-#                       自设如 /tmp/cw_reg_<seat>，双车道互不排队）。
-#   BORN_WORLD_FRONT/-MID/-MAXWAIT  guard 档位（缺省 0/1/600＝战役正典形）。
+# Environment knobs:
+#   BORN_WORLD_RUNTREE  default certified runtree source tree (default /Users/apple/Desktop/
+#                       ConstructiveWorld/ConstructiveWorld_Live); an explicit --runtree value takes
+#                       precedence.
+#   BORN_WORLD_ROCQ     absolute rocq path (default Live toolchain path; the same knob value as
+#                       `wrapper/coqc_shim.sh`); missing = fail-loud exit 9.
+#   BORN_WORLD_ENV      toolchain environment source (default Live/toolchain/env.sh; missing = loud
+#                       warning, then continue — rocq runs by absolute path, never silently).
+#   BORN_WORLD_REG      guard registry directory (default /tmp/cw_reg_born_world; a caller may point
+#                       it at its own directory, so parallel lanes never queue on each other).
+#   BORN_WORLD_FRONT/-MID/-MAXWAIT  guard knob levels (default 0/1/600 = the canonical form).
 #
-# 契约 Contract:
-#   1. guard 接线内建（每模块一发）：`wrapper/guard.sh -Reg … -Front 0 -Mid 1
-#      -MaxWaitSec 600 -- rocq c -native-compiler no -q -Q . "" <名>.v`
-#      （nw7:13-15 判例逐字·rocq 走 BORN_WORLD_ROCQ 绝对路径）。**调用者禁再外套
-#      guard**（同注册表死锁判例·nw8 20261031）。
-#   2. nw5 代际雷三防线：①一律现拷（world 旧 .v 不复用·先 cp 后 cmp 字节断言）；
-#      ②--assert-md5 manifest 逐件对**源 .v**断言（行格式兼容「<md5>␠␠<名>.v…」
-#        与「MD5 (<名>.v) = <md5>」；.vo 世界账≠源账·无 .v 断言行/不等＝exit 9）；
-#      ③编译前清该模块 world 内陈旧产物（.vo/.vos/.vok/.glob/.aux——nw7:12 判例）。
-#   3. 链停律（gclcure born_chain 判例）：按给定序逐件 born，遇红即停，退出码＝
-#      该件 rocq 退出码；红件 rc 台账照记（--rc-out 每行「<名>.v RC=<n>」）。
-#   4. 环境正典化（nw7 判例逐项）：source env.sh（如有）→ unset COQLIB ROCQLIB →
-#      ulimit -s 65532。
-#   5. 写盘面 ROOT 声明（CONTRIBUTING §3.5）：仅 --world 目录内（cp 入的 .v＋
-#      rocq 产物＋缺省 rc 台账 $WORLD/born_world.rc）＋用户显式 --rc-out 路径；
-#      **不写两仓正本与各 seat 域任何路径**；--runtree 源树只读不写。
-#   6. 零网络：cp/cmp/md5/rocq c 全本地。
+# Dependencies.  bash 3.2-compatible; md5, cmp, cp, sed, grep from the base system; the rocq binary
+#   from the Live toolchain (absolute path); `wrapper/guard.sh` present in the repository (fail-loud
+#   exit 9 when the guard layer is missing); zero network — cp/cmp/md5/rocq c are all local.
 #
-# 退出码 Exit codes:
-#   0   = 全序 born 绿（各件 rc=0）
-#   2   = 本层用法错（未知形参/缺 --runtree/--world/order·module 缺一/二者同给/
-#         模块名带路径分隔符）
-#   9   = 文件缺失或代际断言败（runtree/world 不可用/某模块源缺失/md5 断言不等/
-#         rocq 缺失——fail-loud 不模拟任何行为）
-#   其余 = 首红件 rocq 退出码（链停透传）
+# Evidence.  tests/test_gate6_born_wrapper.py judges 10-21 exercise this script by subprocess:
+#   bash -n, -h, --bogus, missing inputs, order/module mutual exclusion, md5-manifest mismatch
+#   and .vo-only refusal, and the zero-write --dry-run canonical forms; judges 17, 18 and 20
+#   additionally assert no stray products or stage changes behind the dry-run and rc 9 paths.
+#   The dry-run output carries the exact guard knobs and the `-Q . ""` binding form.
+#
+# Contract:
+#   1. Guard wiring is built in (one launch per module): `wrapper/guard.sh -Reg … -Front 0 -Mid 1
+#      -MaxWaitSec 600 -- rocq c -native-compiler no -q -Q . "" <name>.v` (rocq runs via the
+#      BORN_WORLD_ROCQ absolute path). Callers must not add another outer guard layer — two layers sharing one registry deadlock.
+#   2. Three stale-generation defenses: (1) always copy fresh — in-world stale .v is never reused,
+#      copy then byte-compare (cmp); (2) --assert-md5 asserts every source .v against the manifest
+#      (accepted line forms: "<md5>  <name>.v..." and "MD5 (<name>.v) = <md5>"; located by name,
+#      the line's 32-hex token is taken; only .v source lines count — a missing .v assertion line
+#      or any mismatch = exit 9); (3) the module's stale products inside the world
+#      (.vo/.vos/.vok/.glob/.aux) are removed before compiling.
+#   3. Chain-stop rule: modules are born in the given order; the first failing module stops the
+#      chain and its rocq exit code becomes the script's exit code; the failing module's rc is
+#      still recorded (--rc-out appends one "<name>.v RC=<n>" line per module).
+#   4. Environment canonicalization: source env.sh (when present) → unset COQLIB ROCQLIB → ulimit -s 65532.
+#   5. Write-surface ROOT declaration (CONTRIBUTING §3.5): writes only inside the --world directory (the
+#      copied .v files, the rocq products, the default rc ledger $WORLD/born_world.rc) plus the user's
+#      explicit --rc-out path; no canonical repository or caller-domain path is written; --runtree is read-only.
+#   6. Zero network: cp/cmp/md5/rocq c are all local operations.
+# Exit-codes.  0 = the whole order born passing (every module rc=0); 2 = usage error at this layer; 9 = missing file or failed source assertion; any other code = the first failing module's rocq exit code (chain-stop pass-through).
+#   0   = the whole order born passing (every module rc=0)
+#   2   = usage error at this layer (unknown flag; missing --runtree/--world/order; neither one of
+#         --module/--order given, or both given; module name with a path separator)
+#   9   = missing file or failed source assertion (runtree/world unavailable; a module source missing;
+#         md5 assertion mismatch; rocq missing — fail-loud, no behavior simulated)
+#   any other code = the first failing module's rocq exit code (chain-stop pass-through)
 set -u
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -105,7 +105,7 @@ done
 fail2() { echo "wrapper/born_world.sh: $1" >&2; exit 2; }
 fail9() { echo "wrapper/born_world.sh: $1" >&2; echo "  (fail-loud exit 9：文件缺失/代际断言败不模拟任何行为)" >&2; exit 9; }
 
-# --- 用法面 fail-loud --------------------------------------------------------
+# --- usage checks, fail-loud -------------------------------------------------
 [ -n "$RUNTREE" ] || RUNTREE="$RUNTREE_DEF"
 [ -n "$WORLD" ] || fail2 "缺 --world <目标世界目录>"
 [ ${#MODULES[@]} -gt 0 ] || [ -n "$ORDERFILE" ] || fail2 "--order 与 --module 必给其一"
@@ -117,7 +117,7 @@ fail9() { echo "wrapper/born_world.sh: $1" >&2; echo "  (fail-loud exit 9：文�
 
 if [ -n "$ORDERFILE" ]; then
   [ -f "$ORDERFILE" ] || fail9 "--order 文件缺失: $ORDERFILE"
-  # 逐行一名·#注释与空行忽略（seat order 文件实盘形）
+  # one name per line; # comments and blank lines are ignored (the on-disk order-file form)
   while IFS= read -r line || [ -n "$line" ]; do
     m="$(printf '%s' "$line" | sed 's/#.*//' | tr -d '[:space:]')"
     [ -n "$m" ] && MODULES+=("$m")
@@ -125,7 +125,7 @@ if [ -n "$ORDERFILE" ]; then
   [ ${#MODULES[@]} -gt 0 ] || fail2 "--order 文件无有效模块名: $ORDERFILE"
 fi
 
-# 模块名归一：剥 .v 后缀；禁路径分隔符（world 为平树·gate6/gate7 同口径）
+# module-name normalization: strip the .v suffix; path separators rejected (world is a flat tree, same rule as gate6/gate7)
 NORM=()
 for m in "${MODULES[@]}"; do
   m="${m%.v}"
@@ -136,13 +136,13 @@ for m in "${MODULES[@]}"; do
 done
 MODULES=("${NORM[@]}")
 
-# --- 代际断言（nw5 雷防线②·先于任何落盘） ------------------------------------
-assert_md5() { # $1=模块名 → 源文件 md5 对 manifest 断言
+# --- source md5 assertion (stale-generation defense 2; runs before anything is written) ------
+assert_md5() { # $1 = module name; asserts the source file md5 against the manifest
   local m="$1" src="$RUNTREE/$m.v" want got line
   want="$(md5 -q "$src")" || fail9 "md5 计算失败: $src"
-  # 行格式兼容：「<md5>  <名>.v…」（源 manifest 实盘形）与
-  # 「MD5 (<名>.v) = <md5>」（md5 默认形）——按名定行·取行内 32-hex 令牌。
-  # 只认 .v 源行：.vo 世界账 md5 与源恒不等·宁 fail-loud 不哑比（nw5 雷防线②）。
+  # accepted line forms: "<md5>  <name>.v..." (the source manifest's on-disk form) and
+  # "MD5 (<name>.v) = <md5>" (md5's default form) — the line is located by module name and its
+  # 32-hex token taken; only .v source lines count — a .vo line never matches, so fail loud (defense 2).
   line="$(grep -nE "(^|[^A-Za-z0-9_])${m}\.v([^A-Za-z0-9_]|$)" "$MD5MAN" 2>/dev/null | head -1 || true)"
   [ -n "$line" ] || fail9 "代际断言败：manifest 无 ${m}.v 源断言行: $MD5MAN"
   got="$(printf '%s' "$line" | grep -oE '[0-9a-fA-F]{32}' | head -1)"
@@ -153,7 +153,7 @@ assert_md5() { # $1=模块名 → 源文件 md5 对 manifest 断言
   echo "MD5-ASSERT ${m}.v OK ($want)"
 }
 
-# --- dry-run 出账（零落盘） ---------------------------------------------------
+# --- dry-run report (zero writes) --------------------------------------------
 if [ "$DRYRUN" = "1" ]; then
   echo "BORN-WORLD-DRYRUN runtree: $RUNTREE"
   echo "BORN-WORLD-DRYRUN world:   $WORLD"
@@ -170,7 +170,7 @@ if [ "$DRYRUN" = "1" ]; then
   exit 0
 fi
 
-# --- ① 认证代 cp（一律现拷＋cmp 字节断言·雷防线①③） --------------------------
+# --- step 1: certified-source copy (always fresh + cmp byte assertion; defenses 1 and 3) -----
 mkdir -p "$WORLD" || fail9 "--world 不可建: $WORLD"
 for m in "${MODULES[@]}"; do
   src="$RUNTREE/$m.v"
@@ -178,12 +178,12 @@ for m in "${MODULES[@]}"; do
   [ -n "$MD5MAN" ] && assert_md5 "$m"
   cp -f "$src" "$WORLD/$m.v" || fail9 "cp 失败: $src -> $WORLD/$m.v"
   cmp -s "$src" "$WORLD/$m.v" || fail9 "cp 后 cmp 不等（nw5 雷防线①现形）: $WORLD/$m.v"
-  # 清该模块 world 内陈旧产物（雷防线③·nw7:12 判例）
+  # clear the module's stale products inside the world (defense 3)
   rm -f "$WORLD/$m.vo" "$WORLD/$m.glob" "$WORLD/$m.vos" "$WORLD/$m.vok" "$WORLD/.$m.aux"
   echo "CP-OK $RUNTREE/$m.v -> $WORLD/$m.v"
 done
 
-# --- ② 环境正典化（nw7 判例） -------------------------------------------------
+# --- step 2: environment canonicalization ------------------------------------
 if [ -f "$ENVSH" ]; then
   # shellcheck disable=SC1090
   . "$ENVSH"
@@ -193,7 +193,7 @@ fi
 unset COQLIB ROCQLIB
 ulimit -s 65532 2>/dev/null || true
 
-# --- ②③ cd world ＋ 逐件 born（链停律·rc 台账） --------------------------------
+# --- steps 2-3: cd into the world + born each module (chain-stop rule; rc ledger) -------------
 cd "$WORLD" || fail9 "cd world 失败: $WORLD"
 
 [ -n "$RCOUT" ] || RCOUT="$WORLD/born_world.rc"

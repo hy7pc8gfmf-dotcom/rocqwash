@@ -1,7 +1,7 @@
 #!/bin/bash
 # run_tests.sh — rocqwash tests/ self-test suite entry point
 #
-# Purpose.  Run the statically rostered 86-case suite one case at a time with a
+# Purpose.  Run the statically rostered 87-case suite one case at a time with a
 #   per-case PASS/FAIL/SKIP line and a final summary; all green exits 0, any red
 #   exits 1.  Idempotent: zero bytes written into the repository (python3 -B bans
 #   __pycache__; the temp log lives in mktemp under a trap; the wash and adaptation
@@ -21,7 +21,7 @@
 #   and the guarded compile-arc switch (ROCWASH_ROCQ / GATE7_PROBE_SCRIPT /
 #   GATE6_SCRIPT / BORN_WORLD_ROCQ), probed by default and overridable by env.
 #
-# Evidence.  One case per t_* function below; the per-case contract tables (86
+# Evidence.  One case per t_* function below; the per-case contract tables (87
 #   rows) live in tests/README.md; the CASES roster count is pinned by
 #   tools/doc_lint.py check 2 against the tests/README.md count lines; the roster
 #   is never written at run time.
@@ -33,6 +33,13 @@ set -u
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 FIX="$REPO/tests/fixtures"
 PY=${ROCWASH_PY:-python3}
+# Fail loud when the selected interpreter is a non-working stub (the Windows
+# Store python3 alias silently exits rc=49 on some hosts and produced the
+# unexplained rc=49 family); one probe, zero output, actionable hint.
+if ! "$PY" -c "import sys" >/dev/null 2>&1; then
+  echo "FAIL-LOUD: PY=$PY does not run on this host (store alias or broken shim?) - set ROCWASH_PY=<a working python> and retry" >&2
+  exit 49
+fi
 # Force UTF-8 I/O for every case and every child process they spawn: on a
 # Windows host the default stdout codepage (charmap on the hosted runner
 # image, gbk on a zh-CN host) makes a tool that prints Chinese prose or math
@@ -203,7 +210,8 @@ t_dual_scan \
  t_roster_resync \
  t_auto_merge \
  t_selfheal_guards \
- t_jargon_map_sync"
+ t_jargon_map_sync \
+ t_tool_selftests"
 NCASES=$(echo $CASES | wc -w | tr -d ' ')
 if [ "${ROCQWASH_TESTS_FAIL_PROBE:-0}" = "1" ]; then
   CASES="$CASES t_fail_probe"
@@ -755,7 +763,7 @@ t_doclint() {
   # docs-vs-implementation consistency three-check tool (tools/doc_lint.py;
   # tooling-agent cast; schema rocqwash-doclint/1; tests/test_doc_lint.py
   # minimal shell three checks: --selftest frozen marker DOC-LINT-SELFTEST
-  # PASS (tmp mini-repo six vectors V1-V6 self-attested by the casting
+  # PASS (tmp mini-repo seven vectors V1-V7 self-attested by the casting
   # agent's --selftest) + --help smoke + exit-code spot checks 2/2/9 (bogus /
   # --help-cap 0 / missing repo, verified by this integration agent's real
   # runs); zero network, zero writes, zero real-repo touch)
@@ -1188,6 +1196,19 @@ t_jargon_map_sync() {
   "$PY" -B "$REPO/tests/test_jargon_map_sync.py"
 }
 
+t_tool_selftests() {
+  # the tools/ selftest meta enumerator (tests/test_tool_selftests.py).
+  # Enumerates every tools/*.py (leading-'_'
+  # names excluded) and requires each tool to either pass its declared
+  # --selftest face (rc=0; rc=111 SKIP by the suite contract) or carry the
+  # in-file "# selftest-exempt: <basis>" registration.  Any red, missing, or
+  # unregistered selftest fails with the tool names listed, so a tool
+  # self-proof absence stays visible on every suite run and on both CI
+  # faces.  Per-tool subprocess cap 120 seconds; zero network; zero writes
+  # (python -B child runs; offline vector faces only).
+  "$PY" -B "$REPO/tests/test_tool_selftests.py"
+}
+
 # ---------- summary execution ----------
 
 echo "== rocqwash tests/ self-test suite (repo=${REPO}) =="
@@ -1206,6 +1227,8 @@ for c in $CASES; do
       printf '[%d/%d] %-26s FAIL (rc=%s)\n' "$TOTAL" "$NCASES" "$c" "$rc"
       echo "-------- $c output (first 40 lines) --------"
       sed -n '1,40p' "$LOG"
+      echo "-------- $c output (last 20 lines) --------"
+      tail -20 "$LOG"
       echo "------------------------------------"
     fi
   fi

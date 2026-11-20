@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# selftest-exempt: covered by suite cases t_vacgen_shape / t_vacgen_expectedred (roster PASS) + the vacgen segment of t_refinery (envelope wording)
 """vacgen.py (v2) - vacuity probe skeleton generator with shape recognition (four-layer engine, taxonomy-as-data).
 
 Purpose.

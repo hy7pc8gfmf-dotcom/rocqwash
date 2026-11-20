@@ -759,7 +759,7 @@ def _gate7_precheck(args):
 
 def gate_isolation(args, changed, book_paths):
     """Gate isolation: tally changed paths outside the contribution lane.
-    Warning-level only — the gate never blocks (protocol §2: anything a
+    Warning-level only: the gate never blocks (protocol §2: anything a
     contribution adds outside its lane must be justified in the intake
     record; this gate is that record's mechanical face)."""
     prefixes = parse_prefixes([args.lane_prefix]) or [DEFAULT_LANE_PREFIX]
