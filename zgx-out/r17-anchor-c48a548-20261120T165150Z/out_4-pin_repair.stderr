@@ -1,0 +1,3 @@
+pin_repair: seed=/Users/zuguangzhao/ComplexAnalysis/rocqwash-loop/seeds/jargon/jargon-map.json sources=3
+pin_repair: gate VERDICT IN-SYNC (plan is zero-write)
+pin_repair: repairs=0 blocked=0 upstream-absent=2
