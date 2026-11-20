@@ -1,0 +1,1 @@
+norm_lint: jargon map JSON malformed: /var/folders/xn/97w0w0x57rgf1tjjbhwx7h_c0000gn/T/rqw_jargon_seed_n84ph9jk/broken-map.json (Expecting property name enclosed in double quotes: line 1 column 3 (char 2))

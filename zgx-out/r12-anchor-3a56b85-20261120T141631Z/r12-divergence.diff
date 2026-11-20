@@ -1,0 +1,17 @@
+diff --git a/docs/scheduling-feedback.json b/docs/scheduling-feedback.json
+index a952af0..06998c8 100644
+--- a/docs/scheduling-feedback.json
++++ b/docs/scheduling-feedback.json
+@@ -14,9 +14,9 @@
+   "repair_outcomes": {
+     "errors": [],
+     "escalated": 0,
+-    "repair_action_rate": 0.0588,
+-    "repaired": 3,
+-    "unrecorded": 46,
++    "repair_action_rate": 0.0244,
++    "repaired": 1,
++    "unrecorded": 38,
+     "watch_only_guard_correct": 2
+   },
+   "rounds": {
