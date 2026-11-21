@@ -10,7 +10,7 @@ Purpose.
     Fixture A (well-formed face) must yield a well-formed envelope: red = REGRESSION.
     Fixture B (implicit-binder face) is the FLIPPED ENGINE-REPAIR PIN (docs/vacgen_sop.md
     section 2.5 erratum): the November 14, 2026 known-debt pin (debt signature present,
-    cast green) was flipped on November 22, 2026 with the cast-repair wave registration
+    cast green) was flipped on November 22, 2026 with the cast-repair work-stream registration
     (knife 1: L1 data-limb re-homing seats the implicit `{K : Set (...)}` binder into
     the existential prefix, vacgen.py sort_binders_into_segments/is_data_limb_face; the
     2.1.0 W5 cast-time front gate had made the old debt pin unreachable rc=1 before
@@ -51,7 +51,7 @@ VACGEN = os.path.normpath(os.path.join(HERE, "..", "tools", "vacgen.py"))
 # - fixture B (implicit-binder face: replica of the batch-1 item-16 shape,
 #   implicit `{K : Set (Fin n → ℝ)}` binder): the FLIPPED ENGINE-REPAIR PIN
 #   (docs/vacgen_sop.md section 2.5 erratum re-audit condition, flipped
-#   November 22, 2026 with the cast-repair wave registration).  Pin contract:
+#   November 22, 2026 with the cast-repair work-stream registration).  Pin contract:
 #   cast rc=0, the debt signature `∧ Set (` ABSENT (red here = the knife-1
 #   re-homing regressed and the ill-typed conjunction is back - never revert
 #   the engine to keep an older pin green), and K bound by its re-homed

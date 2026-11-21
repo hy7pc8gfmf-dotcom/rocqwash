@@ -8,7 +8,7 @@ Purpose.  Pin the vacgen lane deliverables at word-face level: the envelope
   W5 cast-time bare-type-conjunct-limb front gate (canonical face "∧ Set ("
   plus the self-built limb family; a deformed cast dies rc=1 before any file
   emission, with zero false positives on the castable faces; since the
-  cast-repair wave of November 22, 2026 the gate judges only faces left
+  cast-repair work stream of November 22, 2026 the gate judges only faces left
   unresolved by knife-1 data re-homing and knife-2 Prop resolution, with
   the opt-in --allow-bare-type-limb waiver registering released limbs in
   report.waiver), and the W6
@@ -106,7 +106,7 @@ G1_TRIAL_ENVELOPE = (EXISTS + " (I : Set A), " + EXISTS +
                      " (h : IsClosed I), True")
 
 # bare-type conjunct limb face: single limb (canonical face needs two limbs,
-# so the family prong carries this one).  Cast-repair wave, November 22,
+# so the family prong carries this one).  Cast-repair work stream, November 22,
 # 2026: the head is deliberately the UNKNOWN `Pkg` - the previous `Set (...)`
 # head now re-homes at L1 routing (knife 1: a data-family binder face is a
 # bound variable, not a conjunct limb), so the reject vector must pin the
