@@ -1,4 +1,4 @@
-# annotation-standard — rocqwash Annotation Standard Card v1.0 (issued November 13, 2026).
+# annotation-standard: rocqwash Annotation Standard Card v1.0 (issued November 13, 2026).
 > **AnnotationStandardCard**: the canonical comment/annotation standard for the rocqwash tool repository, v1.0 (November 13, 2026).
 >
 > Purpose.  Define the file-header form, the five-field doc block, the forbidden-word surface, and the bilingual-transition rules for every prose face of this repository (code comments, docstrings, shell help text, documentation), together with the error/warn grading a mechanical checker applies. Adapted from the M-work stream Annotation Card (October 25, 2026) into the tool-repository context; Appendix A (`docs/jargon-to-standard-mapping-v1.md`) supplies the per-word replacement table.
@@ -13,9 +13,9 @@
 
 ## 1. Scope
 
-1. **Object surfaces** — comments, docstrings, shell help text, and documentation prose (`*.py`, `*.sh`, `*.md`). This card governs what those surfaces say; it does not govern what the code does.
-2. **Stability boundary** — code identifiers, CLI flags, JSON schema field names, file-format names, and exit-code semantics are outside this card's rewrite scope in all cases (§5.4). A standard that moved an interface would fail the repository's own doc-vs-implementation consistency checks (`tools/doc_lint.py`).
-3. **Audience criterion (inherited from the `gate4` judgment principle)** — the only assumed reader of any prose face is an international reader with no internal project context. A sentence whose comprehension requires internal organization, process history, or agent topology is non-conforming even when no listed word appears.
+1. **Object surfaces**; comments, docstrings, shell help text, and documentation prose (`*.py`, `*.sh`, `*.md`). This card governs what those surfaces say; it does not govern what the code does.
+2. **Stability boundary**; code identifiers, CLI flags, JSON schema field names, file-format names, and exit-code semantics are outside this card's rewrite scope in all cases (§5.4). A standard that moved an interface would fail the repository's own doc-vs-implementation consistency checks (`tools/doc_lint.py`).
+3. **Audience criterion (inherited from the `gate4` judgment principle)**; the only assumed reader of any prose face is an international reader with no internal project context. A sentence whose comprehension requires internal organization, process history, or agent topology is non-conforming even when no listed word appears.
 
 ## 2. File header (A-zone, two-part)
 
@@ -57,7 +57,7 @@ Python docstring form (shell/Markdown adapt the same block shape):
 """
 ```
 
-- **Field spelling is verbatim**: `Purpose.` `Interface.` `Dependencies.` `Evidence.` `Exit-codes.` — capital first letter, trailing period, exactly this order. Missing any of the five = error (§6).
+- **Field spelling is verbatim**: `Purpose.` `Interface.` `Dependencies.` `Evidence.` `Exit-codes.`; capital first letter, trailing period, exactly this order. Missing any of the five = error (§6).
 - Identifiers are cited in backticks; continuation lines indent two spaces.
 - The block states facts about the present implementation only. Process narration (how the file came to be, who wrote which work stream) is forbidden (§3, §4.4).
 
@@ -67,7 +67,7 @@ Function/class/section comments: one English line stating the unit's role; no em
 
 ## 3. In-body comments
 
-- **Write the reason**: why the step holds, why the branch is split, what the invariant is — mathematical/technical fact sentences, lowercase start.
+- **Write the reason**: why the step holds, why the branch is split, what the invariant is; mathematical/technical fact sentences, lowercase start.
 - **Forbidden**: process narration (round numbers, dates, "fixed by …"), agent/agent topology narrations, engineering jargon (§4), empty flattery (`# trivial`), Chinese (on canonical faces; §5).
 - Lexer trap: after a sentence-ending period inside a comment, one blank space before the next token (inherited from the M-work stream `.(*` rule, applied to `#`/`"""` faces).
 
@@ -83,7 +83,7 @@ The banned faces are classified in §4.1–4.3 and §4.4 and enumerated verbatim
 
 ### 4.2 Context faces (error when used in the engineering sense of their Appendix A row)
 
-Two groups: (a) standard English terms that double as translation targets — run, failing, passing, build, watcher, triage, classification, fallback, normalize, dry run, canonical, operation, repository; (b) sense-split faces whose Appendix A row marks the banned sense in its context note (role-noun sense, engineering sense, narrative sense, internal-canon sense). A context face is an error only in the sense its Appendix A row marks. Each face's sense boundary and standard form = its Appendix A row's context note; identifier citations are exempt (Appendix A §6).
+Two groups: (a) standard English terms that double as translation targets; run, failing, passing, build, watcher, triage, classification, fallback, normalize, dry run, canonical, operation, repository; (b) sense-split faces whose Appendix A row marks the banned sense in its context note (role-noun sense, engineering sense, narrative sense, internal-canon sense). A context face is an error only in the sense its Appendix A row marks. Each face's sense boundary and standard form = its Appendix A row's context note; identifier citations are exempt (Appendix A §6).
 
 ### 4.3 English slang / hyperbole faces (literal ban, word boundary, error)
 
@@ -98,8 +98,8 @@ Agent numbers and names; effort names; date/time stamps in comments; "this round
 1. **Existing Chinese docstrings/help/README prose = translation-replacement targets.** Translation replacement is the canonical form going forward: the canonical path carries the English text after replacement.
 2. **Archive, never delete.** Before replacing any Chinese prose, its original is preserved in a sibling archive file `<name>.zh.md` in the same directory (for a code file `f.py`/`f.sh`, the archive sibling is `f.py.zh.md`/`f.sh.zh.md`). The existing `docs/zh/` directory form is grandfathered as an equivalent archive form. An archive file is not a canonical face: it is exempt from §2 field checks, §4 scanning, and §6 grading.
 3. **New files are English-only.** A file created after this card carries no Chinese on its canonical face; its Chinese counterpart, if one is needed for the transition, is born as the `.zh.md` archive sibling.
-4. **Zero-change boundary (restated)** — translation replacement touches only comments/documentation/help surfaces. Code identifiers, CLI flags, JSON schema field names, file-format names, and exit-code semantics are unchanged, without exception. Where an identifier contains a banned-family word (Appendix A §6 register), prose cites it verbatim in backticks.
-5. **Canonical-face Chinese during the window** — Chinese characters remaining on a canonical face are warn-level (§6), not license to postpone: each replacement work stream reduces the residue; jargon faces inside that residue are still error-level.
+4. **Zero-change boundary (restated)**; translation replacement touches only comments/documentation/help surfaces. Code identifiers, CLI flags, JSON schema field names, file-format names, and exit-code semantics are unchanged, without exception. Where an identifier contains a banned-family word (Appendix A §6 register), prose cites it verbatim in backticks.
+5. **Canonical-face Chinese during the window**; Chinese characters remaining on a canonical face are warn-level (§6), not license to postpone: each replacement work stream reduces the residue; jargon faces inside that residue are still error-level.
 
 ## 6. Norm grading
 

@@ -1,24 +1,24 @@
-# step-pushci.md — workflow block ②: single-step push CI (dry-run first → the real run → verdict branching) / `工作流嵌段②：单步推 CI（--dry-run 先行→真发→verdict 分流）`
+# step-pushci.md: workflow block ②: single-step push CI (dry-run first → the real run → verdict branching) / `工作流嵌段②：单步推 CI（--dry-run 先行→真发→verdict 分流）`
 
 > Purpose.  Expand the `README-cw.md:124-126` "pushci embed block" into a whole-block copyable command form + real output samples + the verdict branch table + dynamic-workflow embed pseudocode; one of the three canonical workflow-block samples of rocqwash v37.
-> Interface.  Document face. It documents `cw.sh pushci` (`tools/pushci.py`; schema `rocqwash-pushci/1`; seven-state verdict `success|fix-content|toolchain|unstable|heal-exhausted|gate4-block|dry-run` — README-cw.md:33, same register). The normative tool face: the `tools/pushci.py` docstring (v36 flagship · five-stage pipeline preflight→push→watch→heal→verdict±merge · pushci.py:5) and `--help`. Citations bind to the v37 capture state (commit `41e74b0`); working-tree line numbers drift. The original Chinese text is preserved in the sibling `.zh.md` archive.
+> Interface.  Document face. It documents `cw.sh pushci` (`tools/pushci.py`; schema `rocqwash-pushci/1`; seven-state verdict `success|fix-content|toolchain|unstable|heal-exhausted|gate4-block|dry-run`; README-cw.md:33, same register). The normative tool face: the `tools/pushci.py` docstring (v36 flagship · five-stage pipeline preflight→push→watch→heal→verdict±merge · pushci.py:5) and `--help`. Citations bind to the v37 capture state (commit `41e74b0`); working-tree line numbers drift. The original Chinese text is preserved in the sibling `.zh.md` archive.
 > Dependencies.  `tools/pushci.py` routed through `cw.sh`; a GitHub API token via `~/.netrc` for the push/watch stages; `tools/ci_triage.py` for the heal stage; the whitepaper `docs/workflow-integration-whitepaper-v1.0-20261111.md` §4 for the dual-door discipline. No runtime dependency of this document face itself.
 > Evidence.  The §1 dry-run plan and report samples are a real-run record (rc=0) captured on November 11, 2026 by the authoring session; the §2 real-run block was not exercised (real credentials belong to the user side) and its flags were reconciled against the `tools/pushci.py --help` output captured the same day.
 > Exit-codes.  Not applicable to a document face; the documented pipeline keeps its implemented exit-code semantics (§3, tools/pushci.py:91-93) unchanged.
 >
 > Discipline constraints (read before use):
-> - **the --dry-run-first order is the canonical embed order** — `--dry-run` prints the plan only with zero side
+> - **the --dry-run-first order is the canonical embed order**; `--dry-run` prints the plan only with zero side
 >   effects, exit 0 (zero git, zero API calls, zero tool subprocesses; tools/pushci.py:87): a human reviews the
 >   plan before the real run; a wrong plan does not open the gate.
-> - **the verdict is a pinned roster** — the seven states and the exit codes 0/1/2/9 map one-to-one
+> - **the verdict is a pinned roster**; the seven states and the exit codes 0/1/2/9 map one-to-one
 >   (tools/pushci.py:91-93); branch actions in the §3 table. a failing result is data, not a tool failure:
 >   fix-content is content-level failing data, and the tool face still reports normally.
-> - **offline drills must come in pairs** — `--injector DIR` and `--git-caller FILE` must be given together;
+> - **offline drills must come in pairs**; `--injector DIR` and `--git-caller FILE` must be given together;
 >   one-sided = usage error exit 2 (an injector without canned git would silently reach a real push;
 >   tools/pushci.py docstring "--git-caller" entry).
 > - pushci's preflight check reruns only the doctor and net-probe checks (optionally `--pre-scan-gate4`);
 >   the push-window four criteria such as suite passing / behind=0 are not in that roster; the two gates stand
->   side by side and neither substitutes for the other — see
+>   side by side and neither substitutes for the other; see
 >   `docs/workflow-integration-whitepaper-v1.0-20261111.md` §4 (same account at README-cw.md:57-60).
 
 ## 1. Step 1: --dry-run first (zero side effects · human review before the real run)
@@ -95,12 +95,12 @@ Normative source of the verdict/exit-code roster: tools/pushci.py:91-93 (same re
 | 1 | `unstable` | the net-probe stability window did not hold (both probes unstable in the push or heal stage) → must not initiate | rerun after the network is repaired; read report.stages |
 | 1 | `toolchain` | doctor verdict≠healthy (environment piece) | remediate the environment per the doctor rerun advice the tool ships |
 | 1 | `heal-exhausted` | the watch reported failing · the family B/E reruns did not turn passing within `--max-heal` (default 3) rounds | read `stages.heal.last_triage` (family/action/evidence recorded in full) and decide manually |
-| 2 | `fix-content` | classification A content failing (the heal stage stops · **no proxy repair** — repairing is the repair agent's or a human's job) or a merge 409 conflict (live content) | hand to the repair agent or a human; the family is recorded loud with its original value |
+| 2 | `fix-content` | classification A content failing (the heal stage stops · **no proxy repair**; repairing is the repair agent's or a human's job) or a merge 409 conflict (live content) | hand to the repair agent or a human; the family is recorded loud with its original value |
 | 2 | `gate4-block` | the `--pre-scan-gate4` pre-scan found FAIL≠0 | read report.stages.preflight.gate4.fail_files and fix each file's header annotations |
 | 2 | (no verdict) | argparse usage error (stage dependencies watch⇒push · heal⇒watch · --merge⇒watch and the like) | fix the command line; compare `bash cw.sh help pushci` |
 | 9 | (no verdict) | fail-loud target missing (repo/remote/branch/PR/toolchain piece missing · netrc missing · API unreachable · API 4xx/5xx hard error · watch round cap reached) | supply the targets/credentials manually and rerun |
 
-The same quick reference as the note at README-cw.md:54 — pushci passes the verdict roster through:
+The same quick reference as the note at README-cw.md:54; pushci passes the verdict roster through:
 success/dry-run=0 · heal-exhausted/unstable/toolchain=1 · fix-content/gate4-block=2 · 9 = target missing.
 
 ## 4. Offline drill form (for workflow self-test · zero real network, zero real push)
@@ -157,7 +157,7 @@ phase "pushci-step" {
   pipeline section (pushci.py:5-46); unanchored cells (such as "usage errors map to 2") anchor the argparse stage-dependency
   clauses (docstring "stage dependencies (usage error 2)").
 - The push-window four criteria (certify/push_gate.py window: c1 ci-idle / c2 local≥remote /
-  c3 fetch-clean / c4 cert-green) and the pushci preflight check are **two doors**, neither substitutes for the other —
+  c3 fetch-clean / c4 cert-green) and the pushci preflight check are **two doors**, neither substitutes for the other:
   the side-by-side account is in the whitepaper §4.
 
 (English brief) Workflow block ②: single-step push-CI via `cw.sh pushci`.
@@ -167,4 +167,4 @@ verdict roster (success/dry-run=0, heal-exhausted/unstable/toolchain=1,
 fix-content/gate4-block=2, target-missing=9). Offline drills require
 `--injector` + `--git-caller` as a pair (single-sided = usage error exit 2).
 pushci's preflight gate (doctor + net-probe ± gate4 pre-scan) is deliberately
-NOT the push-window four-criteria gate — see the whitepaper §4.
+NOT the push-window four-criteria gate; see the whitepaper §4.
