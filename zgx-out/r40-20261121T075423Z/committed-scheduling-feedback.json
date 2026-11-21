@@ -1,0 +1,44 @@
+{
+  "calibration": {
+    "agreement_rate": null,
+    "by_class": [],
+    "entries": 0,
+    "errors": [],
+    "ledger_present": true,
+    "section": "calibration"
+  },
+  "feedback_edge": {
+    "note": "approval-rate now readable; scheduling does not yet consume it (declared blank)",
+    "status": "open"
+  },
+  "repair_outcomes": {
+    "errors": [],
+    "escalated": 0,
+    "repair_action_rate": 0.0588,
+    "repaired": 3,
+    "unrecorded": 46,
+    "watch_only_guard_correct": 2
+  },
+  "rounds": {
+    "approval_rate_auto": 0.5,
+    "auto": 1,
+    "by_class": [
+      {
+        "class": "concl.real.const-lt-field-re-exists",
+        "confidence": null,
+        "gear": "human",
+        "rounds": 1
+      },
+      {
+        "class": "jargon",
+        "confidence": 1.0,
+        "gear": "auto",
+        "rounds": 1
+      }
+    ],
+    "errors": [],
+    "human_approved": 1,
+    "total": 2
+  },
+  "schema": "rocqwash.scheduling-feedback/1"
+}

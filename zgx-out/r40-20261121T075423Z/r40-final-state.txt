@@ -1,0 +1,8 @@
+R2-64 final tree state, 2026-11-21T07:57:11Z
+restore command: git checkout -q -f HEAD -- docs/scheduling-feedback.json docs/b-gate-audit.json -> rc=0
+post-restore git status --porcelain: 0 entries
+100644 blob 6c8238804de36fa94d24f12131ca696f9404983d	docs/b-gate-audit.json
+100644 blob a952af079aa8e6baf68b38f60a5d68248963d86e	docs/scheduling-feedback.json
+disk sha256:
+1ed190e168041c74488086f3aa5f55711a2a140fc436e043b0c183f58db19b14  docs/scheduling-feedback.json
+3c70b52868b5c4dbf3cb5ae8adf0f26182890d8b3e5d405a3d8b66bc98d63e30  docs/b-gate-audit.json

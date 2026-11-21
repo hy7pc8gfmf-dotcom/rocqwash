@@ -1,0 +1,7 @@
+scheduling-feedback: schema rocqwash.scheduling-feedback/1
+rounds: total=2 auto=1 human_approved=1 approval_rate_auto=0.5
+repair: repaired=5 escalated=0 watch_only_guard_correct=2 unrecorded=53 repair_action_rate=0.0833
+calibration: ledger_present=true entries=0 agreement_rate=None
+feedback_edge: open
+errors: 0
+wrote: /Users/zuguangzhao/ComplexAnalysis/rocqwash-loop/docs/scheduling-feedback.json

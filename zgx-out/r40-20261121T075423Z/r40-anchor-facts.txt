@@ -1,0 +1,22 @@
+R2-64 (10th sampling) anchor facts, 2026-11-21T07:54:31Z
+fetch: rc=0 dur=1s attempt 1 single-flight, no backoff; origin/main UNCHANGED df9687e -> df9687e
+checkout -q -f origin/main rc=0; git clean -qfd docs tests rc=0; post-checkout status --porcelain: 0 entries
+real anchor: git rev-parse HEAD = df9687e479571486b7b2a203189d4cd75ab2cba0
+9th-sampling anchor (R2-60c): df9687e479571486b7b2a203189d4cd75ab2cba0
+rev-list --count df9687e..HEAD = 0  (same anchor)
+
+committed faces at HEAD BEFORE any tool run:
+docs/scheduling-feedback.json blob=a952af079aa8e6baf68b38f60a5d68248963d86e sha256=1ed190e168041c74488086f3aa5f55711a2a140fc436e043b0c183f58db19b14 last_touch=fa879e4
+docs/b-gate-audit.json blob=6c8238804de36fa94d24f12131ca696f9404983d sha256=3c70b52868b5c4dbf3cb5ae8adf0f26182890d8b3e5d405a3d8b66bc98d63e30 last_touch=f88fe9a
+docs/exp-ledger.jsonl blob=babbfe2f691436b2c67c7e59520dc41e95cd8b96 sha256=372e9db36d24c7840abaa278a25c413c6a90255f881743953c3f95c77b40c780 last_touch=02ccffd
+
+exp-ledger.jsonl row count: 60
+
+upstream commits since 02ccffd (PR#24 base):
+df9687e feat(audit): lean_axiom_sweep per-theorem axiom-closure classifier
+ac74f19 feat(mcp): tree_audit face + net_probe unverifiable semantics
+311d32d evolve(cycle7): re-harvest with --gate armed - Gate health line carries the three signal-g readings (doc_lint rc 0 consistent / suite ledger unreadable-as-data / whitelist norm 691) and the gate-repair candidate lands rank 1 score 10.0; the meta-layer (evolve signal g) is now verified end-to-end: engine vector [11] -> live harvest -> draft round-inputs -> derived candidate
+18bc0f4 evolve(cycle7): re-harvest after normfast62; harvest ran over the working tree including the parallel-seat uncommitted faces — 15 dirty entries in git status --porcelain at commit time (8 modified + 7 untracked, this draft included)
+3053d49 feat(v2b): vacgen conclusion-face taxonomy family (ticket 15) + micro tickets mu-1/2/3/4
+8aa2af8 evolve(unit-u1): fitness engine gains signal class g (gate-health) - harvest via subprocess of the existing engines: doc_lint rc face (0 consistent / 1 drift data / other codes fail loud 9), latest recorded run_tests.sh ledger red count via --gate-ledger-dir lexicographic-latest scan (unreadable reported as data; zero suite runs in the harvest path), whitelist-variant norm error count via the norm_lint --tree --cjk-whitelist child summary account; wired into derive scoring (gate-repair candidate impact 2 effort 2, adverse = doc_lint drift + recorded reds + whitelist norm error mass; healthy round yields the no-adverse note) and the draft round-inputs (Gate health line); --selftest gains vector [11] on canned fixtures (stub doc_lint engines honoring the --repo+rc interface, canned recorded ledgers, real norm child) - vector groups ten->eleven; anchor migration in-unit: test_evolve.py check1 ten->eleven (facts kept), t_evolve roster comment + tests/README.md row prose re-synced, no new test file so CASES 87 and the doc_lint count faces unchanged; pure additive face: signals a-e rules byte-identical (selftest vectors 1-10, flag-contract four checks, destructive-matrix 43 rows incl. N1/N2 green, frozen8 check rc=0, doc_lint consistent), docstring re-laid within the 30-line budget; live --gate smoke rc=0 (doc_lint consistent, suite face honestly unreadable, gate-repair rank 1 score 10.0); unit-face norm findings 0->0
+47eef79 i18n(unit-nf62-u2): push_gate norm face Englished - module docstring re-laid to the five-field header within the 30-line budget (66->29 lines), 32 comment/docstring blocks translated, zh original archived as the sibling .zh.md; AST-identical modulo docstrings, 544 non-docstring string constants byte-identical, comment tokens 27->27, selftest UNION six + window four vectors green pre/post; same-commit frozen-anchor re-sign chain per the seed-pin law: frozen8 check ALL-IN-SYNC pre-edit (disk row == manifest row c8841e23), manifest+tier2 re-frozen at tip 19257b7 with byte-identical idempotent replay, push_gate tier1 row c8841e23->cc648279 and tier2 e548912b->11b9e91f; pins t_push_gate/t_frozen8/t_frozen8_check/t_destructive_matrix (43 rows) all green post-edit - norm face findings 8->0 (1 budget + 5 header + 1 forbidden + 1 jargon)

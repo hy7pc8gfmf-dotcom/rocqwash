@@ -1,0 +1,14 @@
+b-gate audit: schema rocqwash.b-gate-audit/1
+threshold: 3 instances and 1 round(s) per class; verdict ready needs 3 ready classes
+class concl.ne.applied-nonzero: instances=0 rounds=0 not-ready (needs 3 more instances with a round each)
+class concl.nezero.predicate: instances=0 rounds=0 not-ready (needs 3 more instances with a round each)
+class concl.quantified.existential: instances=0 rounds=0 not-ready (needs 3 more instances with a round each)
+class concl.quantified.universal: instances=0 rounds=0 not-ready (needs 3 more instances with a round each)
+class concl.real.const-lt-field-re-exists: instances=1 rounds=1 not-ready (needs 2 more instances with a round each)
+class ineq.real.const-lt-field-re: instances=0 rounds=0 not-ready (needs 3 more instances with a round each)
+class jargon: instances=1 rounds=1 not-ready (needs 2 more instances with a round each)
+verdict: not-ready
+ready classes: 0 of 3 needed
+remaining_to_b: 3
+errors: 0
+report written: docs/b-gate-audit.json
