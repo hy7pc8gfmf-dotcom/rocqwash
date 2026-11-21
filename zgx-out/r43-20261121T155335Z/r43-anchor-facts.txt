@@ -1,0 +1,15 @@
+r43 twelfth-sampling anchor facts (2026-11-21T15:53Z run)
+repo /Users/zuguangzhao/ComplexAnalysis/rocqwash-loop
+fetch origin main: attempt 1 single-flight rc=0, no backoff needed, upstream moved 27bf0c45 -> 5616597 (8 commits in range)
+checkout -q -f origin/main && git clean -qfd docs tests -> clean; real anchor git rev-parse HEAD = 561659716ec57fda62e25ca356efed174483adbc = origin/main
+pre-checkout worktree carried parallel-seat uncommitted M docs/b-gate-audit.json, discarded by ask-mandated checkout -f (disclosed in ledger row)
+t1 b_gate_audit.py rc=0 verdict not-ready ready 0/3 remaining_to_b=3 errors=0 classes 7 produced
+t2 learning_feedback.py rc=0 repair 5/53/0.0833 errors=0
+t2b determinism rerun: both faces cmp rc=0 byte-identical
+t3 jargon_map_sync.py (plan default) rc=0 VERDICT IN-SYNC wrote=false entries=159
+t4 pin_repair.py --plan rc=0 ok=true action=none upstream-absent=2
+t5 t_engines_seeds.py rc=0 TOTAL-SELFTEST GREEN 43 passed 5/5 segments
+t6 t_engines_body.py rc=0 TOTAL-ENGINES-BODY GREEN 60 passed 0 skipped 9 segments
+reading diff vs HEAD: feedback cmp rc=1 char 400 line 17 (3 lines: 0.0588->0.0833, 3->5, 46->53); b-gate cmp rc=1 char 46 line 4 (+28 lines, 4 new not-ready classes)
+canonical blobs a952af0 (feedback) / 6c82388 (b-gate); produced ba7d081 / 5327b29; input exp-ledger babbfe2f 60 rows unchanged
+reproduction 6/6 cmp rc=0 vs r42 captures; ledger append 26->27 rows jsonl-parse OK; tree restored 0 entries

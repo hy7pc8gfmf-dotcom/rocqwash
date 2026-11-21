@@ -1,0 +1,62 @@
+{
+  "classes": [
+    {
+      "class": "concl.ne.applied-nonzero",
+      "gap": "needs 3 more instances with a round each",
+      "instances": 0,
+      "ready": false,
+      "rounds": 0
+    },
+    {
+      "class": "concl.nezero.predicate",
+      "gap": "needs 3 more instances with a round each",
+      "instances": 0,
+      "ready": false,
+      "rounds": 0
+    },
+    {
+      "class": "concl.quantified.existential",
+      "gap": "needs 3 more instances with a round each",
+      "instances": 0,
+      "ready": false,
+      "rounds": 0
+    },
+    {
+      "class": "concl.quantified.universal",
+      "gap": "needs 3 more instances with a round each",
+      "instances": 0,
+      "ready": false,
+      "rounds": 0
+    },
+    {
+      "class": "concl.real.const-lt-field-re-exists",
+      "gap": "needs 2 more instances with a round each",
+      "instances": 1,
+      "ready": false,
+      "rounds": 1
+    },
+    {
+      "class": "ineq.real.const-lt-field-re",
+      "gap": "needs 3 more instances with a round each",
+      "instances": 0,
+      "ready": false,
+      "rounds": 0
+    },
+    {
+      "class": "jargon",
+      "gap": "needs 2 more instances with a round each",
+      "instances": 1,
+      "ready": false,
+      "rounds": 1
+    }
+  ],
+  "errors": [],
+  "ready_classes": [],
+  "remaining_to_b": 3,
+  "schema": "rocqwash.b-gate-audit/1",
+  "threshold": {
+    "instances": 3,
+    "rounds_per_instance": 1
+  },
+  "verdict": "not-ready"
+}
