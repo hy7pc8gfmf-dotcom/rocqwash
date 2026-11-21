@@ -29,29 +29,29 @@
 
 ## [Unreleased]
 
-### v35 — CI diagnostics toolchain work stream (2026-11-11 · acf9fe6)
+### v35: CI diagnostics toolchain work stream (2026-11-11 · acf9fe6)
 
 **Added**
 
-- `tools/toolchain_dyld_doctor.py` — diagnostic tool for dyld toolchain
+- `tools/toolchain_dyld_doctor.py`: diagnostic tool for dyld toolchain
   linkage failures: parses the `otool -L` external hard references of
   `rocqworker`, judges each entry exists/missing, traces a missing item back
-  to its donor root, and only prints restore suggestions — never executes
+  to its donor root, and only prints restore suggestions; never executes
   them; optional `--smoke` smoke check (SMOKERC plus the `.vo` magic-number
   report); schema `rocqwash-dyld-doctor/1`; exit codes 0 healthy / 1
   missing-libs / 2 usage / 9 the worker or `otool` missing.
-- `tools/net_probe.py` — network-window probe of the upload endpoints: plain
+- `tools/net_probe.py`: network-window probe of the upload endpoints: plain
   GET requests to the four default endpoints (an `HTTPError` 500/400 means
   the stack is up, so reachable equals healthy; `URLError` or a timeout means
   unreachable); the two-probe stability-window rule (STABLE only after two
   consecutive all-passing rounds; a single-probe round must not initiate).
-- `tools/ci_triage.py` — CI failing-build triage tool: the five-family
+- `tools/ci_triage.py`: CI failing-build triage tool: the five-family
   classification spectrum (A content-red / B NETRED / C toolchain break /
   D queue-resource wall / E coqchk-skipped) plus the watch-only action for
   all-passing runs; UNRECOGNIZED is never forced into a family;
   classification order UNRECOGNIZED > C > A > E > B > D; `--logs` prints the
   thirteen key-line families; a failing result is data, not a tool failure.
-- `tools/registry_union.py` — registry union-operation tool: main is the
+- `tools/registry_union.py`: registry union-operation tool: main is the
   base and rows unique against the merge-base are appended at the end;
   A1/A2/A3 fail-loud assertions; `--reanchor` md5-8 canonical form; CRLF
   preservation; dry run by default, writes only under `--apply`.
@@ -63,11 +63,11 @@
   v1.0→v1.1 (eight new root sections plus a moved-root watch list).
 - Self-test suite 47 cases (43 pass / 0 failing / 4 SKIP · EXIT 0).
 
-### v36 — orchestration layer: the pushci single-command pipeline (2026-11-11 · 4026051)
+### v36: orchestration layer: the pushci single-command pipeline (2026-11-11 · 4026051)
 
 **Added**
 
-- `tools/pushci.py` — post-fix push-and-CI single-command pipeline (five
+- `tools/pushci.py`: post-fix push-and-CI single-command pipeline (five
   stages: preflight doctor + net_probe checks + optional gate4 header-comment
   prescan → push over HTTP/1.1 with up to three attempts plus ghproxy
   reroute → resolve + watch (keyed on head_branch + head_sha) → heal
@@ -91,11 +91,11 @@
   by side).
 - Self-test suite 48 cases (44 pass / 0 failing / 4 SKIP).
 
-### v37 — service layer: three realtime-status tools (2026-11-11 · 41e74b0)
+### v37: service layer: three realtime-status tools (2026-11-11 · 41e74b0)
 
 **Added**
 
-- `tools/unclog.py` — closed-loop engine for clearing blockages: probes are
+- `tools/unclog.py`: closed-loop engine for clearing blockages: probes are
   collected → chain_graph locates the chain roots (self-washable judgment; a
   frozen8 refusal is fail-closed) → cure_applier applies the canonical pack
   only → scan_v4 rescans and the probe re-probes (md5-keyed) → verdict
@@ -103,13 +103,13 @@
   forced fit is forbidden) / rounds-exhausted; dry run by default; under
   `--injector` canned probes the chain/cure/scan/frozen8 stages still really
   run (a real orchestration, no stand-ins).
-- `tools/wash_shape.py` — shape-normalizing tool · the canonical five-wash
+- `tools/wash_shape.py`: shape-normalizing tool · the canonical five-wash
   pipeline (lexical / token / header-shape / line-ending / anchor washes):
   plan and apply as two stages; plan writes nothing by default; after apply
   all five washes re-run for verification → shaped / partial as measured;
   the frozen roster is excluded automatically and an explicitly named frozen
   target is refused.
-- `tools/cw_sentinel.py` — the realtime-status watcher: three signal sources
+- `tools/cw_sentinel.py`: the realtime-status watcher: three signal sources
   (a new failing CI build → ci_triage classification / new local blockage
   records → chain_graph TOP / incremental build-log token surface) → a JSONL
   event stream (append + fsync + stdout mirror); `--state-file` makes the
@@ -128,11 +128,11 @@
   for pushci/unclog/wash_shape).
 - Self-test suite 51 cases (47 pass / 0 failing / 4 SKIP).
 
-### v38 — docking and health-check layer (2026-11-11 · c205ea0)
+### v38: docking and health-check layer (2026-11-11 · c205ea0)
 
 **Added**
 
-- `tools/cw_doctor.py` — composite health-check tool aggregating four
+- `tools/cw_doctor.py`: composite health-check tool aggregating four
   domains: environment (dyld doctor) 40 / network (net_probe) 20 / register
   (order.txt anchor canonical-form audit) 25 / blockages (probe sampling →
   chain_graph TOP) 15 → a composite health score 0-100 plus verdict
@@ -140,17 +140,17 @@
   diagnosis only, never execution on the tool's behalf; `--injector` makes
   it offline-testable (a missing key exits 9 and never silently runs for
   real).
-- `tools/_http_backoff.py` — resilience-layer shared module: exponential
+- `tools/_http_backoff.py`: resilience-layer shared module: exponential
   backoff on 403/429/5xx (honors the Retry-After seconds header; 4xx
   semantics are not retried) shared by ci_triage / cw_sentinel / pushci;
   injector canned paths never retry and never touch the real network.
 - Three canonical embedding blocks under `examples/workflows/`
-  (backend-sentinel / step-pushci / loop-unclog — the samples were produced
+  (backend-sentinel / step-pushci / loop-unclog; the samples were produced
   by real tmp-injection drills, not hand-written) +
   [`docs/workflow-integration-whitepaper-v1.0-20261111.md`](docs/workflow-integration-whitepaper-v1.0-20261111.md)
   (the five disciplines / the three embedding blocks / the five mechanisms
   for background tasks yielding to the interactive session / push_gate's
-  four push-window criteria × the pushci preflight check — the dual-door
+  four push-window criteria × the pushci preflight check; the dual-door
   arrangement).
 
 **Changed**
@@ -171,24 +171,24 @@
   4 SKIP · the baseline regression is equally passing before and after the
   change).
 
-### v39 — corpus rolling-expansion work stream · document close-out (2026-11-11 · caa3a28)
+### v39: corpus rolling-expansion work stream · document close-out (2026-11-11 · caa3a28)
 
 **Added**
 
-- `tests/fixtures/header_map_v1.json` — header template library v1 (preset
+- `tests/fixtures/header_map_v1.json`: header template library v1 (preset
   `campaign_set_diamond` · distilled from the Set repository's
   canonical five-field form · six placeholders, each carrying its citation ·
   body content is never synthesized; a missing evidence entry refuses the
-  load — "evidence required before issuance" is enforced by the code;
+  load; "evidence required before issuance" is enforced by the code;
   schema `rocqwash-header-map/1`).
-- `tools/doc_lint.py` — the doc-vs-implementation consistency checker with
+- `tools/doc_lint.py`: the doc-vs-implementation consistency checker with
   three checks: (1) the four cw.sh tool tables cross-checked and reconciled
   against the tools/ generic entry points; (2) the CASES vs tests/README.md
   vs README.md counts reconciled at all three sites; (3) every doc-cited
   flag checked one by one against each tool's real `--help` output; schema
   `rocqwash-doclint/1` · verdict consistent|drift (a failing result is data,
   not a tool failure · loud stdout).
-- `tests/test_relay_e2e.py` — the cw_sentinel `--on-red-preset unclog`
+- `tests/test_relay_e2e.py`: the cw_sentinel `--on-red-preset unclog`
   end-to-end three-check (event trigger / unclog dry run rc=0 zero writes /
   JSONL same-disk report path) +
   [`docs/ops-realtime-service-v1.0-20261111.md`](docs/ops-realtime-service-v1.0-20261111.md)
@@ -199,7 +199,7 @@
 
 **Changed**
 
-- `wash/cure_pack.json` v1.3→v1.4 (24→25 forms): evidence-gated expansion —
+- `wash/cure_pack.json` v1.3→v1.4 (24→25 forms): evidence-gated expansion:
   a three-source survey produced 11 candidates and 1 form was accepted
   (cure39_ifq_connective_qualify · citing the Set-repository wash pass
   anchor commit `9a51c74`, the diff checked verbatim across 25 stations) ·
@@ -219,14 +219,14 @@
 > and shipped with the repository's mainline evolution without a separate
 > release; the next work stream v40 (canonicalization consolidation) is
 > scheduled (long-run vectors + frozen-face recheck + full INDEX/README
-> table alignment + the push_gate dual-door normalize assessment — see the
+> table alignment + the push_gate dual-door normalize assessment; see the
 > v39 pending items in `更新账.md`).
 
-### v53 — comment-face normalization work stream: annotation card + norm_lint + entry-face / four-tool anglicization (2026-11-13 · unreleased, working tree only)
+### v53: comment-face normalization work stream: annotation card + norm_lint + entry-face / four-tool anglicization (2026-11-13 · unreleased, working tree only)
 
 **Added**
 
-- `docs/annotation-standard-v1.0-20261113.md` — the annotation standard card
+- `docs/annotation-standard-v1.0-20261113.md`: the annotation standard card
   v1.0: the two-part header (banner + the five fields
   Purpose./Interface./Dependencies./Evidence./Exit-codes. verbatim) + the
   four forbidden-word families + the bilingual transition rules
@@ -234,18 +234,18 @@
   `.zh.md` archive instead of being deleted; code identifiers / CLI flags /
   JSON schema fields / exit-code semantics are never changed) + the
   error/warn grading and the checker's exit-code contract (0/1/2/9).
-- `docs/jargon-to-standard-mapping-v1.md` — the jargon-to-standard mapping
+- `docs/jargon-to-standard-mapping-v1.md`: the jargon-to-standard mapping
   table v1 (the card's Appendix A · 142 active faces = the core 16 rows +
   the JARGON v0.9/v1.1 base carry-over + the tool-repository sweep expansion
   + the phrase-level rows + the English colloquial family · per-row context
   notes · the identifier-exemption register).
-- `tools/norm_lint.py` — the annotation-face normalization checker,
+- `tools/norm_lint.py`: the annotation-face normalization checker,
   report-only first form: `--tree`/`--file` scans .py/.sh/.md prose faces ·
   five checks (header shape / jargon faces / CJK residue / forbidden classes
   / header line budget) · schema `rocqwash-norm-lint/1` · findings are data
   and the exit code never escalates on them (0/1/2/9) · `--selftest` six
   vectors · `*.zh.md` and `docs/zh/` archive faces are exempt from scanning.
-- `docs/zh/ci_triage-docstring.zh.md` and siblings — the Chinese docstring
+- `docs/zh/ci_triage-docstring.zh.md` and siblings; the Chinese docstring
   originals of the four core tools archived (cw_sentinel / pushci / unclog /
   ci_triage · extracted programmatically, verbatim) plus the
   `README-cw.zh.md` / `cli/rocqwash.zh.md` bilingual-transition archives.
@@ -285,7 +285,7 @@
   cli/rocqwash `retrofit` sub-verb name ×4) + the four tools' inline-comment
   residue (jargon 2-14 · cjk_ratio 0.11-0.19).
 
-### v58 — self-evolution guardrail work stream: wash-map self-reference guard (2026-11-16)
+### v58: self-evolution guardrail work stream: wash-map self-reference guard (2026-11-16)
 
 **Fixed**
 
@@ -301,7 +301,7 @@
   `9440fbd102187e15e01183e853242e30` (the seed needs no edit), the contract
   faces are back 13/13, and every corrupted English face is gone from the
   loader.
-- `tools/jargon_apply.py`: new **self-reference guard** — the wash map's own
+- `tools/jargon_apply.py`: new **self-reference guard**; the wash map's own
   source table (`--a2-table`, default
   `docs/jargon-to-standard-mapping-v1.md`) is never a wash target. `--tree`
   excludes it from the target set; `--file` on it is refused rc=1 loud. This
@@ -327,7 +327,7 @@
   red on the `jargon/snapshot-md5` drift).
 - Destructive-surface matrix 23/23 green (new row J1 PASS).
 
-### v59 — platform-reproducible CI work stream: three independent red causes (2026-11-16)
+### v59: platform-reproducible CI work stream: three independent red causes (2026-11-16)
 
 CI was red on all three hosted platforms (runs #89/#90/#91) for three
 independent reasons, none of them caused by the v58 wash-map fix.
@@ -349,7 +349,7 @@ independent reasons, none of them caused by the v58 wash-map fix.
   author date, so the new SHA cannot collide with the original.
 - `.gitattributes` (new): the Windows checkout is CRLF while every committed
   blob and every recorded md5 pin is LF, so the byte-level assertions never
-  matched the committed bytes — fourteen cases red on the Windows lane
+  matched the committed bytes; fourteen cases red on the Windows lane
   (t_gate4_clean, t_wash_judgments, t_wash_engine, t_scan_station,
   t_verify_born, t_frozen8, t_frozen8_check, t_frozen_call, t_world_hook,
   t_select_audit, t_recipe_s07, t_recipe_pw1, t_precedent_station,
@@ -376,10 +376,10 @@ independent reasons, none of them caused by the v58 wash-map fix.
   re-issuing the frozen roster through the tool's own `freeze` face
   (idempotent replay byte-identical, `frozen8 check` OK, 0 changed).
 
-### v60 — Windows stdout-codepage work stream: UTF-8 I/O forced on every lane (2026-11-16)
+### v60: Windows stdout-codepage work stream: UTF-8 I/O forced on every lane (2026-11-16)
 
 After v59 the macOS and Linux lanes were green, but both Windows lanes were
-still red — the hosted one across 34 cases, the local self-hosted one across
+still red; the hosted one across 34 cases, the local self-hosted one across
 5.
 
 **Fixed**
@@ -387,7 +387,7 @@ still red — the hosted one across 34 cases, the local self-hosted one across
 - `.github/workflows/ci.yml`: Windows runners default to an ANSI stdout
   codepage (charmap on the hosted image, gbk on a zh-CN host). The suite
   prints Chinese prose and math symbols, so `print()` raised
-  `UnicodeEncodeError` and took whole cases down with it — the hosted Windows
+  `UnicodeEncodeError` and took whole cases down with it; the hosted Windows
   lane lost 34 cases to it. Both jobs now set `PYTHONIOENCODING=utf-8` and
   `PYTHONUTF8=1`. Reproduced byte-identically before the fix
   (`PYTHONIOENCODING=gbk` raises `UnicodeEncodeError: 'gbk' codec can't
@@ -397,7 +397,7 @@ still red — the hosted one across 34 cases, the local self-hosted one across
   hardcoded POSIX path `/tmp/erasure_selftest_<pid>.mli`, which does not
   exist on a Windows runner. It now uses `tempfile.gettempdir()`.
 
-### v61 — Windows lane closure work stream: quoting, autocrlf and encoding (2026-11-16)
+### v61: Windows lane closure work stream: quoting, autocrlf and encoding (2026-11-16)
 
 After v60 the macOS and Linux lanes were green and the hosted Windows lane
 had dropped from 34 red cases to 2, with one more red on the local
@@ -426,13 +426,13 @@ self-hosted lane.
   every child it spawns, so a child that prints Chinese prose or math symbols
   cannot die with `UnicodeEncodeError` on an ANSI-codepage host.
 
-### v62 — isolated-mode encoding work stream: `-X utf8` reaches every child (2026-11-16)
+### v62: isolated-mode encoding work stream: `-X utf8` reaches every child (2026-11-16)
 
 **Fixed**
 
 - The encoding guarantee from v60 did not reach the children: Python's
   isolated mode (`-I`) implies `-E`, which ignores every `PYTHON*`
-  environment variable — so `PYTHONIOENCODING` and `PYTHONUTF8` were dropped
+  environment variable; so `PYTHONIOENCODING` and `PYTHONUTF8` were dropped
   exactly where they were needed, in the children that print Chinese prose or
   math symbols. The hosted Windows lane still raised
   `UnicodeEncodeError: 'charmap' codec ...` and the `norm_lint` selftest
@@ -448,14 +448,14 @@ self-hosted lane.
 
 **Verification**
 
-- CI run #95 on `b9dd1a7`: **success**. All four blocking lanes green —
+- CI run #95 on `b9dd1a7`: **success**. All four blocking lanes green;
   Self-test suite (macOS), (Linux), (Windows) and
   (Windows (local self-hosted), the runner LIVE-ROCQWASH on this machine).
   The two platform-sensitive roster watch jobs stay red by design (they run
   exactly the cases the blocking roster excludes, and the job carries
   `continue-on-error: true`).
 
-### v63 — platform-sensitive roster work stream: guard exit-code passthrough (2026-11-16)
+### v63: platform-sensitive roster work stream: guard exit-code passthrough (2026-11-16)
 
 The two platform-sensitive roster watch jobs stay red by design (they run
 exactly the cases the blocking roster excludes). Two of their reds were real
@@ -466,7 +466,7 @@ defects rather than environment noise, and are closed here.
 - `tools/cpu_guard.sh`: the guard launched the wrapped command through
   `taskpolicy`, which is a macOS-only binary. On a Linux or Windows host the
   command is not found, so the shell reported 127 and the wrapped command's
-  real exit code was swallowed — the probe's "the guard must pass the child's
+  real exit code was swallowed; the probe's "the guard must pass the child's
   exit code through unchanged" judgment saw 127 where it expected 7. The
   guard now degrades in steps (taskpolicy → nice → direct exec); every step
   still passes the child's exit code through unchanged.
@@ -481,7 +481,7 @@ defects rather than environment noise, and are closed here.
   the suite records the case as SKIP (the suite's standing rc 111 contract)
   rather than red.
 
-### v65 — probe engine: Windows path folding and timeout visibility (2026-11-16)
+### v65: probe engine: Windows path folding and timeout visibility (2026-11-16)
 
 **Fixed**
 
@@ -511,7 +511,7 @@ defects rather than environment noise, and are closed here.
   127), and a timeout must be visible at the deadline. The first also pins
   that the rewrite touches nothing but drive-letter paths.
 
-### v64 — destructive-matrix write-face judgment: git metadata out of scope (2026-11-16)
+### v64: destructive-matrix write-face judgment: git metadata out of scope (2026-11-16)
 
 **Fixed**
 
@@ -526,7 +526,7 @@ defects rather than environment noise, and are closed here.
   means: the tool's own write face. The rows that guard git-object writes
   assert on the object store explicitly.
 
-### v66 — flaky quarantine guard: order-dependence repair class E2-3 (2026-11-16)
+### v66: flaky quarantine guard: order-dependence repair class E2-3 (2026-11-16)
 
 **Added**
 
