@@ -1,0 +1,23 @@
+jargon_map_sync rocqwash-jargon-map-sync/1: mode=plan md_faces=143 appended=0 updated=0 unchanged=122 retagged=0 authority_kept=4 rejected=17 entries=159 count=159 wrote=false
+  rejected 洗 (md line 37): alternation-guard
+  rejected 活账 (md line 46): alternation-guard
+  rejected 死账 (md line 46): alternation-guard
+  rejected 玩具 (md line 59): alternation-guard
+  rejected 铁律 (md line 60): alternation-guard
+  rejected 落盘 (md line 66): alternation-guard
+  rejected 入库 (md line 68): alternation-guard
+  rejected 台账 (md line 84): alternation-guard
+  authority-kept 哨 (md line 87, entry J098): the existing zh standard is a whitepaper-track transcription and is never machine-superseded
+  authority-kept 哨兵 (md line 87, entry J061): the existing zh standard is a whitepaper-track transcription and is never machine-superseded
+  rejected 探针 (md line 88): alternation-guard
+  rejected 闸 (md line 94): alternation-guard
+  rejected 发射 (md line 95): alternation-guard
+  rejected 堵 (md line 97): alternation-guard
+  rejected 堵账 (md line 97): alternation-guard
+  authority-kept 旗舰 (md line 103, entry J012): the existing zh standard is a whitepaper-track transcription and is never machine-superseded
+  rejected 回收 (md line 111): alternation-guard
+  rejected 榜 (md line 118): alternation-guard
+  authority-kept 上车 (md line 125, entry J046): the existing zh standard is a whitepaper-track transcription and is never machine-superseded
+  rejected 波次 (md line 144): alternation-guard
+  rejected campaign (md line 177): alternation-guard
+VERDICT IN-SYNC (plan is zero-write)

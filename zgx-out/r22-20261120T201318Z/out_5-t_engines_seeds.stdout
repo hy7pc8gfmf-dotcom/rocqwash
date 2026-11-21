@@ -1,0 +1,58 @@
+SKIP test_detector_anchor: instrument not reachable at D:/ComplexAnalysis/attn/_vacgen_20261112/selftest/ai_flavor_selfcheck.sh
+SKIP test_snapshot_identity_matches_source: glossary source not present on this host
+SKIP test_transcription_verbatim_against_source: glossary source not present on this host
+PASS ai_flavor/load_word_map_json -- 
+PASS ai_flavor/test_structure -- 
+PASS ai_flavor/test_coverage -- 
+PASS ai_flavor/test_battery_mix -- 
+PASS ai_flavor/test_candidates_present_and_typed -- 
+PASS ai_flavor/test_no_coined_words -- 
+PASS ai_flavor/test_keys_english -- 
+PASS ai_flavor/test_detector_anchor -- PASS (or SKIP notice above)
+SEGMENT run_segment_ai_flavor passed=8 failed=0
+PASS engines.md_present (22591 bytes)
+PASS engines.entries_count (5: E1..E5)
+PASS engines.fields_seven (7 fields x 5 entries)
+PASS engines.fields_nonempty
+PASS engines.roadmap_steps (1..4)
+PASS engines.roadmap_acceptance (each step: criteria head + items)
+PASS engines.originals_block (8 markers, 1 fenced block(s))
+PASS engines.version_anchor
+PASS engines.register_ascii (zero CJK outside the path block)
+PASS engines.register_emdash (0)
+PASS engines.register_battery (0 hits)
+PASS engines.seed_paths (14 present, 0 skipped while staging)
+SEGMENT run_segment_engines passed=12 failed=0
+PASS i18n/stub-selftest rc=0 stub=/Users/zuguangzhao/ComplexAnalysis/rocqwash-loop/seeds/i18n/pipeline_stub.py
+  | STUB: rocqwash-i18n/0.0.0-stub (interface shape only, zero implementation)
+  | STUB: segment_document -> PipelineStub (interface-only, ok)
+  | STUB: translate_segments -> PipelineStub (interface-only, ok)
+  | STUB: apply_linkages -> PipelineStub (interface-only, ok)
+SEGMENT run_segment_i18n passed=1 failed=0
+PASS jargon/json-contract -- 159 entries with the 62-entry seed prefix preserved, unique ids/faces, exact count label, disposition rules hold, provenance pinned in the v2 form
+PASS jargon/transcription -- 37 pinned-track entries verbatim in their sources (122 in-repo-md-v1 entries covered by the md-containment check)
+PASS jargon/md-containment -- 122/122 in-repo-md-v1 entries equal the paren-stripped md cells (the sync's own derivation rule, in-repo table)
+PASS jargon/snapshot-md5 -- all 3 pinned sources verified per provenance v2: external consistency seeds/jargon/_snapshots/annotation-whitepaper-v1.0-20260921.md md5==pin; external freshness seeds/jargon/_snapshots/annotation-whitepaper-v1.0-20260921.md SKIP (declared, freshness unverifiable off-canonical: upstream absent); repo docs/jargon-to-standard-mapping-v1.md blob==pin; external consistency seeds/jargon/_snapshots/terminology-general-project-20260921.md md5==pin; external freshness seeds/jargon/_snapshots/terminology-general-project-20260921.md SKIP (declared, freshness unverifiable off-canonical: upstream absent)
+PASS jargon/projection-roundtrip -- 159 active faces load with transcribed suggestions and exempts; JSON seed loads natively and malformed JSON fails loud (exit 1)
+PASS jargon/detection-full-face-coverage -- each mapped face fires exactly once on its own fixture line, with its transcribed suggestion
+PASS jargon/carveout-exemption -- preserved compound '零消费' silent for face '消费'
+PASS jargon/clean-fixture -- no jargon findings on a clean English fixture
+PASS jargon/washshape-gap-probe -- wash_shape carries the jargon wash stage; the SPEC section 3 integration note holds
+SEGMENT jargon: 9 checks, 0 FAIL, 0 SKIP
+SEGMENT run_segment_jargon passed=9 failed=0
+PASS termbase/test_parse_face
+PASS termbase/test_source_of_truth_recorded
+PASS termbase/test_entry_skeleton_declared
+PASS termbase/test_entries_shape
+PASS termbase/test_irregular_rows_registered
+PASS termbase/test_meta_counts_consistent
+PASS termbase/test_domain_slots_three_unfetched
+PASS termbase/test_slot_sources_declared_not_verified
+PASS termbase/test_json_keys_english
+PASS termbase/test_spec_faces_english_ascii
+PASS termbase/test_snapshot_identity_matches_source
+PASS termbase/test_transcription_verbatim_against_source
+PASS termbase/test_seed_dir_zero_engine_body
+SEGMENT run_segment_termbase passed=13 failed=0
+SUMMARY segments=5 expected=5 passed=43 failed=0 missing=0
+TOTAL-SELFTEST GREEN (43 passed check(s))

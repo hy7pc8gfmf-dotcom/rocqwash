@@ -1,0 +1,71 @@
+PASS own-register/suite-source-ascii -- suite source is pure ASCII (zero CJK bytes)
+PASS own-register/battery-clean-own-face -- battery zero on 4 scanned file(s) across 4 batteries
+PASS own-register/em-dash-zero-all-files -- em-dash zero across all 6 lane file(s)
+PASS own-register/five-field-headers -- five-field block present in the suite module and the fixture README
+PASS own-register/no-date-stamps -- no date-stamp literal in the suite module or the README
+PASS own-register/clean-sample-valid -- clean sample is battery-clean, em-dash zero, ASCII only
+PASS own-register/dirty-sample-valid -- dirty sample fires on 3 batteries ({'EN_WORD_STEMS_15FACES': 2, 'EN_SENTENCE_8FACES': 1, 'EN_PARA_INITIAL_3FACES': 1}) by design
+PASS own-register/manifest-shapes-valid -- repo manifest carries the seven contract keys with face 'repo'; bad-shape manifest lacks ['direction', 'policy_precheck', 'verify_faces']
+SEGMENT own-register passed=8 failed=0 skipped=0
+PASS regression/seeds-suite-green -- seed suite green (SUMMARY segments=5 expected=5 passed=43 failed=0 missing=0)
+PASS regression/norm-lint-selftest-green -- norm_lint selftest green (6 PASS vectors)
+PASS regression/norm-lint-exit9-missing-map -- norm_lint exits 9 on an unreadable jargon map
+PASS regression/i18n-stub-selftest-green -- stub selftest green; bare invocation exits 2 with the STUB banner
+SEGMENT regression passed=4 failed=0 skipped=0
+PASS e1-detect/pure-load-word-map -- load_word_map returns the 36-face map
+PASS e1-detect/pure-detect-clean -- clean probe: schema key, zero hits, zero em-dash, batteries block
+PASS e1-detect/pure-detect-polluted -- 4 hits, key shape and 40-char windows verified
+PASS e1-detect/pure-detect-zh-battery -- Chinese battery face fires (substring mode)
+PASS e1-detect/pure-em-dash-separate -- em-dash battery counted separately from the 36 faces
+PASS e1-detect/cli-file-clean-exit0 -- CLI --file clean exits 0
+PASS e1-detect/cli-file-dirty-exit1 -- CLI --file polluted exits 1
+PASS e1-detect/cli-usage-and-missing-exit2 -- bare invocation and missing input both exit 2
+PASS e1-detect/cli-json-report-shape -- --json report parses with the contract schema key
+PASS e1-detect/cli-tree-five-extensions -- --tree fires on pollution in the five scanned extensions and stays silent for .txt (five-extension rule)
+PASS e1-detect/cli-selftest-clean -- --selftest exits 0 with the CLEAN marker
+SEGMENT e1-detect passed=11 failed=0 skipped=0
+PASS e2-apply/pure-load-map-159 -- load_map returns the 159-entry map
+PASS e2-apply/pure-project-table-roundtrip -- project_table output feeds the norm_lint loader: 159 faces, suggestions and exempts row-for-row faithful
+PASS e2-apply/pure-plan-hard-rule-matrix -- plan lists exactly the machine-applicable faces; rewrite-or-delete, guarded, and carve-out compound lines stay out; the backticked identifier is masked
+PASS e2-apply/pure-apply-residue-idempotent -- apply lands the replace, machine residue zero, human rows untouched, second apply a no-op
+PASS e2-apply/cli-plan-zero-write -- --plan writes nothing, exits 1 with before/after pairs listed
+PASS e2-apply/cli-apply-loop-idempotent -- apply lands the fixes and exits 0; second apply byte-identical
+PASS e2-apply/cli-guarded-default-refuse -- guarded row survives a default apply and is surfaced for review
+PASS e2-apply/cli-usage-exit2 -- bare invocation exits 2
+SEGMENT e2-apply passed=8 failed=0 skipped=0
+PASS e1-apply/pure-plan-three-classes -- three-class suggestions verified ({'neutral-direct-form': 1, 'ban-remediation': 1, 'delete-or-restate': 1})
+PASS e1-apply/pure-emit-row-shape -- emit_handoff rows carry the six contract keys (2 rows)
+PASS e1-apply/pure-ingest-roundtrip -- handoff round-trip applies the filled row; the ban face stays untouched (1 applied)
+PASS e1-apply/pure-ingest-reject-branches -- missing model_id refused
+PASS e1-apply/pure-structure-guard -- delimiter counts unchanged across the rewrite (structure guard)
+PASS e1-apply/cli-handoff-roundtrip -- CLI emit, fill, apply lands the rewrite; re-emit is empty (machine-class residue zero)
+PASS e1-apply/cli-budget-cap -- budget cap holds: same state refuses the second round on one file and class; a fresh state runs it
+PASS e1-apply/cli-http-default-deny -- default-deny holds: gate closed names the gate variable; gate open names the missing endpoint, model, or key; the key-missing refusal precedes any connection
+SEGMENT e1-apply passed=8 failed=0 skipped=0
+PASS e4-pipeline/stub-signature-parity -- six operations present with stub-identical signatures
+PASS e4-pipeline/p0-regimes-data -- P0_REGIMES carries repo, paper, supplement with disclosure and refusal keys; refusal-true faces: ['supplement']
+PASS e4-pipeline/cli-stage-p0-precheck-row -- stage p0 exits 0 and ledger row one carries the precheck ref
+PASS e4-pipeline/p0-refusal-legal-outcome -- refusal face 'supplement': exit 0 and a refusal ledger row
+PASS e4-pipeline/cli-stage-p1-segments -- stage p1 rows carry segment id, direction, line span and the precheck ref; no span covers the fenced block
+PASS e4-pipeline/cli-stage-p6-close -- close passes on complete rows and refuses a PENDING row
+PASS e4-pipeline/pure-ledger-append -- sync_ledger_append appends in order; rows carry the nine keys
+PASS e4-pipeline/cli-usage-and-bad-manifest -- bogus stage exits 2; an incomplete manifest is refused loudly
+SEGMENT e4-pipeline passed=8 failed=0 skipped=0
+PASS e4-translate/pure-build-handoff-shape -- build_handoff rows carry the six emit keys and a prompts/ ref
+PASS e4-translate/pure-ingest-nine-keys -- ingest round-trip yields translated segments and ledger rows with the nine keys and annotation_site model
+PASS e4-translate/pure-ingest-missing-model -- a fill row without model_id is refused loud (raise or exclusion)
+PASS e4-translate/cli-emit-ingest-validation -- CLI emit writes the six-key pack; a valid fill ingests clean; a fill without model_id is refused and named
+PASS e4-translate/cli-http-default-deny -- translate default-deny holds: gate closed names the gate variable; partial credentials refuse and name the gap
+SEGMENT e4-translate passed=5 failed=0 skipped=0
+PASS e4-verify/verify-matrix-schema -- verify matrix carries the contract schema and names all three verifiers
+PASS e4-verify/tenpoint-emit-ingest-roundtrip -- tenpoint emit lists ten slots; valid verdicts ingest to ALL-PASS; a bad verdict and a missing citation both refuse
+PASS e4-verify/verify-usage-exit2 -- bare invocation exits 2
+PASS e4-verify/termbase-selftest -- termbase --selftest exits 0
+PASS e4-verify/termbase-lookup -- lookup('机检（「机器检查」缩写）') returns 1 matching entries
+PASS e4-verify/termbase-schema-fail-loud -- loader refuses a schema-invalid termbase (TermbaseError raised)
+SEGMENT e4-verify passed=6 failed=0 skipped=0
+PASS import-face/stdlib-only-imports -- stdlib-only import face across 7 landed module(s)
+PASS import-face/urllib-provider-scope -- urllib confined to the two provider modules (ai_flavor_apply, i18n_translate)
+SEGMENT import-face passed=2 failed=0 skipped=0
+SUMMARY segments=9 passed=60 failed=0 skipped=0
+TOTAL-ENGINES-BODY GREEN (60 passed, 0 skipped)
