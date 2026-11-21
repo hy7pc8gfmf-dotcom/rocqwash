@@ -1,16 +1,16 @@
-# loop-unclog.md — workflow block ③: the unclogging closed loop (dry run → human review → --apply → re-verify · honest-wall branch) / `工作流嵌段③：堵账疏通闭环（dry run→人审→--apply→复核·诚实墙分支）`
+# loop-unclog.md: workflow block ③: the unclogging closed loop (dry run → human review → --apply → re-verify · honest-wall branch) / `工作流嵌段③：堵账疏通闭环（dry run→人审→--apply→复核·诚实墙分支）`
 
-> Purpose.  The fully copyable form of the `README-cw.md` unclog tool row (README-cw.md:71), expanded into whole-block copyable commands + real output samples + an exit-code branch table (honest-wall branch) + dynamic-workflow embed pseudocode; one of the three canonical workflow-block samples of rocqwash v37. Normative tool face: the `tools/unclog.py` docstring (manual five steps closed into a self-driving loop: probe collection → chain_graph chain-root pick → cure_applier apply → rescan/resprobe re-check → verdict; schema `rocqwash-unclog/1`; closed-loop verdicts `unclogged|wall|rounds-exhausted` — unclog.py:205-216) and `--help`.
+> Purpose.  The fully copyable form of the `README-cw.md` unclog tool row (README-cw.md:71), expanded into whole-block copyable commands + real output samples + an exit-code branch table (honest-wall branch) + dynamic-workflow embed pseudocode; one of the three canonical workflow-block samples of rocqwash v37. Normative tool face: the `tools/unclog.py` docstring (manual five steps closed into a self-driving loop: probe collection → chain_graph chain-root pick → cure_applier apply → rescan/resprobe re-check → verdict; schema `rocqwash-unclog/1`; closed-loop verdicts `unclogged|wall|rounds-exhausted`; unclog.py:205-216) and `--help`.
 > Interface.  Document face. It documents `cw.sh unclog` (`tools/unclog.py`); the tool docstring and `--help` are normative. Citations bind to the HEAD d3c84e6 commit state (concurrent multi-agent development · working-tree line numbers drift). The original Chinese text is preserved in the sibling `.zh.md` archive.
 > Dependencies.  `tools/unclog.py` routed through `cw.sh`; its engines always run as subprocesses (`wash/probe_engine.py` probes, `tools/chain_graph.py` chain roots, `wash/cure_applier.py` cures against the canonical pack `wash/cure_pack.json` (v1.4.1 at drill time), the scan_v4_token rescan, the `certify/frozen8.py` roster fetch); `README-cw.md` "workflow-integration interface" (README-cw.md:159-199) for the five joint disciplines. The drill form in this file needs no rocq toolchain (injector-canned probes, zero real compiles); no runtime dependency of this document face itself.
-> Evidence.  Every output sample in §1/§3/§4 is a real-run record of the November 19, 2026 tmp injection drill of the current tool at HEAD d3c84e6 (fixture data · zero real network, zero real compilation — probe/resprobe canned, chain/cure/scan/frozen8 ran for real), not hand-written; each sample states its measured rc. The predecessor captures of November 11, 2026 (v37, commit 41e74b0; stdout labels then Chinese, frozen roster then 8 entries) are archived verbatim in the sibling `.zh.md`; the current tool emits the English wording shown. Tmp path prefixes in the samples are abbreviated to `…` (machine-local tmp dirs; the report itself carries basenames only — unclog.py docstring "report face"). No real compilation probe was run for this document (the real-probe form needs the rocq world base); the offline injection form is what was measured.
+> Evidence.  Every output sample in §1/§3/§4 is a real-run record of the November 19, 2026 tmp injection drill of the current tool at HEAD d3c84e6 (fixture data · zero real network, zero real compilation; probe/resprobe canned, chain/cure/scan/frozen8 ran for real), not hand-written; each sample states its measured rc. The predecessor captures of November 11, 2026 (v37, commit 41e74b0; stdout labels then Chinese, frozen roster then 8 entries) are archived verbatim in the sibling `.zh.md`; the current tool emits the English wording shown. Tmp path prefixes in the samples are abbreviated to `…` (machine-local tmp dirs; the report itself carries basenames only; unclog.py docstring "report face"). No real compilation probe was run for this document (the real-probe form needs the rocq world base); the offline injection form is what was measured.
 > Exit-codes.  Not applicable to a document face; the documented closed loop keeps its implemented exit-code semantics (§4: 0 unclogged / 1 wall or rounds-exhausted / 2 usage or scenario shape / 9 fail-loud) unchanged.
 >
 > Non-negotiable constraints (read before use):
-> - **--apply defaults to off = dry run everywhere, zero disk writes** (single switch · `--yes` is not needed — unclog.py docstring "Safety rules" section): the apply lands only on **chain-root files** (`<src>/<root>.v` — outside the root pick there is no cure_applier call path · structurally guaranteed against non-root files), and only through the canonical cure pack (no free-form edits).
-> - **the honest wall is never force-fitted** — when every top-list entry has `self.washable=false`, or every washable root dead-ends → `verdict=wall exit 1`; the wall record lists a non-actionable reason per root, zero applies, nothing forced (unclog.py:90).
-> - **a failing result is data, not a tool failure** — a probe rc-1 candidate is produced data; the exit code states only the tool face and the terminal verdict (0=unclogged · 1=wall/rounds-exhausted · 2=usage/scenario-shape error · 9=fail-loud).
-> - **world-generation discipline** — the tool never writes `--world`; whether a re-check failure clears after a cure depends on the world's `.vo` foundation turning over a generation (the caller seeds generations per the wash/world_hook.py certification discipline); the tool only records what it observed (unclog.py docstring "World discipline" section).
+> - **--apply defaults to off = dry run everywhere, zero disk writes** (single switch · `--yes` is not needed; unclog.py docstring "Safety rules" section): the apply lands only on **chain-root files** (`<src>/<root>.v`; outside the root pick there is no cure_applier call path · structurally guaranteed against non-root files), and only through the canonical cure pack (no free-form edits).
+> - **the honest wall is never force-fitted**; when every top-list entry has `self.washable=false`, or every washable root dead-ends → `verdict=wall exit 1`; the wall record lists a non-actionable reason per root, zero applies, nothing forced (unclog.py:90).
+> - **a failing result is data, not a tool failure**; a probe rc-1 candidate is produced data; the exit code states only the tool face and the terminal verdict (0=unclogged · 1=wall/rounds-exhausted · 2=usage/scenario-shape error · 9=fail-loud).
+> - **world-generation discipline**; the tool never writes `--world`; whether a re-check failure clears after a cure depends on the world's `.vo` foundation turning over a generation (the caller seeds generations per the wash/world_hook.py certification discipline); the tool only records what it observed (unclog.py docstring "World discipline" section).
 
 ## 1. Step 1: dry run (zero disk writes by default · produces the plan record)
 
@@ -25,7 +25,7 @@ bash cw.sh unclog --src "$SRC" --world "$WORLD" --candidates "$CANDS" \
 echo "UNCLOG_DRY_RC=$?"           # 0=failure account already clear (no apply needed) · 1=wall/rounds-exhausted · read the record and decide
 ```
 
-> The dry-run block carries no `--apply` — that is the **structural default**,
+> The dry-run block carries no `--apply`; that is the **structural default**,
 > not an omission (see the first constraint above).
 
 **Measured sample** (real tmp-injection drill of November 19, 2026 at the
@@ -78,7 +78,7 @@ timing fields are omitted here for width):
 ```
 
 **Zero-write proof** (same run): after the dry run the root file's md5 still
-equals `cure.md5_before` (`d47bbca3db58dbfeb55c4ad0cb47e950`) — the file was
+equals `cure.md5_before` (`d47bbca3db58dbfeb55c4ad0cb47e950`); the file was
 untouched.
 
 ## 2. Step 2: human review of the plan (read the dry-run record · no tool run)
@@ -88,7 +88,7 @@ Three review questions (all answered from the report, no new engine runs):
 | Where to read | What to judge |
 |---|---|
 | `rounds[].chain_top[].self.washable` | the chain roots' washability verdicts (chain_graph wording); all false → expect a wall |
-| `rounds[].cure.patterns` | the canonical pack's planned pattern names and counts (e.g. `cure13_natle_premise_lift: 1`) — a wrong plan → do not open `--apply` |
+| `rounds[].cure.patterns` | the canonical pack's planned pattern names and counts (e.g. `cure13_natle_premise_lift: 1`); a wrong plan → do not open `--apply` |
 | `rounds[].cure.stage` | `dry-run` = nothing applied; the value flips to `applied` only after `--apply` |
 
 ## 3. Step 3: --apply apply + Step 4 re-verify (one command produces the full record)
@@ -123,16 +123,16 @@ Re-check three criteria (inside the report · the same-source engines re-run
 after the apply):
 
 - `rounds[].rescan.residual_zero == true` (scan_v4_token re-scans the treated
-  file; the cured-token residual should be zero — measured `station_count: 0`
+  file; the cured-token residual should be zero; measured `station_count: 0`
   in the sample);
 - `rounds[].resprobe.rc_ok == true` (probe_engine re-probes the treated file;
-  rc should be 0 — measured `rc: 0` in the sample);
+  rc should be 0; measured `rc: 0` in the sample);
 - `final.red_files == []` and `final.cures_applied_total == 1` (an empty
   failure account = blockages cleared).
 
 **Honest form when the re-check fails**: when `resprobe.rc_ok=false`, stdout
 loudly appends the suffix `resprobe-rc=… (expected 0, not reached; recorded as
-observed)` (unclog.py:902-904) — the tool never dresses "applied" up as
+observed)` (unclog.py:902-904); the tool never dresses "applied" up as
 "cleared"; whether the failure account is truly cleared is decided by
 world-generation turnover (fourth constraint above).
 
@@ -143,7 +143,7 @@ world-generation turnover (fourth constraint above).
 | 0 | `unclogged` | failure account empty (blockages cleared · or none to begin with) | close out; read final.cures_*_total into the record |
 | 1 | `wall` | **honest wall**: every top-list entry unwashable, or every washable root dead-ends → zero applies, nothing forced · the wall record lists a reason per root (wall field) | human review routes on the wall record: see the wall-reason table below |
 | 1 | `rounds-exhausted` | `--rounds` (default 5) exhausted with the failure account uncleared · per-round records + the final judging probe on file | read the rounds[] per-round records · a human decides: more rounds / world turnover / manual repair |
-| 2 | (no verdict) | usage error / injection-scenario shape error (e.g. canned series exhausted / column missing / shape broken — consumed strictly in order, fail-loud) | fix the command line or complete the canned scenario |
+| 2 | (no verdict) | usage error / injection-scenario shape error (e.g. canned series exhausted / column missing / shape broken; consumed strictly in order, fail-loud) | fix the command line or complete the canned scenario |
 | 9 | (no verdict) | fail-loud (missing path / engine subprocess non-zero non-data exit / frozen roster unavailable / whole-tree enumeration found zero candidates) | supply the path or repair the tool face by hand |
 
 **Wall-reason routing table** (wall field `reason` values · normative at
@@ -156,7 +156,7 @@ unclog.py:90 and the wall_add call sites):
 | `no-chain-root` | no failing file in the account is a missing-library chain root (generation-gap/tool-cause failure · the wall never goes silent) | human triage (against the ci_triage classification spectrum) |
 | `root-file-missing` | the chain-root file is missing (the library a failing file lacks has no corresponding source file) | human supplies the file |
 | `cure-miss` | the canonical pack's dry run offers zero plan (total_matches=0 · nothing fabricated) | human extends or rewrites the pack |
-| `frozen-in-service` | the root name/root file collides with the frozen roster → loud precheck rejection | **frozen files are untouchable** — take a different path |
+| `frozen-in-service` | the root name/root file collides with the frozen roster → loud precheck rejection | **frozen files are untouchable**; take a different path |
 | `exclusive-group-conflict` | variants require a human `--only` choice (no automatic substitution) | a human picks one, then rerun |
 | `idempotence-fail` | the apply-time idempotence assertion refused the write (cure_applier refused · file untouched) | human checks for duplicate patterns |
 
@@ -203,12 +203,12 @@ bash cw.sh unclog --src "$SRC" --world "$WORLD" --json r.json
 ```
 
 Offline injection (workflow drill / CI use · discipline ③): `--injector DIR/`,
-`DIR/scenario.json = {"probe":[ledger...],"resprobe":[ledger...]}` — the two
+`DIR/scenario.json = {"probe":[ledger...],"resprobe":[ledger...]}`; the two
 probe_engine call classes, probe/resprobe, consume canned ledgers **strictly
 in order** (written verbatim into the workdir, then still feeding the real
 chain_graph · exhausted/missing-column/broken-shape fail loud 2);
 chain_graph/cure_applier/scan_v4_token/frozen8 keep running for real under
-injection mode (real orchestration, not a puppet — unclog.py docstring
+injection mode (real orchestration, not a puppet; unclog.py docstring
 "Offline-testable" section). Ledger record shape (`rocqwash-probe-ledger/1` ·
 the form this document's drill used):
 
@@ -224,14 +224,14 @@ the form this document's drill used):
 
 Canned consumption order, measured note (lesson of the November 19, 2026 tmp
 drill · recorded as observed): candidates mode **re-probes whole every round**
-— each round's probe consumes one canned shot (dry run included); each
+: each round's probe consumes one canned shot (dry run included); each
 re-check's resprobe consumes one shot; a series exhausted = fail-loud 2. A
 drill scenario's probe series must therefore be at least as long as the round
 count.
 
 **Loop watch state** (same shape as README-cw.md:165-168; example at
 README-cw.md:215): `--loop --interval 600 --loop-max 8
---events unclog-events.jsonl` — the closed loop turns pass after pass; a
+--events unclog-events.jsonl`; the closed loop turns pass after pass; a
 terminal `unclogged/wall` stops and exits at once; a non-terminal
 `rounds-exhausted` rests `--interval` before the next pass (`--loop-max` caps
 the pass count · 0 = unlimited).
@@ -276,7 +276,7 @@ phase "unclog-loop" {
   injection drill of November 19, 2026 (dry run rc 0 / --apply rc 0 / wall
   rc 1 · fixture A.v/B.v and canned ledgers both tmp-made · zero real
   compilation), not hand-written; sample path prefixes are abbreviated to `…`
-  (machine-local tmp dirs; the report itself carries basenames only — unclog.py
+  (machine-local tmp dirs; the report itself carries basenames only; unclog.py
   docstring "report face" section). The predecessor captures of November 11,
   2026 (v37 41e74b0), whose stdout labels then carried Chinese wording and
   whose frozen roster then read 8 entries, are archived verbatim in the
@@ -287,7 +287,7 @@ phase "unclog-loop" {
 - No real compilation probe was run for this document (the real-probe form
   needs the rocq world base · a real compile must ride the cpu_guard wrap:
   `--guard PATH --guard-reg DIR …` pass-through, unclog --help "--guard"
-  entry) — the real-probe form is the user face; the offline injection form is
+  entry); the real-probe form is the user face; the offline injection form is
   what was measured.
 - The exit-code branch table anchors cell-by-cell to the unclog docstring
   "exit codes" section and the `--help` tail note; the wall-reason table
@@ -299,7 +299,7 @@ phase "unclog-loop" {
   numbers drift).
 
 (English brief) Workflow block ③: the unclogging closed loop. Canonical order:
-dry-run first (default — `--apply` is the only write switch; dry run touches
+dry-run first (default; `--apply` is the only write switch; dry run touches
 nothing, proven by md5 equality), human review of the planned cure patterns, then
 `--apply` (canonical cure-pack only, chain-root files only, structurally), then
 re-verify (`rescan.residual_zero` + `resprobe.rc_ok` + empty red ledger). Honest

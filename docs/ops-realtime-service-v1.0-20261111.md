@@ -1,16 +1,16 @@
-# ops-realtime-service — real-time service operations manual v1.0 (November 11, 2026)
+# ops-realtime-service: real-time service operations manual v1.0 (November 11, 2026)
 
 > Purpose.  Operations manual for the live service layer: the resident watcher's standard command line and JSONL consumption, the three on-red preset forms compared, the real-tree live-run procedure (`--audit` baseline → human review → `--apply` allowlist), and the background-task cooperation model.
 > Interface.  Document face only. Every command and field is taken from the tools' live state (`tools/cw_sentinel.py` / `tools/unclog.py` / `tools/pushci.py` / `tools/cw_doctor.py` `--help` and docstrings · rocqwash v38 `c205ea0`); line-number anchors bind to the `c205ea0` commit state (concurrent multi-agent development · working-tree line numbers drift). The original Chinese text is preserved in the sibling `.zh.md` archive.
 > Dependencies.  The four tool faces named above plus `tests/test_relay_e2e.py` for the relay evidence; no runtime dependency.
-> Evidence.  All "measured sample" blocks are real-run records of the November 11, 2026 tooling-agent tmp injection drill (fixture data · zero real network, zero real compilation); the three-verdict evidence in `tests/test_relay_e2e.py` passes (event trigger / unclog dry run rc=0 zero writes / JSONL same-disk unclog report path — three verdicts all passing · idempotent two-run rc=0). Where the tools and this manual conflict, the tools' `--help` wins. Chinese annotations inside recorded output strings are the recorded runs' original wording, translated at the normalization round; the verbatim originals are in the `.zh.md` archive.
+> Evidence.  All "measured sample" blocks are real-run records of the November 11, 2026 tooling-agent tmp injection drill (fixture data · zero real network, zero real compilation); the three-verdict evidence in `tests/test_relay_e2e.py` passes (event trigger / unclog dry run rc=0 zero writes / JSONL same-disk unclog report path; three verdicts all passing · idempotent two-run rc=0). Where the tools and this manual conflict, the tools' `--help` wins. Chinese annotations inside recorded output strings are the recorded runs' original wording, translated at the normalization round; the verbatim originals are in the `.zh.md` archive.
 > Exit-codes.  Not applicable to a document face; the documented tools keep their implemented exit-code semantics unchanged.
 
 > Discipline constraints (apply to every section):
-> - **a failing result is data, not a tool failure** — CI failings / blockages / walls are all event and report data; exit codes only state the tool face.
-> - **zero action is the default** — the watcher is report-only by default; apply happens only after human review via an explicit `--apply` (auto-hookup defaulting to a dry run is an invariant, tools/cw_sentinel.py:48-49, tools/unclog.py:41-44).
-> - **offline drill pin** — `--injector` + `--sleep-scale 0` is the drill form; the production form omits it (the `"note": "ts=off…"` in the samples is the drill annotation · production event lines carry a real `ts`, tools/cw_sentinel.py:34-35).
-> - **real compilation always goes through cpu_guard** — every `--world` real-probe / real-apply live run must pass `--guard` (probe_engine.py:10 precedent · thermal invariant); pure logic orchestration (classification / chain roots / cure dry run) compiles nothing and needs no guard.
+> - **a failing result is data, not a tool failure**; CI failings / blockages / walls are all event and report data; exit codes only state the tool face.
+> - **zero action is the default**; the watcher is report-only by default; apply happens only after human review via an explicit `--apply` (auto-hookup defaulting to a dry run is an invariant, tools/cw_sentinel.py:48-49, tools/unclog.py:41-44).
+> - **offline drill pin**; `--injector` + `--sleep-scale 0` is the drill form; the production form omits it (the `"note": "ts=off…"` in the samples is the drill annotation · production event lines carry a real `ts`, tools/cw_sentinel.py:34-35).
+> - **real compilation always goes through cpu_guard**; every `--world` real-probe / real-apply live run must pass `--guard` (probe_engine.py:10 precedent · thermal invariant); pure logic orchestration (classification / chain roots / cure dry run) compiles nothing and needs no guard.
 
 ## §1 Background watcher: standard command and JSONL usage
 
@@ -49,7 +49,7 @@ byte-identical sources, so `>/dev/null` loses no evidence; give `--max-rounds N`
 
 ### 1.2 The JSONL consumer
 
-Event lines are `json.dumps(..., sort_keys=True)` (tools/cw_sentinel.py:386) — keys are always lexicographic,
+Event lines are `json.dumps(..., sort_keys=True)` (tools/cw_sentinel.py:386); keys are always lexicographic,
 `"kind": "ci-red"` is a byte-stable grep target; `seq` continues across processes
 from the file's existing line count (tools/cw_sentinel.py:32-33), so a consumer that sorts by seq restores the global order.
 
@@ -87,7 +87,7 @@ The ci-red event line (`--once --watch-repo org/repo --branch main --injector �
 {"action": "fix-content", "branch": "main", "conclusion": "failure", "evidence": ["failing piece 1/1: ids=[501]", "on-register family: A-content-red (classification order takes the first)"], "family": "A-content-red", "kind": "ci-red", "note": "ts=off (--sleep-scale 0 · deterministic output) | classification=rocqwash-ci-triage/1 (ci_triage subprocess --offline)", "repo": "org/repo", "run": 178, "run_number": 9, "schema": "rocqwash-sentinel-event/1", "seq": 1, "sha": "abc123def"}
 ```
 
-**Production form (without `--sleep-scale 0`): event lines carry a real `ts`** — measured live run of the §1.1 block shape
+**Production form (without `--sleep-scale 0`): event lines carry a real `ts`**; measured live run of the §1.1 block shape
 (November 11, 2026 tooling agent · ledger+buildlog two sources · `--loop --max-rounds 2` self-stop rc 0):
 
 ```json
@@ -103,7 +103,7 @@ Same-run report/state account evidence: `report: mode=loop round=2` · the state
 | code | meaning (cw_sentinel --help / docstring accounting · tools/cw_sentinel.py:72-78) | operations action |
 |---|---|---|
 | 0 | patrol round complete (failings already emitted as events · not a tool failure) | step aside and continue; failing events go to human-review triage (§4) |
-| 1 | — (the watcher has no 1 state: failings go through the event stream, not the exit code) | should not occur; if it does, handle as 9 and re-check |
+| 1 |; (the watcher has no 1 state: failings go through the event stream, not the exit code) | should not occur; if it does, handle as 9 and re-check |
 | 2 | usage error (missing mode / both modes given / all three sources missing / --branch before --watch-repo / repo shape malformed / --once given loop-only flags / on-red preset misuse) | caught before spawn by the §1.1 probe; fix the arguments and restart |
 | 9 | signal source unreachable (CI HTTP 4xx/5xx · netrc missing · token empty · runs/jobs shape malformed · preset parts missing · injector missing/malformed/canned not covered · ledgers directory missing · state malformed · subprocess rc≠0/timeout) | fail-loud and stop (never run while sick) · fix the source manually and restart the watcher |
 
@@ -115,12 +115,12 @@ Same-run report/state account evidence: `report: mode=loop round=2` · the state
 |---|---|---|---|
 | nature | zero action is the default (tools/cw_sentinel.py:39-40) | the preset is template sugar over the same executor as `--on-red` (py:42-44) | same as the previous column |
 | expanded command (verbatim · py:150-155) | none | `python3 -B tools/unclog.py --src {src} --json {emit_dir}/unclog_{run}.json` | `python3 -B tools/pushci.py --repo-path {repo_path} --branch {branch} --json {emit_dir}/pushci_{run}.json --dry-run` |
-| required `--on-red-arg` | — (given anyway = orphan → 2) | `src=<source tree root>` | `repo_path=<repository directory>` + `branch=<branch>` |
-| default safe state | — | **`--apply` not added by default = unclog dry runs only** (py:48-49 invariant) | **`--dry-run` by default = plan only, zero side effects, exit 0** (tools/pushci.py:89) |
-| triggering events | — (report-only also emits events) | ci-red/blocking/build-signal failing events run one by one on the caller's behalf (py:713-716) | same as the previous column |
-| placeholder substitution | — | static `{src}`/`{emit_dir}` substituted at expansion time (emit_dir = the directory holding `--emit` · py:53-55); dynamic `{run}`/`{family}`/`{repo}` substituted from the event (py:666-674) | same as the previous column |
-| execution cap | — | 60s (`ON_RED_TIMEOUT` · py:168); a timeout records `rc=None` | same as the previous column |
-| exit-code effect | — | **a side action, not a tool face: rc≠0/timeout only enters the actions account + a stdout annotation; the watcher exit code is unchanged** (py:37-39, 682-688) | same as the previous column |
+| required `--on-red-arg` |; (given anyway = orphan → 2) | `src=<source tree root>` | `repo_path=<repository directory>` + `branch=<branch>` |
+| default safe state |; | **`--apply` not added by default = unclog dry runs only** (py:48-49 invariant) | **`--dry-run` by default = plan only, zero side effects, exit 0** (tools/pushci.py:89) |
+| triggering events |; (report-only also emits events) | ci-red/blocking/build-signal failing events run one by one on the caller's behalf (py:713-716) | same as the previous column |
+| placeholder substitution |; | static `{src}`/`{emit_dir}` substituted at expansion time (emit_dir = the directory holding `--emit` · py:53-55); dynamic `{run}`/`{family}`/`{repo}` substituted from the event (py:666-674) | same as the previous column |
+| execution cap |; | 60s (`ON_RED_TIMEOUT` · py:168); a timeout records `rc=None` | same as the previous column |
+| exit-code effect |; | **a side action, not a tool face: rc≠0/timeout only enters the actions account + a stdout annotation; the watcher exit code is unchanged** (py:37-39, 682-688) | same as the previous column |
 | v38 measured (tmp drill) | watcher exit 0 · `actions: []` | the unclog proxy run rc=9 entered in the account (§2.3) · watcher exit 0 | dry run rc=0 zero side effects (measured · §2.3 end) · watcher exit 0 |
 
 ### 2.2 Usage negative examples (all rc=2 fail-loud · proven by selftest py:1266-1281)
@@ -153,7 +153,7 @@ What the actions account (the `--json` report · not the event stream) records:
 ```
 
 Operations reading (as it is): the preset template passes only `--src` (py:151), while unclog's real probe
-requires `--world` (tools/unclog.py:295-296) and offline requires `--injector` — the preset carries neither.
+requires `--world` (tools/unclog.py:295-296) and offline requires `--injector`; the preset carries neither.
 So **the watcher-side proxy run = trigger on seeing a failing event** (event + execution account + report path designated), while **the unclog itself**
 is started by a human per §3 (`--audit` baseline → human review → `--apply` allowlist). This is exactly where the v38 dry-run-by-default
 invariant lands: the watcher's proxy run never applies anything; the unclog decision stays with the human.
@@ -168,7 +168,7 @@ json -> …/pushci_probe.json
 
 ## §3 The real-tree live-run procedure (unclog --audit baseline → human review → --apply allowlist)
 
-> `unclog.py:63` states verbatim: "a real-tree audit live run belongs to the main session (this tool proves the fixture level only)" — this section is the standard procedure for the main session to execute that live run; the command blocks below are procedure templates (before a real-tree live run, drill first in tmp fixture form; samples in §3.1).
+> `unclog.py:63` states verbatim: "a real-tree audit live run belongs to the main session (this tool proves the fixture level only)"; this section is the standard procedure for the main session to execute that live run; the command blocks below are procedure templates (before a real-tree live run, drill first in tmp fixture form; samples in §3.1).
 
 ### 3.0 Step 0: the health-check preflight (optional · recommended)
 
@@ -214,7 +214,7 @@ VERDICT: audit (exit 0)
 |---|---|---|
 | failing account | `rounds[0].probe_summary.red_files` / `final.red_files` | the full failing-surface list for this round |
 | washable chain-root list | `rounds[0].chain_top[].lib` + `.self.washable` | entries with `washable=true` become allowlist candidates |
-| wall account | `wall.<root>.reason` | `self-unwashable`/`cure-miss`/`frozen-in-service`/`root-file-missing`/`exclusive-group-conflict`/`no-chain-root` (unclog.py:35-39 · 696-703) — no forced fixes · human review decides |
+| wall account | `wall.<root>.reason` | `self-unwashable`/`cure-miss`/`frozen-in-service`/`root-file-missing`/`exclusive-group-conflict`/`no-chain-root` (unclog.py:35-39 · 696-703); no forced fixes · human review decides |
 | chain-root file | `rounds[0].root_file` (`<src>/<root>.v`) | the only apply-target shape (outside pick there is no cure call path · unclog.py:43-44) |
 
 ### 3.3 Step 3: the --apply allowlist live run (after human review releases it)
@@ -240,18 +240,18 @@ cure_pack v1.3, freeform forbidden (unclog.py:42-43); frozen-roster entries (liv
 
 ### 3.4 Step 4: re-check and final verdict
 
-The in-loop automatic re-check: rescan of the cured pieces (the cured token residual should be zero) + resprobe (rc should be 0 · after the world generation changes) —
+The in-loop automatic re-check: rescan of the cured pieces (the cured token residual should be zero) + resprobe (rc should be 0 · after the world generation changes):
 `rounds[k].rescan.residual_zero` / `resprobe.rc_ok` are reported as they are, no cosmeticizing
 (unclog.py:16-17, 632-649). Final verdict, three states: `unclogged` exit 0 / `wall` exit 1 (honest
 walls · per-root unwashable reasons listed) / `rounds-exhausted` exit 1 (the `--rounds` cap exhausted · per-round accounts attached).
 World-generation accounting: this tool never writes `--world`; whether the post-wash re-probe clears the failing set depends on the world's `.vo` base generation changing
-(unclog.py:115-116) — if the re-probe has not cleared, it is recorded as it is; no forced fixes.
+(unclog.py:115-116); if the re-probe has not cleared, it is recorded as it is; no forced fixes.
 
 ## §4 Cooperation with the main session (background bash task + notification-driven)
 
 ### 4.1 The step-aside model
 
-The watcher pushes no notifications — **the event stream IS the notification face** (`--emit` append with per-line fsync ·
+The watcher pushes no notifications; **the event stream IS the notification face** (`--emit` append with per-line fsync ·
 seq continues across processes · tools/cw_sentinel.py:31-33). The cooperation shape = the main session spawns the watcher as a background bash task, then **steps
 aside and continues its own work**, and only at checkpoints comes back to consume the event stream and the current report; a failing result is data, not a tool failure, and a watcher
 exit of 0 makes the step-aside legitimate (README-cw.md workflow-integration-interface ⑤ · backend-sentinel.md §5 same shape).

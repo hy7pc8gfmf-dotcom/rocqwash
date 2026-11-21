@@ -1,4 +1,4 @@
-# backend-sentinel.md — workflow block ①: the background watcher (nohup-resident, with a JSONL consumer) / `工作流嵌段①：后台哨（nohup 长驻＋JSONL 消费端）`
+# backend-sentinel.md: workflow block ①: the background watcher (nohup-resident, with a JSONL consumer) / `工作流嵌段①：后台哨（nohup 长驻＋JSONL 消费端）`
 
 > Purpose.  The fully copyable form of the typical background-watcher command line of the `README-cw.md` "workflow cooperation interface" ⑤ section (README-cw.md:200-218), plus the JSONL consumer sample, the exit-code branch table, and the dynamic-workflow embed pseudocode; one of the three canonical workflow-block samples of rocqwash v37.
 > Interface.  Document face. It documents `cw.sh sentinel` (`tools/cw_sentinel.py`; schema `rocqwash-sentinel/1` · event `rocqwash-sentinel-event/1`); the `tools/cw_sentinel.py` docstring and `--help` are the normative tool face. Citations bind to the HEAD b98fe4e commit state (concurrent multi-agent development · working-tree line numbers drift). The original Chinese text is preserved in the sibling `.zh.md` archive.
@@ -7,10 +7,10 @@
 > Exit-codes.  Not applicable to a document face; the documented watcher keeps its implemented exit-code semantics (§4) unchanged.
 >
 > Discipline constraints (read before use):
-> - **zero action is the default** — the watcher is report-only by default and only emits the event stream and reports; `--on-red 'CMD'` is an explicit bypass action (timeout cap 60s · rc≠0 does not change the watcher's exit code) (tools/cw_sentinel.py:72-73 docstring "default none = report-only · zero action is the default").
-> - **a failing result is data, not a tool failure** — CI failing/blockage states are event data; the watcher's inspection round still exits 0; the exit code states only the tool face (0 completed / 2 usage error / 9 signal source unreachable).
-> - **loop must be given `--state-file`** — the seen idempotency persistence layer (`rocqwash-sentinel-state/1`); default None = in-memory state, usable for a single once round, while loop re-emits duplicate events across rounds.
-> - `--emit` is **JSONL append + per-line flush+fsync** (tools/cw_sentinel.py:44, 729-745); stdout always carries a mirror (loud); `seq` is monotonic within the event stream, and with --emit in place it is based on the file's existing line count and **continues numbering across processes** — consumers sorting by seq restore the global order (tools/cw_sentinel.py:46-48, 677-679).
+> - **zero action is the default**; the watcher is report-only by default and only emits the event stream and reports; `--on-red 'CMD'` is an explicit bypass action (timeout cap 60s · rc≠0 does not change the watcher's exit code) (tools/cw_sentinel.py:72-73 docstring "default none = report-only · zero action is the default").
+> - **a failing result is data, not a tool failure**; CI failing/blockage states are event data; the watcher's inspection round still exits 0; the exit code states only the tool face (0 completed / 2 usage error / 9 signal source unreachable).
+> - **loop must be given `--state-file`**; the seen idempotency persistence layer (`rocqwash-sentinel-state/1`); default None = in-memory state, usable for a single once round, while loop re-emits duplicate events across rounds.
+> - `--emit` is **JSONL append + per-line flush+fsync** (tools/cw_sentinel.py:44, 729-745); stdout always carries a mirror (loud); `seq` is monotonic within the event stream, and with --emit in place it is based on the file's existing line count and **continues numbering across processes**; consumers sorting by seq restore the global order (tools/cw_sentinel.py:46-48, 677-679).
 
 ## 1. Canonical background-watcher command block (copy and run as a whole)
 
@@ -58,7 +58,7 @@ kill "$SENTINEL_PID"
 
 ## 2. The JSONL consumer (how the workflow main flow reads the watcher)
 
-Event lines are `json.dumps(..., sort_keys=True)` (tools/cw_sentinel.py:736) — the keys are always in lexicographic order, so `"kind": "ci-red"` is a **byte-stable** grep target:
+Event lines are `json.dumps(..., sort_keys=True)` (tools/cw_sentinel.py:736); the keys are always in lexicographic order, so `"kind": "ci-red"` is a **byte-stable** grep target:
 
 ```bash
 # grep form (zero-dependency · coarse filter)
@@ -84,7 +84,7 @@ PY
 
 ## 3. Real output samples (real runs · not hand-written)
 
-> Measured: November 18, 2026 — real runs of the current tool at HEAD b98fe4e on this machine, tmp injection drill form.
+> Measured: November 18, 2026; real runs of the current tool at HEAD b98fe4e on this machine, tmp injection drill form.
 > The predecessor capture of November 11, 2026 (v37, commit 41e74b0) is archived in `backend-sentinel.md.zh.md`.
 
 **ci-red event line** (measured rc 0 with `--once --watch-repo org/repo --branch main --injector … --emit …
@@ -127,7 +127,7 @@ PY
 
 **Whole background-watcher block measured** (November 18, 2026 · tmp drill form: `--loop --interval 1 --max-rounds 2
 --sleep-scale 0 --watch-repo org/repo --branch main --injector …`): the watcher self-stopped after 2 rounds ·
-events.jsonl received 1 line (seq 1 — the second round booked zero new runs through the seen layer) ·
+events.jsonl received 1 line (seq 1; the second round booked zero new runs through the seen layer) ·
 `grep -c '"kind": "ci-red"'` → `1` (rc 0) · process exit 0. **The production form does not carry `--injector`/
 `--sleep-scale`** (those two are the offline-drill pins: README-cw.md:183-190 discipline ③).
 
@@ -136,8 +136,8 @@ events.jsonl received 1 line (seq 1 — the second round booked zero new runs th
 | Exit code | Meaning (cw_sentinel --help / docstring wording) | Workflow action |
 |---|---|---|
 | 0 | inspection round completed (CI failing/blockage states already booked as **events** · not a tool failure) | the background watcher ends the process on this code · the main flow reads events.jsonl and decides what follows |
-| 1 | — (the watcher has no level 1: failing states travel in the event stream · never as an exit code) | never occurs; if it appears, the `cw.sh` route is abnormal — recheck it as a 9 |
-| 2 | usage error (missing mode / both modes given / all three sources missing / `--branch` before `--watch-repo` / malformed repo / negative value / loop-only flags with once) | should be stopped before the background watcher starts — the §5 pseudocode places it behind a front `--once` precheck |
+| 1 |; (the watcher has no level 1: failing states travel in the event stream · never as an exit code) | never occurs; if it appears, the `cw.sh` route is abnormal; recheck it as a 9 |
+| 2 | usage error (missing mode / both modes given / all three sources missing / `--branch` before `--watch-repo` / malformed repo / negative value / loop-only flags with once) | should be stopped before the background watcher starts; the §5 pseudocode places it behind a front `--once` precheck |
 | 9 | signal source unreachable (CI HTTP 4xx/5xx · netrc missing · token empty · runs/jobs malformed · injector missing/malformed/canned not covered · ledgers directory missing · state malformed · subprocess rc≠0) | fail-loud, stop at once (never keep running in a broken state · tools/cw_sentinel.py:236-238 honesty rules) · fix the source by hand and restart the watcher |
 
 ## 5. dynamic-workflow embed pseudocode
@@ -182,7 +182,7 @@ phase "consume-checkpoint" {
 
 - All output samples in this file were produced by real runs of this repository's `tools/cw_sentinel.py`
   (HEAD b98fe4e) in the tmp injection drill on November 18, 2026, not hand-written; the `"note": "ts=off…"` in the
-  sample event lines is the deterministic drill-form annotation of `--sleep-scale 0` (tools/cw_sentinel.py:51,688) —
+  sample event lines is the deterministic drill-form annotation of `--sleep-scale 0` (tools/cw_sentinel.py:51,688):
   production event lines carry a real `ts`. The predecessor samples (v37 41e74b0, captured November 11, 2026)
   showed the classifier's then-Chinese evidence wording; the current classifier emits the English wording shown
   (tools/ci_triage.py:1004,1006); their verbatim record is the sibling `.zh.md` archive. Line numbers throughout
@@ -191,7 +191,7 @@ phase "consume-checkpoint" {
   real repository.
 - The consumer grep targets depend on the event lines' sort_keys byte order (rocqwash interface discipline ·
   README-cw.md:175-181); if the upstream tool changes the key order, the grep form breaks while the python3 form is
-  unaffected — prefer re-structured parsing.
+  unaffected; prefer re-structured parsing.
 - The normative home of the five joint disciplines of the three-tool interfaces is the `README-cw.md` "workflow
   cooperation interface" section (README-cw.md:161-199); this block expands its ⑤ background-watcher form
   (README-cw.md:200-218) and is verbatim-compatible with it.
@@ -199,7 +199,7 @@ phase "consume-checkpoint" {
 (English brief) Workflow block ①: run the v37 real-time sentinel as a background
 bash task (`nohup bash cw.sh sentinel --loop … --emit events.jsonl &`), consume the
 JSONL event stream from the main session (grep or stdlib-python), branch on exit
-codes 0/2/9 (red is data, not tool failure — it travels in events, not exit codes).
+codes 0/2/9 (red is data, not tool failure; it travels in events, not exit codes).
 Default is report-only; `--on-red` is an explicit bypass action. `--state-file` is
 required for loop idempotency. See `README-cw.md` §"workflow cooperation interface" (README-cw.md:161-199) for the
 normative five-discipline contract.
