@@ -1,8 +1,8 @@
-# exp-bus-backlog.md — experience-bus import backlog for tools/exp_port.py.
+# exp-bus-backlog.md: experience-bus import backlog for tools/exp_port.py.
 
 > **ExperienceBusBacklog**: the two experience-draft lines registered as
 > pending imports for the append face, plus the observed candidate found on
-> disk outside this integration's import list. Registration only — no entry is
+> disk outside this integration's import list. Registration only; no entry is
 > invented before a real draft exists.
 >
 > Purpose.  Keep the experience-bus intake honest: every line that promised
@@ -47,7 +47,7 @@ integration's import list names the periscope 5 entries only.
 The two "not on disk yet" rows rest on a name-level find over
 `D:/ComplexAnalysis/attn` at 2026-11-13T19:12:58Z (`find ... -iname
 '*vacmain*' -o -iname '*rqw11*'` plus `-iname '*exp-draft*' -o -iname
-'*exp-entries*'`) — searched by name rather than read file-by-file, and
+'*exp-entries*'`); searched by name rather than read file-by-file, and
 aliased equivalents outside the attn work area were not exhaustively ruled
 out. This is a negative finding of that scan, not an absolute claim. The
 contract stays: whichever exp-draft file a line writes, its entries import

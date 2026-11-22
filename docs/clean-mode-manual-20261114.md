@@ -10,9 +10,9 @@
 
 ## 1. Semantics
 
-**Default (env unset or not `1`)**: behavior byte-identical with historical versions — canonical-environment auto-detection stays fully active (it probes the 9.3 multiplexer, the Set repository gate6/gate7 canonical scripts, the CW Live toolchain, and the sanctioned-machine default paths); whatever is detected is used, and an empty detection result yields per the standing skip contract.
+**Default (env unset or not `1`)**: behavior byte-identical with historical versions; canonical-environment auto-detection stays fully active (it probes the 9.3 multiplexer, the Set repository gate6/gate7 canonical scripts, the CW Live toolchain, and the sanctioned-machine default paths); whatever is detected is used, and an empty detection result yields per the standing skip contract.
 
-**Clean mode (`ROCWASH_CLEAN=1`)**: declares that the canonical environment (the ConstructiveWorld sanctioned-machine face) is absent on this machine —
+**Clean mode (`ROCWASH_CLEAN=1`)**: declares that the canonical environment (the ConstructiveWorld sanctioned-machine face) is absent on this machine:
 - canonical-environment auto-detection never runs; the explicit canonical pointers (`ROCWASH_ROCQ`, `GATE6_SCRIPT`, `GATE7_PROBE_SCRIPT`, `BORN_WORLD_ROCQ`, `ROCWASH_CANON_*`) are not applied.
 - canonical-dependency faces neither probe nor fail silently: they print `requires canonical environment: <what is missing>` and exit through each tool's standing exit-code family (the six tools use exit 9, the missing-input family; `tools/_abl1_4b_compile.py` keeps its own exit-1 toolchain contract).
 - faces without canonical dependencies (selftests, fixtures, dry runs, word-face tools) all stay fully available; every face is listed in the four-tier census in section 3.
@@ -69,7 +69,7 @@ The ConstructiveWorld production face on the sanctioned machine, consumed by som
 
 | Face | Declared content | Implementation anchor |
 |---|---|---|
-| mac_stmt_scan `--baseline` | the S09 worldT_mac baseline target in the effort workspace (general scans go through `--file`; the canonical target passes the `wrapper/scan_station.py` check — the canonical target itself is frozen and must not be edited; a direct call to the canonical target runs outside the check and reports through the standing missing-target contract) | `wrapper/scan_station.py` (the check before pass-through) |
+| mac_stmt_scan `--baseline` | the S09 worldT_mac baseline target in the effort workspace (general scans go through `--file`; the canonical target passes the `wrapper/scan_station.py` check; the canonical target itself is frozen and must not be edited; a direct call to the canonical target runs outside the check and reports through the standing missing-target contract) | `wrapper/scan_station.py` (the check before pass-through) |
 | the toolchain_dyld_doctor default worker chain | the sanctioned-machine rocqworker default (`--worker` / env can bypass it) | tools/toolchain_dyld_doctor.py (at worker resolution) |
 | cw_doctor real four-domain aggregation (without `--injector`) | the CW Live tree (guard default / the registered ledger / the probe world) | tools/cw_doctor.py (the check after run() value validation; the usage-face exit codes are untouched) |
 | probe_engine real compile probe | the rocq toolchain (the default `--rocq-cmd` template is the real face; an explicit `--rocq-cmd` stub and `--selftest` stay available) | wash/probe_engine.py (the check after required-parameter validation) |

@@ -96,7 +96,7 @@ On a stock Windows box, put a real CPython on `PATH` before the first run: the `
 
 ### Clean mode quickstart
 
-Throughout this document, the "canonical environment" (likewise the "canonical machine") means this project's sanctioned reference macOS environment — the ConstructiveWorld production face, consumed by tools through hardcoded defaults or auto-detection and itemized in [`docs/clean-mode-manual-20261114.md`](docs/clean-mode-manual-20261114.md) §2; the suite-green claims in this document apply to that environment (see [Testing](#testing)). On a machine without the canonical Coq/Rocq environment, tools whose work depends on that environment report the missing requirement explicitly in English (`requires canonical environment: ...`) instead of failing with an interpreter-level error. Selection is by environment variable:
+Throughout this document, the "canonical environment" (likewise the "canonical machine") means this project's sanctioned reference macOS environment; the ConstructiveWorld production face, consumed by tools through hardcoded defaults or auto-detection and itemized in [`docs/clean-mode-manual-20261114.md`](docs/clean-mode-manual-20261114.md) §2; the suite-green claims in this document apply to that environment (see [Testing](#testing)). On a machine without the canonical Coq/Rocq environment, tools whose work depends on that environment report the missing requirement explicitly in English (`requires canonical environment: ...`) instead of failing with an interpreter-level error. Selection is by environment variable:
 
 ```bash
 ROCWASH_CLEAN=1 python3 tools/<tool>.py ...   # one invocation

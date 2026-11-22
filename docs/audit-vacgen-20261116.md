@@ -61,7 +61,7 @@ Of the nine v2 flags (--taxonomy/--preflight-all/--census/--root/--cluster-table
 |---|---|---|---|---|
 | L4 | `PREMISE_INEQ_RE`, `CONST_ALT` | vacgen.py:266-272 | `grep -n "PREMISE_INEQ_RE\|CONST_ALT" tools/vacgen.py` returns only 4 hits: 2 definition lines + 3 comment mentions (:795/:822/:824, all "v1 transcription provenance" notes), zero code references. After the v2 data conversion, parsing goes through resolve_numeric_boundary's `_top_level_char` manual slicing plus parse_const_fraction's own regex | LOW |
 | L5 | `envelope_prefix_segments` | vacgen.py:699-704 | Zero calls in the main flow (do_cast/run_checks_v2/envelope_statement); the only consumer is tests/refinery_segments/vacgen.py:185/197/209 (the three p25 pins). A test-only export face, not strictly dead code, but the tool has no consumer for it and no comment declares that role | LOW |
-| — | Remaining full def sweep | whole file | Every symbol checked against its consumers (do_cast/preflight/verify/main/run_checks family/emit family/test segment); all remaining symbols have live references; no unwired output | — |
+|; | Remaining full def sweep | whole file | Every symbol checked against its consumers (do_cast/preflight/verify/main/run_checks family/emit family/test segment); all remaining symbols have live references; no unwired output |; |
 
 ---
 
@@ -71,8 +71,8 @@ Of the nine v2 flags (--taxonomy/--preflight-all/--census/--root/--cluster-table
 |---|---|---|---|
 | M1 | `load_taxonomy` vacgen.py:926-927 | `json.load(fh)` and the file open sit outside the TaxonomyError wrapping. First-hand: `--taxonomy <malformed JSON>` → rc=1 but a bare `json.decoder.JSONDecodeError: Expecting value` traceback (probe f), with no `FAIL-LOUD: taxonomy:` marker line; the except clauses at main:2860-2864 and do_cast:2103-2107 catch TaxonomyError only. Sibling OSError cases (permissions/lock) escape bare the same way. Violates the greppable marker form of the self-declared contract "row admission fail-loud (rc=1, section 6.2)" | MEDIUM |
 | L9 | `do_cast` vacgen.py:2087-2091 | TOCTOU race window between the `os.path.isfile` check and the open: if the file passes isfile and is deleted before open, OSError escapes bare (UnicodeDecodeError is already wrapped at :2093-2097). Extremely low probability; registration is enough | LOW |
-| L8 | `classify_record` vacgen.py:995-998 | `except re.error: hit = False` — entry["rx"] already compiled successfully at load_table:892, so re.error is unreachable at search time; a defensive dead branch (if it ever fired, the error would be swallowed into a silent miss). Harmless; registered | LOW |
-| — | Remaining exception faces | Verified healthy first-hand: UnicodeDecodeError (fail-loud line), preflight per-file OSError/UnicodeDecodeError (counted UNPARSED without aborting, :2571-2577/:2652-2656), cluster table (OSError/ValueError/re.error, :2546-2550), do_verify_anchors OSError (:2766-2767), refinery segment check surfaces (:157-166, fail-loud listing) | — |
+| L8 | `classify_record` vacgen.py:995-998 | `except re.error: hit = False`; entry["rx"] already compiled successfully at load_table:892, so re.error is unreachable at search time; a defensive dead branch (if it ever fired, the error would be swallowed into a silent miss). Harmless; registered | LOW |
+|; | Remaining exception faces | Verified healthy first-hand: UnicodeDecodeError (fail-loud line), preflight per-file OSError/UnicodeDecodeError (counted UNPARSED without aborting, :2571-2577/:2652-2656), cluster table (OSError/ValueError/re.error, :2546-2550), do_verify_anchors OSError (:2766-2767), refinery segment check surfaces (:157-166, fail-loud listing) |; |
 
 ---
 
@@ -168,7 +168,7 @@ Observations (registered, not repaired): preflight's `s1_names` sharing across d
 
 ---
 
-## 7. Provenance — first-hand run record (all runs executed first-hand, November 16, 2026)
+## 7. Provenance: first-hand run record (all runs executed first-hand, November 16, 2026)
 
 ```
 py -B -c "import sys; print(sys.version)"                  -> 3.12.5
