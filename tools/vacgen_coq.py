@@ -6,7 +6,7 @@
 """vacgen_coq.py (v0.1) - Rocq statement-face coverage prober with shape recognition (four-layer engine, taxonomy-as-data).
 
 Purpose.
-    The Coq-side sibling of tools/vacgen.py (ticket 14 wave 1; Rocq domain support).
+    The Coq-side sibling of tools/vacgen.py (ticket 14 work stream 1; Rocq domain support).
     Wave 1 is a coverage/recognition face only - it enumerates the audited repo's
     own Rocq statement faces (*.v), splits each statement into its premise and
     conclusion faces, classifies every face against a data-driven taxonomy table
@@ -22,7 +22,7 @@ Purpose.
 
 Interface.
     python -I tools/vacgen_coq.py --from-v <file.v|dir> [--taxonomy <path>]
-            [--out <dir>] [--limit N]                 (batch, wave 1: enumerate
+            [--out <dir>] [--limit N]                 (batch, work stream 1: enumerate
             line-start Rocq assertion statements over the target .v file or the
             *.v files under the target directory, decompose and classify each,
             one JSON per statement plus <out>/summary.json)
@@ -77,7 +77,7 @@ TOOL_NAME = "vacgen-coq"
 # Lineage.  Ported reference: the Lean sibling tools/vacgen.py v2.1.0 (4372
 #   lines; four-layer taxonomy-as-data engine) - architecture, report faces and
 #   selftest discipline mirrored; not a byte-shared codebase (the Lean vacgen
-#   stays untouched; its sibling line actively edits it).  Ticket 14 wave 1
+#   stays untouched; its sibling line actively edits it).  Ticket 14 work stream 1
 #   (Rocq domain support), work order dated November 22, 2026.  Census basis:
 #   the real Main shape census over ConstructiveWorld-Main/ConstructiveWorld_Live
 #   (1246 .v files / 26689 statements / 200 sampled; artifacts kept outside the
@@ -85,14 +85,14 @@ TOOL_NAME = "vacgen-coq"
 #   TODO-SEAT honest degradation (vacgen.py:43-46 Evidence face), negative-
 #   finding-boundary-law four elements on every coverage claim, dry-run
 #   self-certification.
-# 0.1.0 (wave 1, November 22, 2026): initial face - L1 comment/string-masked
+# 0.1.0 (work stream 1, November 22, 2026): initial face - L1 comment/string-masked
 #   line-start assertion enumeration with the Module/Section/Namespace-End
 #   full-name stack and the terminating-period capture; premise/conclusion
 #   split per Rocq syntax (leading forall absorption per scope semantics +
 #   top-level -> implication chain, <-> excluded); data-vs-hypothesis binder
 #   seating; L2 taxonomy lookup over taxonomy-coq.json; L3 coverage with
 #   honest TODO-SEAT degradation and gap telemetry; L4 --from-v batch and
-#   --selftest vector faces.  No cast face: wave 1 emits no skeleton files
+#   --selftest vector faces.  No cast face: work stream 1 emits no skeleton files
 #   (zero compile), so the report schema carries no skeleton paths.
 TOOL_VERSION = "0.1.0"
 
@@ -365,15 +365,15 @@ FORALL_LEAD_RE = re.compile(r"^forall(?![A-Za-z0-9_'])[ \t]*")
 # faces, negation, conjunction/disjunction notations, and the
 # quantifier/lambda keywords.  `->` is deliberately NOT a marker: arrow faces
 # split per the arrow rule below, so functional data binders (`f : X -> Real`,
-# the common S/G-chapter spelling) seat as data while implication-typed
-# applications (`le x y -> Qle a b`) still seat as hypotheses through their
+# the common S/G-chapter spelling) agent as data while implication-typed
+# applications (`le x y -> Qle a b`) still agent as hypotheses through their
 # application heads.  Declared limitation: a bare `(H : P -> Q)` implication
 # binder whose both arrow sides are bare identifiers seats as data (word-face
 # only; no such spelling appeared among the sampled binder hypothesis faces).
 PROP_MARK_COQ = re.compile(r"[<>=~]|/\\|\\/|\bforall\b|\bexists\b|\bfun\b|\blet\b")
 # Known data-head families for the binder seating test (word face only): an
 # application whose head carries one of these families seats as a data binder.
-# Unknown-head applications seat as hypotheses (fail-safe side, declared).
+# Unknown-head applications agent as hypotheses (fail-safe side, declared).
 DATA_HEAD_FAMILIES = ("list", "option", "prod", "sum", "sig", "sigT", "Stream")
 
 
@@ -1180,7 +1180,7 @@ BATCH_SELFTEST_FIXTURE_V = SELFTEST_FIXTURE_V + (
 
 def do_selftest(ts_utc):
     """--selftest (in-process vector face; zero network, zero compile, all
-    offline).  Freezes the wave-1 recognition contract: the taxonomy-load
+    offline).  Freezes the work stream-1 recognition contract: the taxonomy-load
     vector, the recognition vectors over the fixture's known families
     (real-lt premise, ne conclusion, forall-quantified conclusion), the
     unknown-shape todo_seat vector, the hole-face degradation vector, the
@@ -1291,7 +1291,7 @@ def do_selftest(ts_utc):
             "status=%s familyId=%s" % (v["status"], v["familyId"]))
 
     # T3 - unknown shapes stay todo_seat (always; no row may claim them -
-    # gzeq is a census face with no wave-1 row, census_out.txt:105).
+    # gzeq is a census face with no work stream-1 row, census_out.txt:105).
     v_p = classify("gzeq x y", "premise", table)
     v_c = classify("And (Id (f x) true) (QeqT a b)", "conclusion", table)
     vec("unknown-shape-todo-seat",

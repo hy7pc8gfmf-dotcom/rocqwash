@@ -1,4 +1,4 @@
-# S07_projection_reanchor_E5.md — recipe face: statement-surface projection re-anchoring, recipe E5 (the magic-zero recipe for the six-piece batch) · original title: `处方件 — S07 投影重锚（E5·magic 六件判例文档化）`
+# S07_projection_reanchor_E5.md: recipe face: statement-surface projection re-anchoring, recipe E5 (the magic-zero recipe for the six-piece batch) · original title: `处方件 — S07 投影重锚（E5·magic 六件判例文档化）`
 
 > Purpose.  Recipe E5 cures the false-carrier defect: when a `Class` field projection carries a statement surface, extraction floods the extracted face with `Obj.magic`. The treatment re-anchors the statement-surface relation names (`req` / `lt` / `le`) onto their concrete `Real -> Real -> Set` definitions (`real_eq` / `real_lt` / `real_le`) through three exact-string mappings, changing zero proof-body characters and zero comment lines. Scope: statement faces (signatures and assert type faces) of the six-piece batch; the `Class` field definitions in `S07_RealSetoidExpLog.v` are read-only and untouched.
 >
@@ -30,7 +30,7 @@
 3. **Statement surfaces write bare projection names**: the pieces' statement faces are written entirely
    over field projections (bare names after `Import RealInterfaceEnhancedMod`
    plus `Notation R := Real`, with no `Let` anchor), while the proof bodies and the dependency chain
-   (UpReqAlgebra/UpReqDist/S02) all go through the concrete faces — crossing the two representation
+   (UpReqAlgebra/UpReqDist/S02) all go through the concrete faces; crossing the two representation
    systems is what yields `Obj.magic`.
    Measured: before re-anchoring the CI probe read magic=293 (recorded in the `sandbox/seat_magic6/`
    ledger, section 1, row P1).
@@ -51,7 +51,7 @@ Concrete-face entities (all in `S02_CauchyComplete.v`, all `Real -> Real -> Set`
 
 118 relation-name tokens in total. The change pulse is **96 lines**
 (86 diff hunks, each hunk mechanically re-verified as a pure three-mapping edit with
-0 unexpected changes — `seat_reanchor/账/重锚diff-96行.patch` is on record).
+0 unexpected changes; `seat_reanchor/账/重锚diff-96行.patch` is on record).
 
 ### Edit scope, three parts (what changes, what must not change)
 
@@ -80,16 +80,16 @@ in-tree downstream consumers (per the `sandbox/seat_magic6/` ledger, section 2.4
 (`4dba5385…`→`45ce11a7…`) → the `M34` registration anchor moves with the registration
 work stream (registration belongs to orchestration, not to the re-anchoring agent). `.vo`
 generation: after re-anchoring, the `.vo` digest differs from the registered defective-face
-`.vo` (`817f2929…`) — the defective-face `.vo` was removed from the re-anchoring agent's
+`.vo` (`817f2929…`); the defective-face `.vo` was removed from the re-anchoring agent's
 world, and the compile purity is preserved.
 
 ## 3. Wiring into the rocqwash tooling (the three pieces in this repository, each in place)
 
 1. **ledger sanitize** (`wash/wash_engine.py` · frozen, in service): the three mappings are naturally
-   exact-string ledger entries — one entry per mapping,
+   exact-string ledger entries; one entry per mapping,
    `{"tag":"req2real_eq","old":"req ","new":"real_eq ","expect":N}`
-   (`expect` takes the measured count; word-boundary exceptions — comment lines, premise positions,
-   proof bodies — are pinned by sufficient context inside the entry's `old` string; a bare
+   (`expect` takes the measured count; word-boundary exceptions; comment lines, premise positions,
+   proof bodies; are pinned by sufficient context inside the entry's `old` string; a bare
    whole-word replace-all is **forbidden**).
 2. **pre-compile world assertion** (`wash/world_hook.py` · new piece 1): `--world <dir> --manifest
    <certified-generation-account>` asserts before the compile that the world equals the certified
@@ -99,7 +99,7 @@ world, and the compile purity is preserved.
    the `gate7` magic=0 hard-acceptance side belongs to `wrapper/gate7_probe.sh`
    (the existing canonical launch layer).
 4. **piece selection** (`tools/select_audit.py` · new piece 2): the six-piece batch is a
-   multi-agent shared `work`-world record (migration account, section 5.1) — before selecting a
+   multi-agent shared `work`-world record (migration account, section 5.1); before selecting a
    batch, audit the full tree `order.txt` table for duplicates and cross-batch name collisions
    (the `enbig7` precedent).
 
@@ -112,5 +112,5 @@ world, and the compile purity is preserved.
   (a `mac_stmt_names` cross-check against the reference plus a full-table `Require`-face grep)
   before editing.
 - The `Class` field bodies themselves need changes → out of authority: the S07 original is
-  read-only inside the Set repository; raise the change through orchestration — the recipe face
+  read-only inside the Set repository; raise the change through orchestration; the recipe face
   does not act in its place.

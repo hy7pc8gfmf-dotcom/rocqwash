@@ -1,4 +1,4 @@
-# license-protocol — rocqwash usage and authorization protocol, v1.0 (issued November 14, 2026).
+# license-protocol: rocqwash usage and authorization protocol, v1.0 (issued November 14, 2026).
 >
 > **LicenseProtocolCard**: the usage and authorization protocol that accompanies the
 > AGPL-3.0-or-later license of the rocqwash repository, v1.0 (issued November 14, 2026):
@@ -32,8 +32,8 @@
 ## 1. What the tools do on your behalf
 
 rocqwash is a repository-hygiene and continuous-integration toolset. Its
-faces read repositories and CI state, emit verdicts and reports, and — only
-where the operator has enabled it — act: push with watching
+faces read repositories and CI state, emit verdicts and reports, and; only
+where the operator has enabled it; act: push with watching
 (`pushci_status`), re-route failed jobs within budget caps
 (self-heal legs), and apply mechanical, comment-surface-only repairs
 (autofix legs) whose edit classes are desk-approved tables. Every acting
@@ -80,7 +80,7 @@ Contributor License Agreement (`CLA/ICLA.md` for individuals,
 grants copyright and patent rights to the Steward and all recipients,
 authorizes dual licensing (alternative commercial terms), and states the
 contribution contains the contributor's own substantive creative
-authorship — artificial-intelligence systems act only as instruments
+authorship; artificial-intelligence systems act only as instruments
 under the contributor's direction (human authorship). Contribution
 isolation and review gates follow
 `docs/contrib-isolation-protocol-v1.0-20261113.md`. Commercial licensing
@@ -91,7 +91,7 @@ for entities that cannot comply with the AGPL obligations follows
 
 The toolset is provided under the AGPL-3.0 warranty and liability terms
 (sections 15-17): "AS IS", without warranties of any kind, and to the
-extent permitted by law no liability for damages arising from use —
+extent permitted by law no liability for damages arising from use:
 including damages arising from autonomous actions the operator enabled.
 The budget caps and audit ledger exist precisely so the operator can
 bound and audit what the tools do before enabling them.
@@ -104,14 +104,14 @@ disclosure in the pull-request description (three sentences, fixed
 order; the bracketed parts are filled per change):
 
 > AI-assistance disclosure (standard form): this change was produced
-> through the project's own self-evolution pipeline — AI agents executed
+> through the project's own self-evolution pipeline; AI agents executed
 > construction, verification, and assembly under the direction of the
 > human engineer [name] ([steward / contributor]), who reviewed and
 > accepted the results and takes full responsibility for the content.
 > Substantive design decisions follow the workorder specification and
 > the repository's canonical forms; boundaries and open items are
 > registered in [section]. This statement is made under the NOTICE
-> Authorship Statement and ICLA §5.2 (AI as instrument — human
+> Authorship Statement and ICLA §5.2 (AI as instrument; human
 > authorship).
 
 Chinese mirror (for bilingual descriptions): the Chinese wording of the
@@ -119,10 +119,10 @@ disclosure above is preserved in the sibling `.zh.md` archive of this
 file (section 7 there); use that wording when a bilingual pull-request
 description needs the Chinese form.
 
-Rules: (a) the human principal is named with their project role —
+Rules: (a) the human principal is named with their project role:
 internal agent, work stream, or line labels are not part of the public
 disclosure; (b) the responsibility sentence is effective only while the
-contributor's ICLA (§5.2 included) is on file — file the ICLA before or
+contributor's ICLA (§5.2 included) is on file; file the ICLA before or
 with the first merged contribution; (c) this section is the single
-wording source for the disclosure — do not paraphrase it per pull
+wording source for the disclosure; do not paraphrase it per pull
 request.

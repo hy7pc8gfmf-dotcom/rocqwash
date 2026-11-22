@@ -2,8 +2,8 @@
 
 > Purpose.  Everything an external contributor side needs to dock with this
 >   repository's recursive-evolution loop and run the same construction work
->   streams this repo runs on itself — workflow templates, the paradigm, the
->   component map, the verification gates, and the PR protocol — as
+>   streams this repo runs on itself; workflow templates, the paradigm, the
+>   component map, the verification gates, and the PR protocol; as
 >   repo-canonical assets. This kit is the in-repository canonical face of
 >   the recursive-evolution workflow stack.
 > Interface.  Markdown prose face for contributors; graded by
@@ -59,17 +59,17 @@ Self-heal (`tools/cw_sentinel.py` + the watch workflows) repairs reds; the autom
    --rocq <rocq> --coqchk <coqchk>` (every theorem Closed, zero axioms, no `Admitted`/`Axiom`/
    `Hypothesis`, no Prop leakage), `python -B tools/norm_lint.py` + `tools/doc_lint.py`
    (zero new findings), `bash tests/run_tests.sh` (reds ⊆ the anchor red roster, zero new).
-   Note for your machine: bare `python`/`python3` may be a store stub on Windows — use the
+   Note for your machine: bare `python`/`python3` may be a store stub on Windows; use the
    real launcher (`py`) or set `ROCWASH_PY` (the suite's escape hatch).
 5. **Land via PR with the canonical preamble**: branch from the
    aligned anchor, push to your fork, open the PR with (a) the dual-role header
    (`技术总监：王宝军（笔名：王小哥）（递归演进线·Steward）` / `执行总监：<your name>`),
    (b) the AI-assistance disclosure standard form quoted **verbatim** from
    `docs/license-protocol-v1.0-20261114.md` §7 (three sanctioned slots only), (c) the ICLA
-   section per `CONTRIBUTING.md` §0.5 — signed personally, never proxy-signed; unsigned is
+   section per `CONTRIBUTING.md` §0.5; signed personally, never proxy-signed; unsigned is
    non-blocking (AGPL inbound intact, commercial track constrained). Pre-PR alignment law:
    fetch the newest main and re-base (or cherry-pick your increments) immediately before
-   assembly — squash landings move main fast and stale heads produce noise PRs.
+   assembly; squash landings move main fast and stale heads produce noise PRs.
 
 ## Post-merge
 
@@ -77,10 +77,10 @@ Self-heal (`tools/cw_sentinel.py` + the watch workflows) repairs reds; the autom
   (squash landings always do), re-sign the frozen manifest with the canonical face:
   `python -B certify/frozen8.py freeze --repo . --out certify/frozen8_manifest.json --tier2
   certify/frozen8_tier2.md5` (registered structural gap: squash × freeze-commit; candidates
-  under ruling — automerge-gate re-sign integration or anchor-criterion upgrade).
+  under ruling; automerge-gate re-sign integration or anchor-criterion upgrade).
 - CI state on main: the `rocqwash CI` workflow; the self-heal workflow repairs mechanical
   reds and its own green is the "repair in progress" signal. Reds on the self-hosted
-  Windows lane have a known infra class (shallow-cache checkout) — see
+  Windows lane have a known infra class (shallow-cache checkout); see
   `docs/audit-vacgen-20261116.md` siblings and the run logs before treating them as content.
 
 ## Files

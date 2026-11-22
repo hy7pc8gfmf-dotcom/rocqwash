@@ -225,17 +225,17 @@ Every absence conclusion must also carry a **re-audit condition** (when the scan
 **Defect statement (first-hand evidence on record)**: for artifacts whose
 headline theorem declares *implicit binders* (e.g. `{K : Set (Fin n → ℝ)}`),
 the as-cast witness envelope is malformed Lean: the binder's **type** is
-spliced into the conjunction chain as a bare conjunct (`∧ Set (Fin n → ℝ)` —
+spliced into the conjunction chain as a bare conjunct (`∧ Set (Fin n → ℝ)`:
 a `Type`-sorted expression in a `Prop` conjunction) and the binder variable is
 left **unbound** (referenced by later conjuncts with no existential prefix
 segment of its own). Root cause (engine-side, two cooperating faces):
-(a) the L1 splitter classification — explicit hypotheses land in `S1 vars`
+(a) the L1 splitter classification; explicit hypotheses land in `S1 vars`
 (`hK : IsCompact K` became a "var") while implicit binders land in
 `S2 assumptions` (`K : Set (Fin n → ℝ)` became an "assumption");
 (b) `envelope_statement` splicing (`tools/vacgen.py:640-650` at revision
 2.0.1) joins `S2_assumps` types verbatim into the `∧` chain and prefixes only
 `S1_vars`. First-hand evidence: batch-1 item-16 verdict (MahlerConjecture.lean,
-sha256 `40718172…20ea0`, source execution record §3 account 1 — malformed
+sha256 `40718172…20ea0`, source execution record §3 account 1; malformed
 signature transcribed there) and the rqw11 round-1 replay (`recast/16` cast
 log + witness fire rc=1 with `SMul ℝ ℤ` synthesis failure and
 `unknown constant …_premises_witness`).
@@ -243,7 +243,7 @@ log + witness fire rc=1 with `SMul ℝ ℤ` synthesis failure and
 **Checker blind spot (registered alongside)**: the cast's own bound-form
 invariant `envelope_free_vars_zero` reports PASS on the malformed envelope
 (word-face free-variable scan sees the binder name absent from the envelope
-body, not the type-as-conjunct ill-typedness) — a bound-form PASS is therefore
+body, not the type-as-conjunct ill-typedness); a bound-form PASS is therefore
 **not** evidence of envelope well-typedness until the checker is extended.
 
 **Handling (same grade as §2.1 expected-green-face-red)**: an expected-green
@@ -263,7 +263,7 @@ budget, rc=0, PA 3-standard, `sorryAx` 0). Anchor set measured first-hand on
 November 14, 2026: `isCompact_closedBall`
 (`Mathlib/Analysis/InnerProductSpace/EuclideanDist.lean:79`), `convex_closedBall`
 (`Mathlib/Analysis/Normed/Module/Convex.lean:70`), `interior_closedBall`
-(`Mathlib/Analysis/Normed/Module/RCLike/Real.lean:76`) — the batch-1 verdict's
+(`Mathlib/Analysis/Normed/Module/RCLike/Real.lean:76`); the batch-1 verdict's
 scratch citations carried abbreviated paths; this section carries the measured
 locations.
 
@@ -280,14 +280,14 @@ then every implicit-binder artifact requires the hand-cast repair above.
    starter row carried verbatim + `geo.symmetric-set-premise` row matching the
    `∀ v ∈ S, -v ∈ S` premise face). Measured effect on the Mahler-family
    artifact: L3 coverage 0/5 → 1/5 (top family `geo.symmetric-set-premise`);
-   the row registers the family and the fill precedent in data — it does not
+   the row registers the family and the fill precedent in data; it does not
    repair the engine splice. `requireVarBinding` deliberately false: the set
    variable is not among `S1 var` names under the current classification, so
    the v1 parity binding check would block recognition.
 2. **Test assertions**: `tests/t_vacgen_envelope_shape.py` (fixture A pins the
    well-formed-envelope contract on a well-formed face; fixture B pins the
    registered debt signature `∧ Set (` on an implicit-binder face as a
-   loud known-debt vector — red there means the engine debt was FIXED and the
+   loud known-debt vector; red there means the engine debt was FIXED and the
    pin must be updated with the engine repair registration). The two existing
    vacgen tests (`tests/t_vacgen_shape.py`, `tests/t_vacgen_expectedred.py`)
    were **unwired** in `tests/run_tests.sh` (zero mentions found by grep on

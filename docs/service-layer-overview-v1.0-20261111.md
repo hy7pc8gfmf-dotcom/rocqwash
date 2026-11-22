@@ -1,7 +1,7 @@
-# service-layer-overview — service-layer overview v1.0 (November 11, 2026)
+# service-layer-overview: service-layer overview v1.0 (November 11, 2026)
 
 > Purpose.  One map of the active rocqwash capability surface: **four functions** (sanitize / shape normalization / failure diagnosis / clear blockages) × **three layers** (diagnosis v35 / orchestration v36 / service v37-v39) × the **unified entry** (`cw.sh`, twenty tools) × the **workflow integration interface** (cites the whitepaper). All content is taken from the tools' live state (each tool's `--help` and docstring · the `cw.sh` tool table · the ledger sections v35-v39 · read-before-write verified on November 11, 2026 · zero invented APIs); every flag citation in this document was machine-checked one by one against the emitted `--help` faces by the `tools/doc_lint.py` flag check (check ③).
-> Interface.  Document face only. Division of labor: the quick reference is [`README-cw.md`](../README-cw.md) · the interface canon is [`workflow-integration-whitepaper-v1.0-20261111.md`](workflow-integration-whitepaper-v1.0-20261111.md) · the run procedures are [`ops-realtime-service-v1.0-20261111.md`](ops-realtime-service-v1.0-20261111.md) — this document is the combined picture of the three and replaces none of them. The original Chinese text is preserved in the sibling `.zh.md` archive.
+> Interface.  Document face only. Division of labor: the quick reference is [`README-cw.md`](../README-cw.md) · the interface canon is [`workflow-integration-whitepaper-v1.0-20261111.md`](workflow-integration-whitepaper-v1.0-20261111.md) · the run procedures are [`ops-realtime-service-v1.0-20261111.md`](ops-realtime-service-v1.0-20261111.md); this document is the combined picture of the three and replaces none of them. The original Chinese text is preserved in the sibling `.zh.md` archive.
 > Dependencies.  Grounded in the rocqwash v39 tree (`caa3a28`, clean working tree at writing time) and in the tool faces cited per section; no runtime dependency.
 > Evidence.  Where this document and the tools disagree, the disagreement is a bug (same rule as CONTRIBUTING §1.5); the flag citations were re-verified by the `bash cw.sh doc-lint` three-check run at writing time (zero flag drift on this file).
 > Exit-codes.  Not applicable to a document face; the documented tools keep their implemented exit-code semantics unchanged.
@@ -36,7 +36,7 @@
         unified entry: bash cw.sh <tool> (twenty tools + help · 1:1 passthrough · bash 3.2)
 ```
 
-How to read it: an external workflow stands only at the top of the map — call the tools, read the JSON, route by the five disciplines; all four functions are performed by subprocess orchestration over the existing engines (no new engine; downward reuse of the v35 diagnosis layer and the v29-v32 foundation).
+How to read it: an external workflow stands only at the top of the map; call the tools, read the JSON, route by the five disciplines; all four functions are performed by subprocess orchestration over the existing engines (no new engine; downward reuse of the v35 diagnosis layer and the v29-v32 foundation).
 
 ## 2. The four-function matrix
 
@@ -81,7 +81,7 @@ The unified entry `bash cw.sh <tool> [args...]` (repository root · arguments an
 | `doc-lint` | `tools/doc_lint.py` | service · close out | documentation-vs-implementation consistency, three checks |
 | `netname-normalize` | `tools/netname_normalize.py` | foundation (v39 entry completion) | .v.v double-suffix name normalization |
 | `select-audit` | `tools/select_audit.py` | foundation (v39 entry completion) | batch-selection auditor (grep dedup + Require-surface audit) |
-| `help` | — | pseudo-route | total help / one-line hint per tool |
+| `help` |; | pseudo-route | total help / one-line hint per tool |
 
 ## 5. Service-face interface flag quick view (verbatim from the emitted `cw.sh sentinel --help` and five more · v39 current state)
 
@@ -101,17 +101,17 @@ disciplines** and needs no knowledge of the tools' internals (per-tool mechanics
 [`workflow-integration-whitepaper-v1.0-20261111.md`](workflow-integration-whitepaper-v1.0-20261111.md) §1;
 the quick reference is the workflow-integration-interface section of README-cw.md; CONTRIBUTING §7 is the same source):
 
-1. **JSON-in/JSON-out · schema designated · deterministic** — accounts are always emitted through `--json` (schemas
+1. **JSON-in/JSON-out · schema designated · deterministic**; accounts are always emitted through `--json` (schemas
    rocqwash-sentinel/1 · rocqwash-shape/1 · rocqwash-unclog/1 · rocqwash-pushci/1);
    in loop mode the event stream goes out line by line as JSONL over `--events`; `--json` files are written with
    sort_keys and identical inputs rerun byte-identical.
-2. **Exit codes 0/1/2/9 (a failing result is data, not a tool failure)** — first split the tool face by exit code (2 = fix the invocation ·
+2. **Exit codes 0/1/2/9 (a failing result is data, not a tool failure)**; first split the tool face by exit code (2 = fix the invocation ·
    9 = supply the missing target), then read the JSON and split the data face by verdict/kind.
-3. **--once/--loop dual mode** — `--once` inlines the step; `--loop` is a background watcher with a round cap and self-stop;
+3. **--once/--loop dual mode**; `--once` inlines the step; `--loop` is a background watcher with a round cap and self-stop;
    `--sleep-scale 0` is the offline determinism pin.
-4. **--injector offline-testable** — drills and CI run the fully injected form + `--sleep-scale 0`: zero real network,
+4. **--injector offline-testable**; drills and CI run the fully injected form + `--sleep-scale 0`: zero real network,
    zero real compilation; uncovered paths fail loud with 9 and never silently go live.
-5. **Orchestration adds no new engine** — inside the tools everything is subprocess calls to existing engines; the workflow side follows the same law: call the
+5. **Orchestration adds no new engine**; inside the tools everything is subprocess calls to existing engines; the workflow side follows the same law: call the
    tools, read the JSON, never rebuild the verdict logic.
 
 Three canonical embedded blocks (copy whole · the samples came from real runs):

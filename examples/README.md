@@ -1,4 +1,4 @@
-# examples — single-file full-chain demo / `examples — 单文件全链演示样例`
+# examples: single-file full-chain demo / `examples — 单文件全链演示样例`
 
 > Purpose.  Demonstrate the full rocqwash chain **scan → names → (N=N
 >   assertion) → wash → verify** on one single file, with the measured
@@ -20,7 +20,7 @@
 >   byte-identical to the in-repository versions); the engine output is
 >   `cmp`-asserted byte-identical to the reference specimen.
 > Exit-codes.  `make demo` exits 0 when all RUN steps pass; a SKIP segment
->   is NOT-RUN — never a pass, never passing.
+>   is NOT-RUN; never a pass, never passing.
 
 ## Full-chain demo: scan → names → (N=N assertion) → wash → verify
 
@@ -36,7 +36,7 @@ make demo    # full chain; or stepwise make scan names nn wash verify clean
 ```
 
 Measured results (authoring-machine run, October 31, 2026; re-measured
-November 1, 2026, rqsup4 round-6 inspection, all values identical —
+November 1, 2026, rqsup4 round-6 inspection, all values identical:
 scan/names/N=N/wash line-by-line equal, `make demo` exit 0, `build/`
 products byte-identical to the in-repository versions):
 
@@ -46,13 +46,13 @@ products byte-identical to the in-repository versions):
 | names, original | `total: 5`, `--expect 5` OK, anomalies 0, duplicates ∅ |
 | N=N assertion | `断言 5=5 有序全等 : PASS` (original vs washed specimen; `mac_stmt_names.py --compare`) |
 | scan, washed | `RED stations: []` (conclusion positions all migrated to Set carriers); 1 premise-position EXEMPT; md5 `5bf31d2f…` |
-| wash | **RUN** — `washed/demo_ledger.json` (16-patch exact-string ledger) drives `wash_engine.py`: all 16 patches APPLY, the idempotent replay reports `applied=0 skipped=16`, and the engine output is **byte-identical** to the reference `washed/demo_prop_leak_washed.v` (`cmp` assertion; drift fails the demo). The Makefile designates the engine form directly (wash/ now holds the two generic entries `wash_engine.py` + `world_hook.py`; a bare `cli wash` = exit 4 with the entry list; the demo step calls the engine directly) |
-| verify, compile segment | SKIP — the authoring machine has no rocq/coqc; on a rocq-equipped machine `make demo` compiles the washed specimen under `tools/cpu_guard.sh` automatically |
-| verify, R4 segment | SKIP — `verify/` uses explicit sub-verb routing (`gate4|verify_vo|verify_gate6|retrofit`); no sub-verb = the four generic entries are not unique (cli exit 4 lists the entries; the R4 per-file entry is still TODO); call `cli/rocqwash verify verify_vo --v … --vo …` directly |
+| wash | **RUN**; `washed/demo_ledger.json` (16-patch exact-string ledger) drives `wash_engine.py`: all 16 patches APPLY, the idempotent replay reports `applied=0 skipped=16`, and the engine output is **byte-identical** to the reference `washed/demo_prop_leak_washed.v` (`cmp` assertion; drift fails the demo). The Makefile designates the engine form directly (wash/ now holds the two generic entries `wash_engine.py` + `world_hook.py`; a bare `cli wash` = exit 4 with the entry list; the demo step calls the engine directly) |
+| verify, compile segment | SKIP; the authoring machine has no rocq/coqc; on a rocq-equipped machine `make demo` compiles the washed specimen under `tools/cpu_guard.sh` automatically |
+| verify, R4 segment | SKIP; `verify/` uses explicit sub-verb routing (`gate4|verify_vo|verify_gate6|retrofit`); no sub-verb = the four generic entries are not unique (cli exit 4 lists the entries; the R4 per-file entry is still TODO); call `cli/rocqwash verify verify_vo --v … --vo …` directly |
 
 Honest notes:
 
-- SKIP = NOT-RUN — never a pass, never passing; this demo never marks an
+- SKIP = NOT-RUN; never a pass, never passing; this demo never marks an
   unexecuted step as passed.
 - The compilability of both .v files is **unverified** (no rocq/coqc on the
   authoring machine; compilation has never run); the proof bodies use only
@@ -61,10 +61,10 @@ Honest notes:
 - The scanner's RED is a true-hit candidate; the final ruling belongs to
   the kernel census alone (it reports the list, never a clean bill · E364).
 
-## sentinel_supervisor.sh — resident watcher supervision shell (deployment artifact) / `哨长驻监督壳（部署工件·v1.0）`
+## sentinel_supervisor.sh: resident watcher supervision shell (deployment artifact) / `哨长驻监督壳（部署工件·v1.0）`
 
 `sentinel_supervisor.sh` is the **crash-auto-restart compensation shell**
-for the long-running watcher (`tools/cw_sentinel.py --loop`) — canonical
+for the long-running watcher (`tools/cw_sentinel.py --loop`); canonical
 deployment form generalized 1:1 from the live /tmp runtime version (restart
 cap / ×2 exponential backoff / state-continuation annotation / empty
 scheduled-teardown hook slot; fully path-parameterized, no hardcoded
