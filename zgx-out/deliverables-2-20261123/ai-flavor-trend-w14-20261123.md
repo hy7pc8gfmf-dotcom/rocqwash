@@ -247,7 +247,7 @@ pass1, stdout differs by exactly the one json-path echo line.
   3(+)/0(-); zero scan-lane presence; zero em; zero non-ASCII.
 - Hits detail face (from ai_flavor_tree.json, pass 2): counts flat
   411 = 173/196/42 (== w13 exactly), but ONE detail entry moved:
-  mainmove-9332c2b5-20261122.md en-word-08, after-text " this seat
+  mainmove-9332c2b5-20261122.md en-word-08, after-text " this agent
   adds" -> " this agent adds", line 174 -> 165 - the R2-103
   s-...-t->agent word cure on that line plus line reflow. Count-zero
   movement; registered as data.
