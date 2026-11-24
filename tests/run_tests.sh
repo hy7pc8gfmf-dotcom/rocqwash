@@ -908,7 +908,7 @@ t_registry_fix_anchor() {
 
 t_norm_lint() {
   # annotation-face normalization linter hookup (tools/norm_lint.py;
-  # tests/test_norm_lint.py minimal shell three checks: --selftest six
+  # tests/test_norm_lint.py minimal shell three checks: --selftest seven
   # vectors + --help smoke + exit-code spot checks 2/9 — report-only first
   # form, baseline account reports emitted; zero network, zero compile, zero
   # real-repo touch)

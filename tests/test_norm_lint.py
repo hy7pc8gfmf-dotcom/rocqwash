@@ -6,12 +6,12 @@ Purpose.  Brings the annotation-face normalization lint (report-only first
   form) into the suite entry and adds usage-face smoke checks.  The tool's
   own correctness is attested by its --selftest vectors (map-load,
   jargon-hit, fields-missing, substring-exemption, whitelist-exemption,
-  english-clean); this shell wires those vectors into the suite and probes
-  the exit-code contract.
+  english-clean, coq-comment-face); this shell wires those vectors into the
+  suite and probes the exit-code contract.
 
 Interface.  Invoked by tests/run_tests.sh (t_norm_lint) or standalone:
   python3 -B tests/test_norm_lint.py.  Three checks:
-  1 --selftest exits 0 with six PASS vector lines and no FAIL line;
+  1 --selftest exits 0 with seven PASS vector lines and no FAIL line;
   2 --help exits 0 (argparse usage face present);
   3 exit-code contract spot checks: --bogus 2; missing --tree 9;
     --selftest combined with scan flags 2; --file with an unsupported
@@ -47,8 +47,8 @@ def main():
     fails = []
     rc, out = run(["--selftest"])
     n_pass = sum(1 for line in out.splitlines() if line.startswith("PASS "))
-    if rc != 0 or n_pass != 6 or "FAIL " in out:
-        fails.append("check1 --selftest should exit 0 with six PASS vector "
+    if rc != 0 or n_pass != 7 or "FAIL " in out:
+        fails.append("check1 --selftest should exit 0 with seven PASS vector "
                      "lines and no FAIL line (got rc=%d, PASS=%d)"
                      % (rc, n_pass))
         print(out)
