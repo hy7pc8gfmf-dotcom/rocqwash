@@ -3,7 +3,7 @@
 """norm_lint: annotation-face normalization lint, report-only first form.
 
 Purpose.  Machine-checks prose faces (comments, docstrings, shell help,
-  documentation) of .py/.sh/.md files: (1) header shape, error -- banner
+  documentation) of .py/.sh/.md/.v files: (1) header shape, error -- banner
   plus five-field block, names Purpose. / Interface. / Dependencies. /
   Evidence. / Exit-codes. verbatim, all five present; (2) jargon, error --
   mapping-table terms on prose lines (word boundaries for ASCII, whole-
@@ -24,21 +24,21 @@ Interface.  --tree DIR | --file PATH [--jargon-map P] [--cjk-threshold F]
 Dependencies.  Python 3 standard library only; the mapping table and the
   optional CJK whitelist are path-parameterized data faces.
 
-Evidence.  --selftest covers five vectors on temporary fixtures (jargon hit,
+Evidence.  --selftest covers six vectors on temporary fixtures (jargon hit,
   fields missing, substring and technical-usage exemption, whitelist
-  exemption, compliant English triple; deterministic byte-identical reruns).
+  exemption, compliant English triple, Coq comment face; byte-identical reruns).
 
 Exit-codes.  0 accounted (findings are data); 1 instrument failure; 2 usage; 9 missing input.
 """
 # Extended contract (help face; kept outside the five-field block so the
 # header stays within the 30-line budget of the annotation standard):
-# --tree DIR         scan DIR recursively for .py/.sh/.md; dot directories,
+# --tree DIR         scan DIR recursively for .py/.sh/.md/.v; dot directories,
 #                    *.zh.md archives and docs/zh/ grandfathered archives are
 #                    excluded from all checks; relative input paths
 #                    (--jargon-map, --cjk-whitelist) resolve tree-root first,
 #                    then working directory; output paths resolve against the
 #                    working directory.
-# --file PATH        lint one file of the three faces; other extensions are a
+# --file PATH        lint one file of the four faces; other extensions are a
 #                    usage error.
 # --jargon-map P     three-column mapping table (face | standard | note); a
 #                    row may carry an optional fourth cell with ';'-separated
@@ -61,7 +61,7 @@ Exit-codes.  0 accounted (findings are data); 1 instrument failure; 2 usage; 9 m
 #                    file is exempt from the wording battery only (it carries
 #                    the faces by design); the em-dash count is exempt nowhere.
 # --json P / --md P  report targets, schema rocqwash-norm-lint/1.
-# --selftest         five vectors on temporary fixtures; runs standalone.
+# --selftest         six vectors on temporary fixtures; runs standalone.
 # --gate / --strict  reserved for the future gated form; passing either
 #                    today is a usage error (exit 2).  Grading follows the
 #                    annotation standard card: header and jargon findings are
@@ -70,8 +70,10 @@ Exit-codes.  0 accounted (findings are data); 1 instrument failure; 2 usage; 9 m
 #                    in the summary without ever escalating the exit code.
 # Prose-face extraction: python docstrings (statement-position strings) plus
 # comments via tokenize; shell leading comment block plus heredoc bodies;
-# markdown files contribute their whole text.  Backtick spans are identifier
-# citations and are masked out of the jargon and CJK faces alike.
+# markdown files contribute their whole text; Coq (* *) comment lines are
+# extracted nested-aware with the vernacular body and string bodies masked
+# (the complement of anchor_guard mask_comments_strings).  Backtick spans are
+# identifier citations and are masked out of the jargon and CJK faces alike.
 # Determinism: findings and files are sorted, reports carry no wall-clock
 # fields, and identical inputs rerun byte-identical.
 
@@ -88,7 +90,7 @@ import tokenize
 
 SCHEMA = "rocqwash-norm-lint/1"
 TOOL = "norm_lint"
-FACES = (".py", ".sh", ".md")
+FACES = (".py", ".sh", ".md", ".v")
 FIELDS = ("Purpose.", "Interface.", "Dependencies.", "Evidence.", "Exit-codes.")
 DEFAULT_JARGON_MAP = "docs/jargon-to-standard-mapping-v1.md"
 HEADER_BUDGET = 30  # annotation card: gate4 length_cap=30 review-grade default
@@ -107,11 +109,12 @@ FIELD_LINE = {
     "py": re.compile("^[ \t]*(" + FIELD_BODY + ")(?:\\s|$)"),
     "sh": re.compile("^[ \t]*#[ \t]*(" + FIELD_BODY + ")(?:\\s|$)"),
     "md": re.compile("^[ \t]*>?[ \t]*(" + FIELD_BODY + ")(?:\\s|$)"),
+    "v": re.compile("^[ \t]*(" + FIELD_BODY + ")(?:\\s|$)"),
 }
 # field-presence check: one regex per field, line-anchored, period verbatim
 FIELD_ONE = {}
 for _kind, _prefix in (("py", "^[ \t]*"), ("sh", "^[ \t]*#[ \t]*"),
-                       ("md", "^[ \t]*>?[ \t]*")):
+                       ("md", "^[ \t]*>?[ \t]*"), ("v", "^[ \t]*")):
     FIELD_ONE[_kind] = dict(
         (f, re.compile("(?m)" + _prefix + re.escape(f) + r"(?:\s|$)"))
         for f in FIELDS)
@@ -136,6 +139,7 @@ DOCSTRING_SUGGEST = {
     "py": "add a two-part module docstring: banner line, then the five-field block",
     "sh": "add a two-part leading comment block: banner line, then the five-field block",
     "md": "add a two-part header: H1 banner, then the five-field block before the first section",
+    "v": "add a two-part leading comment block: banner line, then the five-field block",
 }
 
 
@@ -333,6 +337,80 @@ def md_region(text):
     return region
 
 
+def v_prose_mask(text):
+    """Keep Coq comment bodies (nested (* *) counted); blank vernacular code
+    and string literal bodies so the prose face carries comment text only
+    (the complement of anchor_guard mask_comments_strings; backslash escapes
+    are honored inside strings; newlines are preserved so line numbering
+    stays intact)."""
+    out = []
+    i, n = 0, len(text)
+    depth = 0
+    while i < n:
+        ch = text[i]
+        if ch == "\n":
+            out.append(ch)
+            i += 1
+        elif depth > 0:
+            if text.startswith("(*", i):
+                depth += 1
+                out.append("(*")
+                i += 2
+            elif text.startswith("*)", i):
+                depth -= 1
+                out.append("*)")
+                i += 2
+            else:
+                out.append(ch)
+                i += 1
+        elif text.startswith("(*", i):
+            depth = 1
+            out.append("(*")
+            i += 2
+        elif ch == '"':
+            start = i
+            i += 1
+            while i < n:
+                if text[i] == "\\":
+                    i += 2
+                elif text[i] == '"':
+                    i += 1
+                    break
+                else:
+                    i += 1
+            span = text[start:i]
+            out.append("".join(c if c == "\n" else " " for c in span))
+        else:
+            out.append(" ")
+            i += 1
+    return "".join(out)
+
+
+def v_docface(text):
+    """Coq prose face as (segments, leading block): comment lines only,
+    nested-aware; the vernacular body is masked before the line split, so
+    segment lines carry comment text with code positions blanked.  The
+    leading block runs to the first code line: original blank lines keep
+    it open, a line with content but no comment text closes it."""
+    masked_lines = v_prose_mask(text).splitlines()
+    lines = text.splitlines()
+    segs = []
+    block = []
+    in_lead = True
+    for idx in range(min(len(lines), len(masked_lines))):
+        if masked_lines[idx].strip():
+            segs.append((idx + 1, masked_lines[idx]))
+            if in_lead:
+                block.append(masked_lines[idx])
+        elif lines[idx].strip() == "" and in_lead:
+            block.append(masked_lines[idx])
+        else:
+            in_lead = False
+    while block and block[-1].strip() == "":
+        block.pop()
+    return segs, block
+
+
 def header_findings(kind, header_text, start_line):
     line_res = FIELD_LINE[kind]
     one_res = FIELD_ONE[kind]
@@ -501,6 +579,11 @@ def scan_file(rel, abspath, kind, terms, threshold, whitelist, map_abspath,
         if any(l.strip().startswith("#") for l in block):
             header_text = "\n".join(block)
             budget = len(block)
+    elif kind == "v":
+        segs, block = v_docface(text)
+        if any(l.strip() for l in block):
+            header_text = "\n".join(block)
+            budget = len(block)
     else:
         segs = [(i + 1, l) for i, l in enumerate(text.splitlines())]
         region = md_region(text)
@@ -630,7 +713,7 @@ def run_scan(args):
         if not os.path.isfile(args.file):
             fail("file not found: " + args.file, 9)
         if os.path.splitext(args.file)[1].lower() not in FACES:
-            fail("unsupported face (need .py/.sh/.md): " + args.file, 2)
+            fail("unsupported face (need .py/.sh/.md/.v): " + args.file, 2)
         files_root = os.path.dirname(os.path.abspath(args.file))
     map_path = resolve_input(args.jargon_map, root_abs, "jargon map")
     terms = load_jargon_map(map_path)
@@ -806,6 +889,18 @@ Exit-codes.  0.
 Plain body text.
 '''
 
+V6_V = '''(* v6_coq_face: jargon-hit vector.
+Purpose.  Fixture proving the Coq comment face carries the prose scan.
+Interface.  None (fixture).
+Dependencies.  None.
+Evidence.  Selftest vector 6.
+Exit-codes.  0.
+*)
+(* the change shall not be red by default *)
+Lemma red : True.
+Proof. exact I. Qed.
+'''
+
 
 def write_text(path, content):
     with io.open(path, "w", encoding="utf-8") as fh:
@@ -892,6 +987,22 @@ def run_selftest():
         check("english-clean",
               not all5,
               "combined findings: " + json.dumps(all5, ensure_ascii=False))
+
+        # vector 6: the Coq comment face carries the prose scan; the
+        # vernacular body stays out of it (the code identifier on the
+        # Lemma line shares the jargon term and must not fire)
+        p6 = os.path.join(tmp, "v6_coq_face.v")
+        write_text(p6, V6_V)
+        r6 = scan_file("v6_coq_face.v", p6, "v", terms, 0.0, set(), map_path)
+        j6 = [f for f in r6["findings"] if f["kind"] == "jargon"]
+        other6 = [f for f in r6["findings"] if f["kind"] != "jargon"]
+        want_line6 = V6_V.splitlines().index(
+            "(* the change shall not be red by default *)") + 1
+        check("coq-comment-face",
+              len(j6) == 1 and j6[0]["term"] == "red"
+              and j6[0]["line"] == want_line6 and not other6,
+              "jargon findings: " + json.dumps(j6, ensure_ascii=False)
+              + "; non-jargon findings: " + str(len(other6)))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     ok_all = all(ok for _, ok, _ in results)
@@ -909,7 +1020,7 @@ def main(argv=None):
         description="annotation-face normalization lint (report-only first form)")
     group = ap.add_mutually_exclusive_group()
     group.add_argument("--tree", metavar="DIR",
-                       help="scan DIR recursively for .py/.sh/.md faces")
+                       help="scan DIR recursively for .py/.sh/.md/.v faces")
     group.add_argument("--file", metavar="PATH", help="lint one face file")
     ap.add_argument("--jargon-map", default=DEFAULT_JARGON_MAP,
                     help="jargon-to-standard mapping table")
@@ -925,7 +1036,7 @@ def main(argv=None):
                          " em_dash findings (data, error level)")
     ap.add_argument("--md", metavar="P", help="write the human-readable report there")
     ap.add_argument("--selftest", action="store_true",
-                    help="run the five selftest vectors on temporary fixtures")
+                    help="run the six selftest vectors on temporary fixtures")
     args = ap.parse_args(argv)
     if args.selftest:
         if args.tree or args.file or args.json or args.md or args.cjk_whitelist:

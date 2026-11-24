@@ -47,7 +47,7 @@ MAP_SCHEMA = "rocqwash.seeds.ai-flavor.word-map/1.0"
 MAP_ENGINE = "ai_flavor"
 WINDOW_CHARS = 40
 EM_DASH = "\u2014"
-SCAN_EXTENSIONS = frozenset((".py", ".sh", ".md", ".json", ".ts"))
+SCAN_EXTENSIONS = frozenset((".py", ".sh", ".md", ".json", ".ts", ".v"))
 CASE_SENSITIVE_BATTERIES = frozenset(("CH_3FAMILIES_10FACES",))
 PARA_BATTERY = "EN_PARA_INITIAL_3FACES"
 REQUIRED_FACE_KEYS = ("id", "face", "lang", "battery", "detector_regex_branch")
@@ -435,7 +435,7 @@ def build_parser():
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument("--file", metavar="PATH", help="scan one file")
     action.add_argument("--tree", metavar="DIR",
-                        help="scan a tree: .py .sh .md .json .ts, dot dirs skipped")
+                        help="scan a tree: .py .sh .md .json .ts .v, dot dirs skipped")
     action.add_argument("--selftest", action="store_true",
                         help="run built-in probe vectors")
     parser.add_argument("--json", metavar="OUT_PATH",
