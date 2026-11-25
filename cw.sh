@@ -205,6 +205,8 @@
 #                 cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest
 #   qed-cost-lint  candidate Qed-cost lint over Proof..Qed blocks (the source face of the three-source design volume docs/qed-cost-lint-design-20261126.md: long non-fast blocks surface as candidates, fast-closure blocks demote, report-only by default with --gate adding rc semantics; the kernel slow-path grind is a recorded blind spot - the coqc -time log face is the follow-up ticket; zero toolchain, zero network) -> tools/qed_cost_lint.py
 #                 cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest
+#   require-rewire  module-retirement rewiring orchestrator (given a retirement plan - module M retires onto successor S - scans a .v tree for every Require face referencing M via the three wash_shape-anchored line shapes (From Stdlib / From <dir> / bare, each with optional Import/Export), classifies Import vs Export per consumer, and emits a wash_engine-compatible patch ledger (tag/old/new/expect, the exact-string count-asserted form) so the standing engine applies the rewiring itself - the orchestrator plans, wash/wash_engine.py executes; the standalone --verify closure face fails loud on any surviving M reference, rc 0 clean / 1 survivors, and never requires the successor; the successor's drop-in compatibility is a plan authoring obligation (the anchor_guard independence-note precedent); deterministic: sorted consumers, double-run byte-identical; zero network, zero toolchain) -> tools/require_rewire.py
+#                 cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest
 #   help        this help (help <tool> = the tool's one-line usage hint)
 #
 # Routing contract:
@@ -425,6 +427,9 @@ Tools:
   qed-cost-lint  candidate Qed-cost lint over Proof..Qed blocks (the source face of the three-source design volume docs/qed-cost-lint-design-20261126.md: long non-fast blocks surface as candidates, fast-closure blocks demote, report-only by default with --gate adding rc semantics; the kernel slow-path grind is a recorded blind spot - the coqc -time log face is the follow-up ticket; zero toolchain, zero network) -> tools/qed_cost_lint.py
                 cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest
 
+  require-rewire  module-retirement rewiring orchestrator (given a retirement plan - module M retires onto successor S - scans a .v tree for every Require face referencing M via the three wash_shape-anchored line shapes (From Stdlib / From <dir> / bare, each with optional Import/Export), classifies Import vs Export per consumer, and emits a wash_engine-compatible patch ledger (tag/old/new/expect, the exact-string count-asserted form) so the standing engine applies the rewiring itself - the orchestrator plans, wash/wash_engine.py executes; the standalone --verify closure face fails loud on any surviving M reference, rc 0 clean / 1 survivors, and never requires the successor; the successor's drop-in compatibility is a plan authoring obligation (the anchor_guard independence-note precedent); deterministic: sorted consumers, double-run byte-identical; zero network, zero toolchain) -> tools/require_rewire.py
+                cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest
+
   help        this help (help <tool> = the tool's one-line usage hint)
 
 Exit codes: 0=pass  2=unknown-tool  9=target-script-missing  others = each tool's own convention, passed through
@@ -520,6 +525,7 @@ hint_for() {  # $1=tool
     mutant-manifest) echo "cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest   # anchor_guard manifest skeleton generator (mutant rows verbatim from the frozen library; anchors empty by rule - the authoring checklist prints; unknown family id fail-loud rc 2; double-run byte-identical; zero network) -> tools/mutant_manifest.py" ;;
     coqtop-batch) echo "cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest   # batch coqtop session with per-statement error classification (toplevel prompt chunks; nested proof prompts stay one chunk; honest skip rc 111 without a binary; zero network) -> tools/coqtop_batch.py" ;;
     qed-cost-lint) echo "cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest   # candidate Qed-cost lint (long non-fast Proof..Qed blocks nominate; vm_compute-family closure demotes; report-only default; design volume in docs/) -> tools/qed_cost_lint.py" ;;
+    require-rewire) echo "cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest   # module-retirement rewiring orchestrator (plan -> wash_engine patch ledger -> standalone verify closure face; survivors fail loud rc 1; zero network, zero toolchain) -> tools/require_rewire.py" ;;
     *) return 1 ;;
   esac
 }
@@ -621,6 +627,7 @@ case "${1:-}" in
   mutant-manifest) shift; run_tool mutant-manifest "tools/mutant_manifest.py" "$@" ;;
   coqtop-batch) shift; run_tool coqtop-batch "tools/coqtop_batch.py" "$@" ;;
   qed-cost-lint) shift; run_tool qed-cost-lint "tools/qed_cost_lint.py" "$@" ;;
+  require-rewire) shift; run_tool require-rewire "tools/require_rewire.py" "$@" ;;
   lean-parity-crosswalk) shift; run_tool lean-parity-crosswalk "tools/lean_parity_crosswalk.py" "$@" ;;
   help|-h|--help)
     if [ "$#" -ge 2 ]; then
