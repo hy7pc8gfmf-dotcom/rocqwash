@@ -199,6 +199,8 @@
 #                 cw.sh count-guard [--repo DIR] [--json F] | --selftest
 #   lean-parity-crosswalk  the Lean/Rocq axiom parity crosswalk engine (both parent tools' frozen vectors crosswalked row by row on the five mirror proposition keys clean / classical / funext / custom / sorry; the mapping is axiom_audit.LEAN_PARITY_ROWS verbatim, the Admitted <-> sorryAx mirror rule design-frozen; compile/Lean-engine gated legs honestly SKIP; schema rocqwash.parity.lean-census/1) -> tools/lean_parity_crosswalk.py
 #                 cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest
+#   mutant-manifest  anchor_guard manifest skeleton generator (the deterministic bridge from the frozen mutation library tools/mutants-v1.json, schema rocqwash.mutants/1, to a rocqwash.anchor/1 draft: selected mutant rows copied verbatim - never re-derived, never mechanically narrowed - the anchors array deliberately empty because anchor_guard rejects an empty anchors array by rule, so the skeleton is judgeable-by-design only after authoring; the authoring checklist prints loudly on stdout; --families selects rows by exact id, unknown id = fail-loud rc 2; sorted keys, double-run byte-identical; zero network, zero toolchain) -> tools/mutant_manifest.py
+#                 cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest
 #   help        this help (help <tool> = the tool's one-line usage hint)
 #
 # Routing contract:
@@ -410,6 +412,9 @@ Tools:
   lean-parity-crosswalk  the Lean/Rocq axiom parity crosswalk engine (both parent tools' frozen vectors crosswalked row by row on the five mirror proposition keys clean / classical / funext / custom / sorry; the mapping is axiom_audit.LEAN_PARITY_ROWS verbatim, the Admitted <-> sorryAx mirror rule design-frozen; compile/Lean-engine gated legs honestly SKIP; schema rocqwash.parity.lean-census/1) -> tools/lean_parity_crosswalk.py
                 cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest
 
+  mutant-manifest  anchor_guard manifest skeleton generator (the deterministic bridge from the frozen mutation library tools/mutants-v1.json, schema rocqwash.mutants/1, to a rocqwash.anchor/1 draft: selected mutant rows copied verbatim - never re-derived, never mechanically narrowed - the anchors array deliberately empty because anchor_guard rejects an empty anchors array by rule, so the skeleton is judgeable-by-design only after authoring; the authoring checklist prints loudly on stdout; --families selects rows by exact id, unknown id = fail-loud rc 2; sorted keys, double-run byte-identical; zero network, zero toolchain) -> tools/mutant_manifest.py
+                cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest
+
   help        this help (help <tool> = the tool's one-line usage hint)
 
 Exit codes: 0=pass  2=unknown-tool  9=target-script-missing  others = each tool's own convention, passed through
@@ -502,6 +507,7 @@ hint_for() {  # $1=tool
     attest-join) echo "cw.sh attest-join [--attest F] [--report F] [--out F] [--basename-fallback] | --selftest   # side-by-side join of the cw.attest/v1 archive and the rocqwash.b-axiom-audit/1 report (juxtaposition on the exact module key, never an equality check; matched / matched_local / unmatched sides; read-only, zero network) -> tools/attest_join.py" ;;
     count-guard) echo "cw.sh count-guard [--repo DIR] [--json F] | --selftest   # six-face roster count reconciler (check-only: R1 tools count / R2 tree face / R3 MCP roster pair / R4 cw.sh route face / R5 routed-target face / R6 census declared-lag rc-neutral; cross-face inequality names both file:line faces and both values; rc 0 green / 1 drift / 2 missing-face) -> tools/count_guard.py" ;;
     lean-parity-crosswalk) echo "cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest   # Lean/Rocq axiom parity crosswalk engine (five mirror proposition keys; mapping = axiom_audit.LEAN_PARITY_ROWS verbatim; Admitted <-> sorryAx mirror rule design-frozen; gated legs honestly SKIP; schema rocqwash.parity.lean-census/1) -> tools/lean_parity_crosswalk.py" ;;
+    mutant-manifest) echo "cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest   # anchor_guard manifest skeleton generator (mutant rows verbatim from the frozen library; anchors empty by rule - the authoring checklist prints; unknown family id fail-loud rc 2; double-run byte-identical; zero network) -> tools/mutant_manifest.py" ;;
     *) return 1 ;;
   esac
 }
@@ -600,6 +606,7 @@ case "${1:-}" in
   anchor-guard) shift; run_tool anchor-guard "tools/anchor_guard.py" "$@" ;;
   attest-join) shift; run_tool attest-join "tools/attest_join.py" "$@" ;;
   count-guard) shift; run_tool count-guard "tools/count_guard.py" "$@" ;;
+  mutant-manifest) shift; run_tool mutant-manifest "tools/mutant_manifest.py" "$@" ;;
   lean-parity-crosswalk) shift; run_tool lean-parity-crosswalk "tools/lean_parity_crosswalk.py" "$@" ;;
   help|-h|--help)
     if [ "$#" -ge 2 ]; then
