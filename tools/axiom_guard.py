@@ -16,7 +16,7 @@ Purpose.  Answer "what does each theorem actually rest on?" mechanically
   the exit code.
 Interface.  python3 tools/axiom_guard.py --repo DIR [--out DIR]
   [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC]
-  [--keep] | --selftest.  Binary paths resolve per flag then
+  [--keep] [--strict] | --selftest.  Binary paths resolve per flag then
   environment (--rocq / ROCWASH_ROCQ, --coqchk / ROCWASH_COQCHK);
   --out DIR receives axiom-guard-report.json (stdout summary only
   without it); --selftest runs the frozen offline vectors and exits.
