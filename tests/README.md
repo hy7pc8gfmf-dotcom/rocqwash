@@ -1,6 +1,6 @@
 # tests/: rocqwash self-test suite
 
-> Purpose.  The repository's self-test suite: 89 statically rostered cases (the
+> Purpose.  The repository's self-test suite: 91 statically rostered cases (the
 >   `CASES` roster in `tests/run_tests.sh`) covering every tool family with
 >   positive and negative judgments; the per-case tables below are the evidence
 >   surface for each roster entry, and the live count is always the roster.
@@ -19,8 +19,8 @@
 > Evidence.  Every case below cites the tool face it drives and the exact
 >   criteria it asserts.  `tools/doc_lint.py` check 2 pins the roster count;
 >   its two count-anchor shapes are kept verbatim as data faces (backticked,
->   so the normalization lint's masking applies): `覆盖面（89 例）` and
->   `预期 89 过`: both read 89 and must stay in step with the roster.
+>   so the normalization lint's masking applies): `覆盖面（91 例）` and
+>   `预期 91 过`: both read 91 and must stay in step with the roster.
 >
 > Exit-codes.  Suite level: 0 = all green (SKIP not counted red), 1 = any red;
 >   a case exits 111 = SKIP when the canonical environment is absent; the
@@ -35,10 +35,10 @@ bash tests/run_tests.sh          # all green EXIT 0; any red EXIT 1; idempotent 
 Suite self-check (verifies the "any red EXIT 1" contract; injects one always-red case):
 
 ```bash
-ROCQWASH_TESTS_FAIL_PROBE=1 bash tests/run_tests.sh   # expected: 89 passing / 1 failing / EXIT 1
+ROCQWASH_TESTS_FAIL_PROBE=1 bash tests/run_tests.sh   # expected: 91 passing / 1 failing / EXIT 1
 ```
 
-## Coverage (89 cases): the live count is the CASES roster in tests/run_tests.sh (sync after adding a case)
+## Coverage (91 cases): the live count is the CASES roster in tests/run_tests.sh (sync after adding a case)
 
 | # | Case | Under test | Criteria |
 |---|------|------|------|
@@ -310,3 +310,5 @@ ROCQWASH_TESTS_FAIL_PROBE=1 bash tests/run_tests.sh   # expected: 89 passing / 1
 | 87 | `t_tool_selftests` | the tools/ selftest meta enumerator: every `tools/*.py` file (leading-'_' names excluded) must hold a declared `--selftest` face or a registered `# selftest-exempt: <basis>` marker line, so a tool self-proof absence stays visible on every suite run and on both CI faces | `tests/test_tool_selftests.py`: the universe derives from the tools/ directory at run time (never hard-coded); one subprocess per declared face (`python -B <tool> --selftest`, per-tool cap 120 seconds); rc=0 = PASS, rc=111 = SKIP carrying the tool's own loud reason, a missing face without a registered basis = FAIL, a red or timed-out face = FAIL with a bounded excerpt; exit 1 lists the failing tool names; zero network, zero writes outside the tools' own tmp fixtures |
 | 88 | `t_axiom_audit` | `tools/axiom_audit.py` (the beyond-platform axiom audit: transitive per-statement axiom census, four-grade classification, reverse provenance map, machine-readable report with a Lean parity table; census rc=111 when no compile engine resolves, so an unconfigured engine is SKIP-with-reason data at the tool layer, never red) | `tests/t_axiom_audit.py` four segments, zero network, writes only inside temporary directories: offline_vectors 5 checks (module-local classification vectors and census-batch parse fallbacks, no toolchain) / cli_contract 6 checks (self-spawn exit-code faces: usage=2, missing classify name=2, absent repo=9, absent binary=9, unconfigured-engine=111 with the SKIP wording, classify lookup=0) / engine_census 9 checks on a healthy run (exact fixture census sets, grades, reverse map, declared-axiom sweep, schema constant, default-red, report face and parity table over `tests/fixtures/axiom_audit`; the missing-corpus guard is the 10th call site and only fires red) / engine_report 2 checks (a compile-broken repo lands in the debt register rc=0, the stdout debt summary names the file loudly); each engine segment emits one loud SKIP line with its reason when no engine resolves, never a silent pass; exit contract 0/1 only, at most 22 checks with a resolving engine |
 | 89 | `t_lean_parity` | `tools/lean_parity_crosswalk.py` (the Lean/Rocq axiom parity crosswalk engine over schema rocqwash.parity.lean-census/1: both parent tools' frozen vectors crosswalked row by row on the five mirror proposition keys clean / classical / funext / custom / sorry, the bilingual mirror fixture group `tests/fixtures/lean_parity`, the grade mapping read verbatim from `axiom_audit.LEAN_PARITY_ROWS/1` with the design-frozen Rocq Admitted <-> Lean sorryAx mirror rule preceding the table) | `tests/t_lean_parity.py` three legs, zero network, writes only inside temporary directories: leg A the offline frozen-vector crosswalk, always runs with no engine (the crosswalk's own --selftest rc=0, the offline payload verdict MATCH over five matched pairs with equal two-side enumeration counts, the mapping-source verbatim face, the Admitted mirror rule riding the sorry pair's basis, and the module-level parity-map identity against the audit tool's own 5-row table); leg B the real axiom_audit census over the mirror .v files, compile-engine gated (rc 0, the fixture_rocq leg record "ran", the matrix MATCH over the live Rocq side, the live Admitted own-name axiom mapped to SORRY-ALARM); leg C the real lean_axiom_sweep over the mirror .lean files, Lean-toolchain gated (rc 0, the lean_live leg record "ran", the matrix MATCH over the live Lean side); a gated leg prints one loud SKIP line naming the requirement and never silently passes; exit contract 0 all legs green / 1 any FAIL (red outranks skip) / 111 a gated leg skipped for its absent engine |
+| 90 | `t_count_guard` | `tools/count_guard.py` (the six-face roster count reconciler: R1 tools count / R2 tree face / R3 MCP roster pair / R4 cw.sh route face / R5 routed-target face / R6 census declared-lag, rc-neutral by design) | `tests/t_count_guard.py` two checks, zero network, writes nothing: C1 the tool's own `--selftest` rc 0 with the frozen `COUNT-GUARD-SELFTEST PASS` word face and six `[PASS]` vector lines, no `[FAIL]` (V1 clean fixture / V2 drift injection rc 1 / V3 missing-face rc 2 / V4 declared-lag rc 0 / V5 roster break rc 1 / V6 wall-clock budget); C2 the `--help` usage face rc 0 naming the six groups R1-R6; the live four-count face is deliberately not asserted here (R6 is rc-neutral and the tree may legitimately drift between landings; the CI doc-count gate and `tools/repair_scope.py` carry that face); exit contract 0 all green / 1 any red |
+| 91 | `t_anchor_guard_shape` | `tools/anchor_guard.py` (the anchor and certificate guard: manifest validation, compile tri-classification, coqchk kernel recheck, per-anchor probe face, mutation kill matrix over the manifest's copied defect rows) | `tests/t_anchor_guard_shape.py` six checks, zero network, nothing in the repository written: the CLI faces, the exit-code matrix, the manifest validation rules driven through the module's own loader, and the companion mutation library volume shape (`tools/mutants-v1.json`); where the toolchain binaries are absent the guard honestly skips and the shell asserts the skip face itself; rostered at the count-face cures increment (November 26, 2026), retiring the earlier deliberate-not-rostered note whose deferred README count-line rewrite this increment owns; exit contract per the shell's own assertion faces |

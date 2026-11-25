@@ -24,7 +24,7 @@ Exit-codes.  0 pass; 2 unknown tool or passthrough usage error; 9 target script
 
 `cw.sh` is the **one-command entry** for the rocqwash suite: it dispatches
 **76 routes onto 74 target scripts** — the same roster-derived count the
-title carries (64 = 62 target scripts + 2 alias routes; derivation in
+title carries (76 = 74 target scripts + 2 alias routes; derivation in
 Design contract below). Two alias pairs share one
 target script each (`triage`/`ci-triage` → `tools/ci_triage.py`;
 `baseline-diff`/`baseline-diff-facade` → `tools/baseline_diff.py`), and
