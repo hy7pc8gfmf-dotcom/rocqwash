@@ -51,6 +51,7 @@ Exit-codes.  0 green (selftest pass, --help, stdin end of file); 1 selftest red
 """
 
 import argparse
+import hmac
 import http.client
 import http.server
 import json
@@ -2589,7 +2590,9 @@ def _selftest():
     arg_map/schema one-to-one sync, and the schema validation behavior of
     _validate_arguments); V5 round-trips the HTTP-transport dispatcher
     faces in process (body parse, initialize, tools/list, one tools/call
-    shape) with no socket; V6, the socket smoke, runs only under
+    shape) with no socket; V5b judges the HTTP token gate offline on
+    fabricated header dicts (no socket, the env token configured and
+    restored in-block); V6, the socket smoke, runs only under
     ROCQWASH_MCP_HTTP_SMOKE=1 against one ephemeral loopback server.
     Zero stdin read, zero writes, and zero sockets in the default face.
     The roster count is a
@@ -2881,6 +2884,49 @@ def _selftest():
         "a non-UTF-8 body must be a parse-error object",
     )
 
+    # V5b auth gate offline vectors: _http_auth_failure judged directly on
+    # fabricated header dicts (no socket); the env token is configured and
+    # restored around the block (the gate reads the env per call).  These
+    # always-on vectors cover the constant-time comparison face between
+    # smokes, where only the V7 socket vectors exercise the gate.
+    saved_token = os.environ.get(AUTH_TOKEN_ENV)
+    try:
+        os.environ.pop(AUTH_TOKEN_ENV, None)
+        check(
+            "V5b auth gate unconfigured is open",
+            _http_auth_failure({}) is None,
+            "no ROCWASH_MCP_TOKEN in the env = the gate answers None",
+        )
+        os.environ[AUTH_TOKEN_ENV] = "v5b-token-42"
+        check(
+            "V5b auth gate missing credential",
+            _http_auth_failure({}) == "missing",
+            "configured gate + no credential header = missing",
+        )
+        check(
+            "V5b auth gate bearer mismatch",
+            _http_auth_failure({"Authorization": "Bearer wrong-token"})
+            == "mismatch",
+            "configured gate + a wrong bearer token = mismatch",
+        )
+        check(
+            "V5b auth gate bearer match",
+            _http_auth_failure(
+                {"Authorization": "Bearer v5b-token-42"}) is None,
+            "configured gate + the right bearer token = None",
+        )
+        check(
+            "V5b auth gate header match",
+            _http_auth_failure(
+                {"X-ROCQWASH-TOKEN": "v5b-token-42"}) is None,
+            "configured gate + the right X-ROCQWASH-TOKEN = None",
+        )
+    finally:
+        if saved_token is None:
+            os.environ.pop(AUTH_TOKEN_ENV, None)
+        else:
+            os.environ[AUTH_TOKEN_ENV] = saved_token
+
     # V6 socket smoke: env-gated (default off -- the default selftest
     # opens no socket, binds no port, answers no SYN).
     if os.environ.get(HTTP_SMOKE_ENV) == "1":
@@ -2968,7 +3014,10 @@ def _http_auth_failure(headers):
     auth-disabled warning at startup so the open gate is never silent.
     GET is the 405 hint face only and carries no data, so it is ungated.
     Reads the env per request, so a running server can be gated or opened
-    by env changes without a restart (the smoke vectors rely on this)."""
+    by env changes without a restart (the smoke vectors rely on this).
+    The comparison is constant time (hmac.compare_digest over the utf-8
+    encodings), so request handling does not leak the token through
+    comparison timing."""
     expected = os.environ.get(AUTH_TOKEN_ENV, "")
     if not expected:
         return None
@@ -2977,7 +3026,8 @@ def _http_auth_failure(headers):
         auth = headers.get("Authorization") or ""
         if auth.startswith("Bearer "):
             supplied = auth[len("Bearer "):].strip()
-    if supplied != expected:
+    if not hmac.compare_digest(supplied.encode("utf-8"),
+                               expected.encode("utf-8")):
         return "missing" if not supplied else "mismatch"
     return None
 
