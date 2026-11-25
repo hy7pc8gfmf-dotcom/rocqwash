@@ -45,13 +45,15 @@ executed, and the engine wrote nothing outside its explicit output paths.
 - Maintained UNRECOGNIZED events: not harvested (no --sentinel-events/--sentinel-state given).
 - Gate health: doc_lint rc 0 (consistent); recorded suite ledger unreadable (no --gate-ledger-dir given); whitelist-variant norm errors 691 (whitelist `/Users/apple/Desktop/rocqwash/docs/norm-lint-cjk-whitelist-20261113.txt`).
 
+> Desk repair, November 26, 2026 (branch `supply/rec-gen4-20261126`): the two Candidate 1 gate-ledger citations now carry their emitting engine as an explicit same-line attribution (`tools/evolve.py`, the flag's definer at `tools/evolve.py:1475`); this cures the doc_lint flag-face phantom drift by naming the true primary - the mechanical check itself is untouched, per this draft's own Candidate 1 acceptance face.
+
 ## Candidate 1 — gate-repair (rank 1, score 10.0000)
 
-- **Goal** — Repair the adverse gate-health readings that gate the evolution loop: doc_lint consistent (rc 0), recorded suite ledger unreadable (no --gate-ledger-dir given), whitelist-variant norm error mass 691.
+- **Goal** — Repair the adverse gate-health readings that gate the evolution loop: doc_lint consistent (rc 0), recorded suite ledger unreadable (no `tools/evolve.py` --gate-ledger-dir given), whitelist-variant norm error mass 691.
 - **Approach** — Repair each adverse reading at its own face: doc_lint drift is repaired on the doc faces its report names (never by weakening the check), a recorded suite red is reproduced in isolation and fixed at the tool face the case attests (never weaken the case), and the whitelist-variant norm errors are carried per the mapping table with .zh.md archive siblings; an unreadable suite reading is repaired by recording a fresh ledger capture.
 - **Acceptance** — doc_lint exits 0 (consistent); the latest recorded run ledger parses with 0 red; the whitelist-variant norm error count decreases against the starting account; no gate engine face was weakened.
 - **Grading** — impact 2 x evidence 10 (raw 691, clamped to 10) / effort 2 = score 10.0000; recorded gate readings are evidence over the loop's own gates; live faces own the primary signals.
-- **Evidence** — gate signal: doc_lint rc 0 (consistent); suite ledger unreadable (no --gate-ledger-dir given); whitelist-variant norm errors 691 (whitelist `/Users/apple/Desktop/rocqwash/docs/norm-lint-cjk-whitelist-20261113.txt`).
+- **Evidence** — gate signal: doc_lint rc 0 (consistent); suite ledger unreadable (no `tools/evolve.py` --gate-ledger-dir given); whitelist-variant norm errors 691 (whitelist `/Users/apple/Desktop/rocqwash/docs/norm-lint-cjk-whitelist-20261113.txt`).
 
 ## Candidate 2 — longtail-translation (rank 2, score 10.0000)
 
