@@ -193,6 +193,12 @@
 #               cw.sh pipeline-lite [--plan F] [--gap-ledger P]... [--reports P]... [--rounds P] [--autonomy P] [--state P] [--ef-marker P] [--threshold N] [--interval-seconds N] [--now-utc ISO8601Z] [--gap-out F] [--render-gaps F] [--packet-out F] [--backfill F] [--draft-out F] [--b-gate-audit P] [--policy-ref S] [--stop-at {data,human}] [--json] | --selftest
 #   anchor-guard  anchor and certificate guard for one module directory (manifest validation V1-V10, module compile tri-classification in a private temp workdir, coqchk -o kernel recheck baseline, per-anchor probe face over vm_compute checks plus Print Assumptions, mutation kill matrix over the manifest's copied defect rows: a certificate that kills zero mutants is VACUOUS and red, a non-hold baseline is an unanchored anchor, module compile-broken is red; manifest copies its mutant rows from tools/mutants-v1.json, the guard never loads the library; env-gated, rc 111 honest skip; zero repository writes) -> tools/anchor_guard.py
 #               cw.sh anchor-guard --repo DIR --manifest FILE [--out DIR] [--rocq BIN] [--coqchk BIN] [--timeout SEC] [--keep] | --selftest
+#   attest-join   side-by-side join of the cw.attest/v1 module archive and the rocqwash.b-axiom-audit/1 axiom-audit report (juxtaposition on the exact module key, never an equality check: the two hash faces are different objects - compiled .vo bytes vs source bytes - so rows record both verbatim; keys land in matched / matched_local / unmatched sides, a missing side is a loud absent-side face, --basename-fallback relaxes the exact-key join; zero network, read-only) -> tools/attest_join.py
+#                 cw.sh attest-join [--attest F] [--report F] [--out F] [--basename-fallback] | --selftest
+#   count-guard   six-face roster count reconciler (check-only: R1 tools count / R2 tree face / R3 MCP roster pair / R4 cw.sh route face / R5 routed-target face / R6 census declared-lag, rc-neutral by design; re-derives every standing tool-count face from its sources and fails loudly on cross-face inequality with both file:line faces and both values named - repair by token-swap; rc 0 all green, 1 drift, 2 missing-face) -> tools/count_guard.py
+#                 cw.sh count-guard [--repo DIR] [--json F] | --selftest
+#   lean-parity-crosswalk  the Lean/Rocq axiom parity crosswalk engine (both parent tools' frozen vectors crosswalked row by row on the five mirror proposition keys clean / classical / funext / custom / sorry; the mapping is axiom_audit.LEAN_PARITY_ROWS verbatim, the Admitted <-> sorryAx mirror rule design-frozen; compile/Lean-engine gated legs honestly SKIP; schema rocqwash.parity.lean-census/1) -> tools/lean_parity_crosswalk.py
+#                 cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest
 #   help        this help (help <tool> = the tool's one-line usage hint)
 #
 # Routing contract:
@@ -397,6 +403,13 @@ Tools:
   anchor-guard  anchor and certificate guard for one module directory (manifest validation V1-V10, module compile tri-classification in a private temp workdir, coqchk -o kernel recheck baseline, per-anchor probe face over vm_compute checks plus Print Assumptions, mutation kill matrix over the manifest's copied defect rows: a certificate that kills zero mutants is VACUOUS and red, a non-hold baseline is an unanchored anchor, module compile-broken is red; manifest copies its mutant rows from tools/mutants-v1.json, the guard never loads the library; env-gated, rc 111 honest skip; zero repository writes) -> tools/anchor_guard.py
               cw.sh anchor-guard --repo DIR --manifest FILE [--out DIR] [--rocq BIN] [--coqchk BIN] [--timeout SEC] [--keep] | --selftest
 
+  attest-join   side-by-side join of the cw.attest/v1 module archive and the rocqwash.b-axiom-audit/1 axiom-audit report (juxtaposition on the exact module key, never an equality check: the two hash faces are different objects - compiled .vo bytes vs source bytes - so rows record both verbatim; keys land in matched / matched_local / unmatched sides, a missing side is a loud absent-side face, --basename-fallback relaxes the exact-key join; zero network, read-only) -> tools/attest_join.py
+                cw.sh attest-join [--attest F] [--report F] [--out F] [--basename-fallback] | --selftest
+  count-guard   six-face roster count reconciler (check-only: R1 tools count / R2 tree face / R3 MCP roster pair / R4 cw.sh route face / R5 routed-target face / R6 census declared-lag, rc-neutral by design; re-derives every standing tool-count face from its sources and fails loudly on cross-face inequality with both file:line faces and both values named - repair by token-swap; rc 0 all green, 1 drift, 2 missing-face) -> tools/count_guard.py
+                cw.sh count-guard [--repo DIR] [--json F] | --selftest
+  lean-parity-crosswalk  the Lean/Rocq axiom parity crosswalk engine (both parent tools' frozen vectors crosswalked row by row on the five mirror proposition keys clean / classical / funext / custom / sorry; the mapping is axiom_audit.LEAN_PARITY_ROWS verbatim, the Admitted <-> sorryAx mirror rule design-frozen; compile/Lean-engine gated legs honestly SKIP; schema rocqwash.parity.lean-census/1) -> tools/lean_parity_crosswalk.py
+                cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest
+
   help        this help (help <tool> = the tool's one-line usage hint)
 
 Exit codes: 0=pass  2=unknown-tool  9=target-script-missing  others = each tool's own convention, passed through
@@ -486,6 +499,9 @@ hint_for() {  # $1=tool
     tree-audit) echo "cw.sh tree-audit --root DIR [--json OUT] | --selftest   # read-only tree health audit over .lean/.v source trees (one JSON-line census; zero subprocess, zero network, zero tree writes) -> tools/tree_audit.py" ;;
     pipeline-lite) echo "cw.sh pipeline-lite [--plan F] [--gap-ledger P]... [--reports P]... [--rounds P] [--autonomy P] [--state P] [--ef-marker P] [--threshold N] [--interval-seconds N] [--now-utc ISO8601Z] [--gap-out F] [--render-gaps F] [--packet-out F] [--backfill F] [--draft-out F] [--b-gate-audit P] [--policy-ref S] [--stop-at {data,human}] [--json] | --selftest   # gap-to-admission pipeline executor, D2-2 data layer (verdict imported from scheduler_lite; rows enter PENDING; code-layer faces stay human-gated; zero network) -> tools/pipeline_lite.py" ;;
     anchor-guard) echo "cw.sh anchor-guard --repo DIR --manifest FILE [--out DIR] [--rocq BIN] [--coqchk BIN] [--timeout SEC] [--keep] | --selftest   # anchor and certificate guard for one module directory (manifest validation V1-V10; compile tri-classification; coqchk -o kernel baseline; per-anchor probe face; mutation kill matrix, zero kills = VACUOUS = red; env-gated rc 111 honest skip; write faces: the caller-named --out report and the private temp workdir; rc 0=PASS 1=red 2=usage 9=fail-loud 111=honest skip) -> tools/anchor_guard.py" ;;
+    attest-join) echo "cw.sh attest-join [--attest F] [--report F] [--out F] [--basename-fallback] | --selftest   # side-by-side join of the cw.attest/v1 archive and the rocqwash.b-axiom-audit/1 report (juxtaposition on the exact module key, never an equality check; matched / matched_local / unmatched sides; read-only, zero network) -> tools/attest_join.py" ;;
+    count-guard) echo "cw.sh count-guard [--repo DIR] [--json F] | --selftest   # six-face roster count reconciler (check-only: R1 tools count / R2 tree face / R3 MCP roster pair / R4 cw.sh route face / R5 routed-target face / R6 census declared-lag rc-neutral; cross-face inequality names both file:line faces and both values; rc 0 green / 1 drift / 2 missing-face) -> tools/count_guard.py" ;;
+    lean-parity-crosswalk) echo "cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest   # Lean/Rocq axiom parity crosswalk engine (five mirror proposition keys; mapping = axiom_audit.LEAN_PARITY_ROWS verbatim; Admitted <-> sorryAx mirror rule design-frozen; gated legs honestly SKIP; schema rocqwash.parity.lean-census/1) -> tools/lean_parity_crosswalk.py" ;;
     *) return 1 ;;
   esac
 }
@@ -582,6 +598,9 @@ case "${1:-}" in
   tree-audit) shift; run_tool tree-audit "tools/tree_audit.py" "$@" ;;
   pipeline-lite) shift; run_tool pipeline-lite "tools/pipeline_lite.py" "$@" ;;
   anchor-guard) shift; run_tool anchor-guard "tools/anchor_guard.py" "$@" ;;
+  attest-join) shift; run_tool attest-join "tools/attest_join.py" "$@" ;;
+  count-guard) shift; run_tool count-guard "tools/count_guard.py" "$@" ;;
+  lean-parity-crosswalk) shift; run_tool lean-parity-crosswalk "tools/lean_parity_crosswalk.py" "$@" ;;
   help|-h|--help)
     if [ "$#" -ge 2 ]; then
       if hint_for "$2"; then
