@@ -207,6 +207,8 @@
 #                 cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest
 #   require-rewire  module-retirement rewiring orchestrator (given a retirement plan - module M retires onto successor S - scans a .v tree for every Require face referencing M via the three wash_shape-anchored line shapes (From Stdlib / From <dir> / bare, each with optional Import/Export), classifies Import vs Export per consumer, and emits a wash_engine-compatible patch ledger (tag/old/new/expect, the exact-string count-asserted form) so the standing engine applies the rewiring itself - the orchestrator plans, wash/wash_engine.py executes; the standalone --verify closure face fails loud on any surviving M reference, rc 0 clean / 1 survivors, and never requires the successor; the successor's drop-in compatibility is a plan authoring obligation (the anchor_guard independence-note precedent); deterministic: sorted consumers, double-run byte-identical; zero network, zero toolchain) -> tools/require_rewire.py
 #                 cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest
+#   independence-screener  name-level independence screening over an anchor manifest against the mutant defect library (the mechanical first-pass face of the authoring obligation mutants-v1.json records and anchor_guard honestly leaves as future work beyond V7's non-emptiness: extracts each mutant's site identifiers from its regex-source pattern/replacement fields - a composed site name appears there as regex fragments, rsT_ / recipQ - and each anchor's independent_derivation tokens, and flags every underscore-part intersection (parts >= 3) as a collision, the VACUOUS-certificate risk shape; prose can never false-positive because a part counts only when it equals a real library fragment part, generic-name hits are listed as data for review; no-name rows (the CONST-001 numeric shape) are recorded, never judged; screening is not proof - the report records the library independence_note verbatim and states the obligation stays with review; zero network, zero toolchain) -> tools/independence_screener.py
+#                 cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest
 #   help        this help (help <tool> = the tool's one-line usage hint)
 #
 # Routing contract:
@@ -430,6 +432,9 @@ Tools:
   require-rewire  module-retirement rewiring orchestrator (given a retirement plan - module M retires onto successor S - scans a .v tree for every Require face referencing M via the three wash_shape-anchored line shapes (From Stdlib / From <dir> / bare, each with optional Import/Export), classifies Import vs Export per consumer, and emits a wash_engine-compatible patch ledger (tag/old/new/expect, the exact-string count-asserted form) so the standing engine applies the rewiring itself - the orchestrator plans, wash/wash_engine.py executes; the standalone --verify closure face fails loud on any surviving M reference, rc 0 clean / 1 survivors, and never requires the successor; the successor's drop-in compatibility is a plan authoring obligation (the anchor_guard independence-note precedent); deterministic: sorted consumers, double-run byte-identical; zero network, zero toolchain) -> tools/require_rewire.py
                 cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest
 
+  independence-screener  name-level independence screening over an anchor manifest against the mutant defect library (the mechanical first-pass face of the authoring obligation mutants-v1.json records and anchor_guard honestly leaves as future work beyond V7's non-emptiness: extracts each mutant's site identifiers from its regex-source pattern/replacement fields - a composed site name appears there as regex fragments, rsT_ / recipQ - and each anchor's independent_derivation tokens, and flags every underscore-part intersection (parts >= 3) as a collision, the VACUOUS-certificate risk shape; prose can never false-positive because a part counts only when it equals a real library fragment part, generic-name hits are listed as data for review; no-name rows (the CONST-001 numeric shape) are recorded, never judged; screening is not proof - the report records the library independence_note verbatim and states the obligation stays with review; zero network, zero toolchain) -> tools/independence_screener.py
+                cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest
+
   help        this help (help <tool> = the tool's one-line usage hint)
 
 Exit codes: 0=pass  2=unknown-tool  9=target-script-missing  others = each tool's own convention, passed through
@@ -526,6 +531,7 @@ hint_for() {  # $1=tool
     coqtop-batch) echo "cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest   # batch coqtop session with per-statement error classification (toplevel prompt chunks; nested proof prompts stay one chunk; honest skip rc 111 without a binary; zero network) -> tools/coqtop_batch.py" ;;
     qed-cost-lint) echo "cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest   # candidate Qed-cost lint (long non-fast Proof..Qed blocks nominate; vm_compute-family closure demotes; report-only default; design volume in docs/) -> tools/qed_cost_lint.py" ;;
     require-rewire) echo "cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest   # module-retirement rewiring orchestrator (plan -> wash_engine patch ledger -> standalone verify closure face; survivors fail loud rc 1; zero network, zero toolchain) -> tools/require_rewire.py" ;;
+    independence-screener) echo "cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest   # name-level independence screening (anchor manifest x mutant library; underscore-part collisions listed fail-loud rc 1; no-name rows recorded; screening is not proof; zero network) -> tools/independence_screener.py" ;;
     *) return 1 ;;
   esac
 }
@@ -628,6 +634,7 @@ case "${1:-}" in
   coqtop-batch) shift; run_tool coqtop-batch "tools/coqtop_batch.py" "$@" ;;
   qed-cost-lint) shift; run_tool qed-cost-lint "tools/qed_cost_lint.py" "$@" ;;
   require-rewire) shift; run_tool require-rewire "tools/require_rewire.py" "$@" ;;
+  independence-screener) shift; run_tool independence-screener "tools/independence_screener.py" "$@" ;;
   lean-parity-crosswalk) shift; run_tool lean-parity-crosswalk "tools/lean_parity_crosswalk.py" "$@" ;;
   help|-h|--help)
     if [ "$#" -ge 2 ]; then

@@ -58,8 +58,9 @@ AUTHORING_CHECKLIST = (
     "certificate_face must appear in the module statement census (V8); "
     "2) sample_points: non-empty, corner coverage smallest+boundary (V6), "
     "check without trailing period; "
-    "3) independent_derivation: non-empty (V7; name-level independence is "
-    "machine-checked by anchor_guard v2); "
+    "3) independent_derivation: non-empty (V7; non-emptiness is "
+    "machine-checked by anchor_guard at load; the name-level sharing "
+    "screen is tools/independence_screener.py); "
     "4) narrow the copied mutant rows to your module's real sites and "
     "record the narrowing in your manifest copy."
 )
