@@ -3,8 +3,9 @@
 """wash_engine.py — generic per-item norm sanitize engine (rocqwash wash/).
 Purpose.  Argv-driven per-item executor for the norm-surface mapping sanitize (step 3
   of the seven-step standard): exact-string replace with count assertion, idempotent
-  replay (new present and old gone = SKIP), fail-loud (any FAIL leaves the file
-  unwritten), nesting-aware bracket checking of ledger fragments (after comment/string
+  replay (post-apply signature face = SKIP; provenance-undecidable SKIP rows are
+  counted in summary.unproven_provenance and never claimed as applied), fail-loud
+  (any FAIL leaves the file unwritten), nesting-aware bracket checking of ledger fragments (after comment/string
   masking).  It never guesses a target: with no --patch it exits 3 (SKIP semantics) and
   never fills an implicit mapping; the mapping ledger comes from upstream triage and is
   executed mechanically here (unified entry `cli/rocqwash wash`); in service October 31,
@@ -13,18 +14,28 @@ Interface.  python3 wash/wash_engine.py --file <in.v> --patch <ledger.json> --ou
   [--dry-run] [--json out.json] [--selftest].  Ledger JSON, both forms accepted:
   {"file": "optional default target.v", "patches": [{"tag", "old", "new", "expect":
   integer >= 1}, ...]} or a bare array; old/new bracket-balanced (comment/string
-  brackets excluded); old != new; a prefix patch (old inside new) replays APPLY on an
-  idempotent rerun: the measured SKIP-criterion behavior shared with the batch tool.
+  brackets excluded); old != new; a prefix patch (old inside new) is
+  idempotent on rerun: the SKIP criterion matches the post-apply self-inflicted
+  signature (new.count(old) x expect), so a prefix patch no longer replays APPLY
+  (the 20261126 divergence from `wash/_abl1_wash.py:130-151`, which keeps its own
+  criterion outside this ticket's write face); for sig == 1 the signature
+  coincides with the pristine expect face and SKIP is the chosen semantic
+  (idempotency preserved; a pristine file with a coincidental new form needs
+  operator adjudication).
 Dependencies.  Python 3 standard library only.  The apply loop (APPLY/SKIP/FAIL rows,
-  post-assert, selective write) follows `wash/_abl1_wash.py:130-151` judgment for
-  judgment; strip_comments_strings re-implements `scan/mac_stmt_scan.py:104-125`
+  post-assert, selective write) is derived from `wash/_abl1_wash.py:130-151` with
+  the provenance-honest SKIP face recorded above; strip_comments_strings re-implements `scan/mac_stmt_scan.py:104-125`
   locally without importing the frozen file (drift cannot propagate), the equivalence
   machine-attested by the --selftest nested-comment vectors; the ledger shape
   transcribes the _abl1_wash.py PATCHES ledger field for field (tag/old/new/expect).
-Evidence.  --selftest: seven vectors on a temp directory (pos, idempotent byte-identity,
-  write isolation, corruption neg, bracket neg, ledger neg, no-ledger);
+Evidence.  --selftest: ten vectors on a temp directory (pos, idempotent byte-identity,
+  write isolation, corruption neg, bracket neg, ledger neg, no-ledger, prefix-patch
+  idempotent replay, unproven-provenance no-op face, prefix signature-mismatch
+  fail-loud);
   `tests/test_wash_engine.py` drives the same paths through the real argv CLI.
-Exit-codes.  0 all rows APPLY/SKIP; 1 any FAIL (file not written); 2 malformed ledger
+Exit-codes.  0 all rows APPLY/SKIP (unproven-provenance rows surface in the summary
+  face, rc-neutral); 1 any FAIL (file not written; includes the never-applied prefix
+  and signature-mismatch corners, each named not-recorded-as-already-applied); 2 malformed ledger
   (bad JSON, missing field, bracket imbalance, old == new, expect < 1) or --out ==
   --file refused; 3 no --patch given (SKIP semantics); 9 --file/--patch path missing.
   Write isolation: --file is never rewritten; source and output md5 both reported.
@@ -143,7 +154,27 @@ class LedgerError(Exception):
 
 
 def apply_patches(content, plist, fname="<mem>"):
-    """The apply loop — step-for-step 1:1 with wash/_abl1_wash.py:130-151.
+    """The apply loop — derived from wash/_abl1_wash.py:130-151 with the
+    provenance-honest SKIP face (the 20261126 divergence is recorded in the
+    module docstring; the batch tool keeps its own criterion, outside this
+    ticket's write face).
+
+    Classification per patch, with sig = new.count(old) (the self-inflicted
+    old-substring count per inserted site):
+    - postcondition holds (c_new >= expect) and c_old == sig * expect: SKIP.
+      sig >= 1: the old-count equals the post-apply signature - the
+      idempotent replay face (a prefix patch no longer replays APPLY).
+      sig == 0: old absent - consistent with an earlier apply OR a
+      coincidental pre-existing form; the provenance is undecidable from
+      the content alone, so the row is never claimed as "already applied"
+      (the text says so and summary["unproven_provenance"] counts it).
+      For sig == 1 the signature coincides with the pristine expect face;
+      SKIP is the chosen semantic there (idempotency preserved; a pristine
+      file with a coincidental new form needs operator adjudication).
+    - c_old == expect: APPLY (the unambiguous pristine face).
+    - otherwise FAIL: includes the never-applied prefix corner and any
+      new-present/old-absent state whose signature cannot hold - fail loud
+      with an explicit not-recorded-as-already-applied note.
 
     Returns (new_content, rows, fail_flag); rows=[(tag, state, detail)],
     state in APPLY/SKIP/FAIL.  With fail=True new_content is invalid (the
@@ -151,25 +182,44 @@ def apply_patches(content, plist, fname="<mem>"):
     """
     rows = []
     n_apply = n_skip = n_fail = 0
+    n_unproven = 0
     file_fail = False
     for tag, old, new, expect in [(p["tag"], p["old"], p["new"], p["expect"])
                                   for p in plist]:
         c_old = content.count(old)
         c_new = content.count(new)
-        if c_new >= expect and c_old == 0:
-            rows.append((tag, "SKIP", "already applied (count(new)>=%d, count(old)=0)" % expect))
+        sig = new.count(old)  # self-inflicted old-substrings per inserted site
+        if c_new >= expect and c_old == sig * expect:
             n_skip += 1
+            if sig == 0:
+                n_unproven += 1
+                rows.append((tag, "SKIP",
+                             "no-op: new form present (>= %d), old absent - an earlier "
+                             "apply or a coincidental pre-existing form; provenance is "
+                             "undecidable from the content and NOT asserted" % expect))
+            else:
+                rows.append((tag, "SKIP",
+                             "idempotent replay: old-count %d equals the post-apply "
+                             "signature (new inserts %d old-substrings per site x expect "
+                             "%d)" % (c_old, sig, expect)))
             continue
-        if c_old != expect:
-            rows.append((tag, "FAIL", "count(old)=%d expect=%d -- no edit" % (c_old, expect)))
-            file_fail = True
-            n_fail += 1
+        if c_old == expect:
+            content = content.replace(old, new)
+            assert content.count(new) >= expect, "post-assert %s:%s" % (fname, tag)
+            rows.append((tag, "APPLY", "old=%d -> new inserted" % c_old))
+            n_apply += 1
             continue
-        content = content.replace(old, new)
-        assert content.count(new) >= expect, "post-assert %s:%s" % (fname, tag)
-        rows.append((tag, "APPLY", "old=%d -> new inserted" % c_old))
-        n_apply += 1
+        file_fail = True
+        n_fail += 1
+        if c_new >= expect:
+            detail = ("count(old)=%d expect=%d with the new form already present and the "
+                      "post-apply signature not matched -- no edit; NOT recorded as "
+                      "already-applied" % (c_old, expect))
+        else:
+            detail = "count(old)=%d expect=%d -- no edit" % (c_old, expect)
+        rows.append((tag, "FAIL", detail))
     summary = {"applied": n_apply, "skipped": n_skip, "fail": n_fail,
+               "unproven_provenance": n_unproven,
                "file_fail": file_fail}
     return content, rows, summary
 
@@ -247,7 +297,61 @@ def selftest():
         rc = run_args(["--file", src_v])
         assert rc == 3, "无台账应 exit 3 实测 %d" % rc
 
-        print("WASH-ENGINE-SELFTEST PASS: pos/idem/isolation/neg/bracket-neg/ledger-neg/no-ledger 七判全过")
+        # -- prefix idem: old inside new, sig = 2; rerun must SKIP by the
+        #      post-apply signature, byte-identical product --
+        pfx_ledger = {"patches": [
+            {"tag": "pfx", "expect": 1,
+             "old": "intros x. reflexivity.",
+             "new": "(intros x. reflexivity.) (intros x. reflexivity.)"}]}
+        pfx_path = os.path.join(tmp, "pfx.json")
+        with io.open(pfx_path, "w", encoding="utf-8") as fh:
+            json.dump(pfx_ledger, fh)
+        out_p1 = os.path.join(tmp, "pfx_washed.v")
+        rc = run_args(["--file", src_v, "--patch", pfx_path, "--out", out_p1])
+        assert rc == 0, "prefix 首apply应 exit 0 实测 %d" % rc
+        before_p = open(out_p1, "rb").read()
+        out_p2 = os.path.join(tmp, "pfx_washed2.v")
+        rc = run_args(["--file", out_p1, "--patch", pfx_path, "--out", out_p2])
+        assert rc == 0, "prefix 幂等重放应 exit 0 实测 %d" % rc
+        assert open(out_p2, "rb").read() == before_p, "prefix 重放不得改字节"
+
+        # -- unproven no-op: non-prefix patch whose new form is already
+        #      present and old never existed -> SKIP rc 0 with
+        #      summary.unproven_provenance counted, never claimed applied --
+        with io.open(src_v, "w", encoding="utf-8", newline="") as fh:
+            fh.write(body)  # restore the pristine body (the corruption neg above rewrote it)
+        unpr_ledger = {"patches": [
+            {"tag": "unpr", "expect": 1,
+             "old": "ZZZ_NEVER_PRESENT_HERE",
+             "new": "Lemma vec_a : forall x : nat, x = x."}]}
+        unpr_path = os.path.join(tmp, "unpr.json")
+        with io.open(unpr_path, "w", encoding="utf-8") as fh:
+            json.dump(unpr_ledger, fh)
+        j9 = os.path.join(tmp, "unpr.json.out")
+        rc = run_args(["--file", src_v, "--patch", unpr_path, "--dry-run", "--json", j9])
+        assert rc == 0, "unproven no-op 应 exit 0 实测 %d" % rc
+        with io.open(j9, encoding="utf-8") as fh:
+            acc9 = json.load(fh)
+        assert acc9.get("unproven_provenance") == 1,             "unproven_provenance 应=1 实测 %r" % acc9.get("unproven_provenance")
+
+        # -- prefix signature-mismatch neg: new form present at two sites
+        #      (expect = 1), so the post-apply signature cannot hold ->
+        #      FAIL rc 1, explicitly not already-applied --
+        na_ledger = {"patches": [
+            {"tag": "napfx", "expect": 1,
+             "old": "QWXP_NEVER_APPLIED",
+             "new": "(QWXP_NEVER_APPLIED) (QWXP_NEVER_APPLIED)"}]}
+        na_path = os.path.join(tmp, "napfx.json")
+        with io.open(na_path, "w", encoding="utf-8") as fh:
+            json.dump(na_ledger, fh)
+        na_v = os.path.join(tmp, "na.v")
+        with io.open(na_v, "w", encoding="utf-8", newline="") as fh:
+            fh.write("Lemma dup1 : (QWXP_NEVER_APPLIED) (QWXP_NEVER_APPLIED) := I.\n"
+                     "Lemma dup2 : (QWXP_NEVER_APPLIED) (QWXP_NEVER_APPLIED) := I.\n")
+        rc = run_args(["--file", na_v, "--patch", na_path, "--dry-run"])
+        assert rc == 1, "prefix never-applied 应 exit 1 实测 %d" % rc
+
+        print("WASH-ENGINE-SELFTEST PASS: pos/idem/isolation/neg/bracket-neg/ledger-neg/no-ledger/prefix-idem/unproven/prefix-neg 十判全过")
         return 0
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -346,6 +450,9 @@ def main():
         out_md5 = md5_of(args.out)
         print("--- applied=%d skipped=%d fail=NO  file=%s" % (summary["applied"], summary["skipped"], args.out))
 
+    if summary.get("unproven_provenance"):
+        print("--- unproven-provenance=%d (SKIP rows whose applied-provenance is undecidable; never asserted as already-applied)"
+              % summary["unproven_provenance"])
     print("md5 src=%s%s" % (src_md5, (" out=%s" % out_md5) if out_md5 else ""))
 
     if args.json:
