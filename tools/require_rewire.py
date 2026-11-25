@@ -28,7 +28,7 @@ Interface.  python -I tools/require_rewire.py --tree DIR --retire M
 Evidence.  --selftest: canned-tree vectors (three line shapes captured,
   Import/Export classification, ledger old-string verbatim + expect
   counts, verify survivors face, M == S refusal, determinism, no-M tree
-  empty ledger).
+  empty ledger, missing caller-named path rc 9).
 """
 # Extended contract:
 # Line shapes (anchored 1:1 to tools/wash_shape.py:247-252, re-implemented
@@ -147,9 +147,13 @@ class UsageError(Exception):
     pass
 
 
+class MissingPathError(UsageError):
+    """A caller-named path does not exist (docstring exit-code 9)."""
+
+
 def _load_plan(plan_path):
     if not os.path.isfile(plan_path):
-        raise UsageError("--plan path missing: %s" % plan_path)
+        raise MissingPathError("--plan path missing: %s" % plan_path)
     try:
         with io.open(plan_path, encoding="utf-8") as fh:
             plan = json.load(fh)
@@ -200,8 +204,14 @@ def main():
             if retire == successor:
                 raise UsageError("retire == successor (%r): a no-op rewire "
                                  "is never emitted" % retire)
-        if not args.tree or not os.path.isdir(args.tree):
-            raise UsageError("--tree directory missing: %r" % args.tree)
+        if not args.tree:
+            raise UsageError("--tree required (or --verify's tree face)")
+        if not os.path.isdir(args.tree):
+            raise MissingPathError("--tree directory missing: %r"
+                                   % args.tree)
+    except MissingPathError as exc:
+        print("PATH-MISSING: %s" % exc, file=sys.stderr)
+        sys.exit(9)
     except UsageError as exc:
         print("USAGE: %s" % exc, file=sys.stderr)
         sys.exit(2)
@@ -381,6 +391,15 @@ def selftest():
         vec("verify-clean-rc0",
             p.returncode == 0 and clean_ok,
             "rc=%d report=%s" % (p.returncode, clean_ok))
+        # missing caller-named path = the docstring's exit-code 9 face
+        p = subprocess.run(proc_args[:4] + ["--tree", os.path.dirname(tree),
+                                            "--plan",
+                                            os.path.join(tmp, "absent.json")],
+                           capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", env=env,
+                           timeout=60)
+        vec("missing-plan-rc9", p.returncode == 9,
+            "rc=%d stderr=%s" % (p.returncode, p.stderr[-70:]))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print("REQUIRE-REWIRE-SELFTEST: %d vector(s), %d FAIL"
