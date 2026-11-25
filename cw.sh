@@ -203,6 +203,8 @@
 #                 cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest
 #   coqtop-batch  batch statement feed through coqtop with per-statement error classification (one stdin-fed session chunks on the toplevel prompt markers Rocq < / legacy Coq < ; nested proof prompts never split a chunk; every error lands at once with statement attribution - the interactive-batch face beside probe_engine's single-error compile face; binary resolves flag > ROCWASH_COQTOP > honest skip rc 111; zero network) -> tools/coqtop_batch.py
 #                 cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest
+#   qed-cost-lint  candidate Qed-cost lint over Proof..Qed blocks (the source face of the three-source design volume docs/qed-cost-lint-design-20261126.md: long non-fast blocks surface as candidates, fast-closure blocks demote, report-only by default with --gate adding rc semantics; the kernel slow-path grind is a recorded blind spot - the coqc -time log face is the follow-up ticket; zero toolchain, zero network) -> tools/qed_cost_lint.py
+#                 cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest
 #   help        this help (help <tool> = the tool's one-line usage hint)
 #
 # Routing contract:
@@ -420,6 +422,9 @@ Tools:
   coqtop-batch  batch statement feed through coqtop with per-statement error classification (one stdin-fed session chunks on the toplevel prompt markers Rocq < / legacy Coq < ; nested proof prompts never split a chunk; every error lands at once with statement attribution - the interactive-batch face beside probe_engine's single-error compile face; binary resolves flag > ROCWASH_COQTOP > honest skip rc 111; zero network) -> tools/coqtop_batch.py
                 cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest
 
+  qed-cost-lint  candidate Qed-cost lint over Proof..Qed blocks (the source face of the three-source design volume docs/qed-cost-lint-design-20261126.md: long non-fast blocks surface as candidates, fast-closure blocks demote, report-only by default with --gate adding rc semantics; the kernel slow-path grind is a recorded blind spot - the coqc -time log face is the follow-up ticket; zero toolchain, zero network) -> tools/qed_cost_lint.py
+                cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest
+
   help        this help (help <tool> = the tool's one-line usage hint)
 
 Exit codes: 0=pass  2=unknown-tool  9=target-script-missing  others = each tool's own convention, passed through
@@ -514,6 +519,7 @@ hint_for() {  # $1=tool
     lean-parity-crosswalk) echo "cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest   # Lean/Rocq axiom parity crosswalk engine (five mirror proposition keys; mapping = axiom_audit.LEAN_PARITY_ROWS verbatim; Admitted <-> sorryAx mirror rule design-frozen; gated legs honestly SKIP; schema rocqwash.parity.lean-census/1) -> tools/lean_parity_crosswalk.py" ;;
     mutant-manifest) echo "cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest   # anchor_guard manifest skeleton generator (mutant rows verbatim from the frozen library; anchors empty by rule - the authoring checklist prints; unknown family id fail-loud rc 2; double-run byte-identical; zero network) -> tools/mutant_manifest.py" ;;
     coqtop-batch) echo "cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest   # batch coqtop session with per-statement error classification (toplevel prompt chunks; nested proof prompts stay one chunk; honest skip rc 111 without a binary; zero network) -> tools/coqtop_batch.py" ;;
+    qed-cost-lint) echo "cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest   # candidate Qed-cost lint (long non-fast Proof..Qed blocks nominate; vm_compute-family closure demotes; report-only default; design volume in docs/) -> tools/qed_cost_lint.py" ;;
     *) return 1 ;;
   esac
 }
@@ -614,6 +620,7 @@ case "${1:-}" in
   count-guard) shift; run_tool count-guard "tools/count_guard.py" "$@" ;;
   mutant-manifest) shift; run_tool mutant-manifest "tools/mutant_manifest.py" "$@" ;;
   coqtop-batch) shift; run_tool coqtop-batch "tools/coqtop_batch.py" "$@" ;;
+  qed-cost-lint) shift; run_tool qed-cost-lint "tools/qed_cost_lint.py" "$@" ;;
   lean-parity-crosswalk) shift; run_tool lean-parity-crosswalk "tools/lean_parity_crosswalk.py" "$@" ;;
   help|-h|--help)
     if [ "$#" -ge 2 ]; then
