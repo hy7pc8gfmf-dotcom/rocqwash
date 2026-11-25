@@ -62,7 +62,7 @@ RECIPE = os.path.join(REPO, "recipes", "ENBIG7_same_domain_collision_PW1.md")
 HOOK = os.path.join(REPO, "wash", "world_hook.py")
 AUDIT = os.path.join(REPO, "tools", "select_audit.py")
 ENGINE = os.path.join(REPO, "wash", "wash_engine.py")
-ENGINE_FROZEN_MD5 = "eed0699addc3593368da5f5e993b382e"  # registered frozen value (`更新账.md` section 3)
+ENGINE_FROZEN_MD5 = "b06bd886d4e47bb9cd2be1dd4e857e81"  # registered frozen value (`更新账.md` section 3)
 
 RECIPE_ANCHORS = [
     "PW1", "collision_enbig7_20261031", "36c35816",

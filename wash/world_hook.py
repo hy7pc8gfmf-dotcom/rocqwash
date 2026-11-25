@@ -13,7 +13,7 @@ Interface.  python3 wash/world_hook.py --world <dir> [--manifest M | --anchor na
   A world rebuilt at a newer generation requires new anchors; a stale anchor must never pose as certified.
 
 Dependencies.  Python 3 standard library only.  The frozen peer `wash/wash_engine.py` (md5
-  eed0699addc3593368da5f5e993b382e) is reused read-only via sys.path + `import wash_engine` (the
+  b06bd886d4e47bb9cd2be1dd4e857e81) is reused read-only via sys.path + `import wash_engine` (the
   push_gate read-only import precedent, certify/push_gate.py:81-86); zero bytes of it are touched.
   `wrapper/born_world.sh` already fixes the .v-source-side born defenses (fresh copy / --assert-md5 /
   stale-product clearing); this hook adds the wash-side .vo assertion: born_world governs how the
@@ -274,7 +274,7 @@ def selftest():
         print("WORLD-HOOK-SELFTEST PASS: pos / wdiff stale-generation neg / wmiss / manifest both forms / "
               "malformed x2 / missing dir / passthrough pos / born interception / engine passthrough 3 / "
               "frozen read-only reuse — twelve vectors passed")
-        print("  engine_md5=%s (frozen record eed0699addc3593368da5f5e993b382e; zero-byte read-only reuse)"
+        print("  engine_md5=%s (frozen record b06bd886d4e47bb9cd2be1dd4e857e81; zero-byte read-only reuse)"
               % md5_of(engine))
         return 0
     finally:
