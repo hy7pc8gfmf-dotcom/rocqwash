@@ -276,6 +276,7 @@ Integration note (the anchor-guard registration increment, at integration: cast 
 - Invocation: `python -I tools/coqtop_batch.py --input FILE [--coqtop BIN] [--timeout SEC] [--json OUT] | --selftest`
 - Example: `python -I tools/coqtop_batch.py --input session.v --coqtop /path/coqtop.exe --json report.json`
 - Imports: argparse, io, json, os, re, subprocess, sys
+- Thermal contract: no embedded guard; guarded real runs with the on-machine toolchain are wrapped by `tools/cpu_guard.sh` (the coqtop child stays in the guard's process tree; the selftest and the honest-skip face never launch a toolchain)
 - Network face: zero
 - SKIP face: `SKIP: coqtop not configured (flag or ROCWASH_COQTOP); the batch collector honestly skips and judges nothing (rc 111)` (verify/ rc 111 convention)
 
