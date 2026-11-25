@@ -4,10 +4,11 @@
 Purpose.  Hook the anchor and certificate guard into the tests/ tree and
   smoke its shape offline: the CLI faces, the exit-code matrix, the
   manifest validation rules driven through the module's own loader, and
-  the companion mutation library volume.  Run directly, deliberately not
-  rostered in tests/run_tests.sh: the roster count is coupled to the
-  README count lines, whose rewrite belongs to the work stream holding
-  that authorization.  Where the toolchain binaries are absent the guard
+  the companion mutation library volume.  Run directly; rostered in
+  tests/run_tests.sh as t_anchor_guard_shape at the count-face cures
+  increment (November 26, 2026, branch supply/count-face-cures-20261125),
+  which owned the README count-line rewrite the earlier
+  deliberate-not-rostered note deferred to.  Where the toolchain binaries are absent the guard
   honestly skips and this shell asserts the skip face itself.
 Interface.  `python -I tests/t_anchor_guard_shape.py`.  Six checks; the
   check list and the vector names are the extended contract below.

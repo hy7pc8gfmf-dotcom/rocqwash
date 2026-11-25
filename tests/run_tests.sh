@@ -21,7 +21,7 @@
 #   and the guarded compile-arc switch (ROCWASH_ROCQ / GATE7_PROBE_SCRIPT /
 #   GATE6_SCRIPT / BORN_WORLD_ROCQ), probed by default and overridable by env.
 #
-# Evidence.  One case per t_* function below; the per-case contract tables (89
+# Evidence.  One case per t_* function below; the per-case contract tables (91
 #   rows) live in tests/README.md; the CASES roster count is pinned by
 #   tools/doc_lint.py check 2 against the tests/README.md count lines; the roster
 #   is never written at run time.
@@ -213,6 +213,8 @@ t_dual_scan \
  t_jargon_map_sync \
  t_tool_selftests \
  t_axiom_audit \
+ t_count_guard \
+ t_anchor_guard_shape \
  t_lean_parity"
 NCASES=$(echo $CASES | wc -w | tr -d ' ')
 if [ "${ROCQWASH_TESTS_FAIL_PROBE:-0}" = "1" ]; then
@@ -1061,6 +1063,30 @@ t_mcp_face() {
   # (legacy 8 + batch-1 zero-network 13 + engine-body 3 + symbiosis 1)
   # plus live-call spot checks; zero network by construction.
   "$PY" -B "$REPO/tests/t_mcp_face.py"
+}
+
+t_count_guard() {
+  # 20261126 roster hookup (WorkBuddy count-face finding, R3 token-swap):
+  # six-face roster count reconciler shell (tests/t_count_guard.py over
+  # tools/count_guard.py) - one process asserting the tool's own --selftest
+  # rc 0 with the six vector PASS word faces (V1 clean fixture / V2 drift
+  # injection rc 1 / V3 missing-face rc 2 / V4 declared-lag rc 0 / V5
+  # roster break rc 1 / V6 wall-clock budget); the live four-count face is
+  # deliberately NOT asserted here (R6 declared-lag is rc-neutral and the
+  # tree may legitimately drift between landings; the CI doc-count gate
+  # and repair_scope carry that face); zero network by construction.
+  "$PY" -B "$REPO/tests/t_count_guard.py"
+}
+
+t_anchor_guard_shape() {
+  # 20261126 roster hookup (anchor-guard integration note retirement):
+  # tool shape shell (tests/t_anchor_guard_shape.py, landed d71d538) -
+  # six checks over the CLI faces, the exit-code matrix, the manifest
+  # validation rules through the module's own loader, and the companion
+  # mutation library volume; the toolchain tier honestly skips (rc 111)
+  # without rocq/coqchk and the shell asserts that skip face itself;
+  # zero network by construction.
+  "$PY" -B "$REPO/tests/t_anchor_guard_shape.py"
 }
 
 t_exp_port() {
