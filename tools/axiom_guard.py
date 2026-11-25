@@ -29,7 +29,9 @@ Evidence.  Deterministic: sorted inputs, no wall clock in report or
   embedded guard, wrap guarded runs in tools/cpu_guard.sh (compile
   children stay in the guard's process tree).  Selftest vectors are
   offline: zero network, zero toolchain launch, zero real-repo touch.
-Exit-codes.  0 PASS (zero red files; compile-broken recorded as debt);
+Exit-codes.  0 PASS (zero red files; compile-broken recorded as debt;
+  --strict turns compile-broken files and trust-surface alarm files red and
+  lists them in report["strict_red"]);
   1 red (axiom outside the whitelist, an unjudgeable heavy face, or a
   selftest red); 2 usage error; 9 fail-loud environment (configured
   binary missing or --repo absent); 111 honest skip (toolchain
@@ -84,7 +86,8 @@ import tempfile
 #      outside the whitelist, or the heavy face cannot deliver a summary
 #      (unjudgeable is not green).  Compile-broken files are debt, not
 #      red.  Run verdict PASS = zero red files.
-#   6. Trust surface (additive, verdict-neutral): under the same masking
+#   6. Trust surface (additive, verdict-neutral by default; under --strict
+#      an alarm block fails the run via _apply_strict): under the same masking
 #      scanner, every source is swept for the Rocq switches that turn
 #      kernel checking off (Unset Guard/Positivity/Universe Checking,
 #      Unset Elimination Schemes) and for ML entry points (Declare ML
@@ -427,9 +430,36 @@ def light_face(rocq, base_text, work_dir, stem, statements, timeout,
     return verdicts
 
 
-def guard(repo, rocq, coqchk, allow_axioms, timeout, out_dir, keep):
+def _apply_strict(report, reds):
+    """Strict-mode verdict face (tools/axiom_guard.py --strict): compile-broken
+    files and trust-surface alarm files become red (default mode records them
+    as debt / verdict-neutral and never reaches this function).  Returns the
+    list of newly red names (dedup against reds; the caller stores it as
+    report["strict_red"]).  Pure: no I/O, no verdict text changes beyond the
+    red list."""
+    strict_added = []
+    for f in report.get("files", []):
+        rel = f.get("file")
+        if f.get("classification") == "compile-broken" and rel \
+                and rel not in reds:
+            reds.append(rel)
+            strict_added.append(rel)
+    ts = report.get("trust_surface")
+    if ts and ts.get("verdict") == "alarm":
+        for h in ts.get("hits", []):
+            rel = h.get("file")
+            if rel and rel not in reds:
+                reds.append(rel)
+                strict_added.append(rel)
+    return strict_added
+
+
+def guard(repo, rocq, coqchk, allow_axioms, timeout, out_dir, keep,
+          strict=False):
     """Full run; returns (exit_code, report_dict).  Write faces: the private
-    temp workdir and (when given) the caller-named --out report file."""
+    temp workdir and (when given) the caller-named --out report file.
+    strict=True: compile-broken files and trust-surface alarm files enter the
+    red list (default face keeps them as debt / verdict-neutral)."""
     v_files = []
     for dirpath, dirnames, filenames in os.walk(repo):
         dirnames[:] = [d for d in dirnames if d not in (".git",)]
@@ -547,6 +577,7 @@ def guard(repo, rocq, coqchk, allow_axioms, timeout, out_dir, keep):
         # as without this face.
         report["trust_surface"] = build_trust_surface(
             trust_hits + project_flag_hits(repo), vm_total, native_total)
+        report["strict_red"] = _apply_strict(report, reds) if strict else []
         report["red_files"] = reds
         report["verdict"] = "RED" if reds else "PASS"
         if out_dir:
@@ -835,6 +866,28 @@ def selftest():
                          "--coqchk", os.path.join(tmp, "no-coqchk")])
         vec("exit-binary-absent-rc9", rc == 9,
             "configured but missing binaries exit %s (fail-loud)" % rc)
+        # strict-mode verdict face (_apply_strict; pure, offline vectors)
+        rep = {"files": [
+            {"file": "broken.v", "classification": "compile-broken"},
+            {"file": "ok.v", "classification": "compile-ok"}],
+            "trust_surface": {"verdict": "alarm",
+                              "hits": [{"file": "hit.v", "line": 2,
+                                        "token": "Unset Guard Checking"}]}}
+        reds = ["already.v"]
+        added = _apply_strict(rep, reds)
+        vec("strict-compile-broken-red",
+            "broken.v" in reds and "broken.v" in added and "ok.v" not in reds,
+            "strict: compile-broken turns red; ok stays clean; added=%s" % added)
+        vec("strict-trust-alarm-red",
+            "hit.v" in reds and "hit.v" in added,
+            "strict: trust-surface alarm file turns red; added=%s" % added)
+        vec("strict-dedup",
+            "broken.v" not in _apply_strict(rep, ["broken.v"]),
+            "strict: an already-red name is never duplicated again")
+        vec("strict-clean-pass",
+            _apply_strict({"files": [], "trust_surface": {"verdict": "clean",
+                                                          "hits": []}}, []) == [],
+            "strict: a clean report adds nothing")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print("selftest: %d vector(s), %d FAIL" % (total[0], len(failures)))
@@ -865,6 +918,9 @@ def build_parser():
                     help="per-subprocess timeout seconds (default 600)")
     ap.add_argument("--keep", action="store_true",
                     help="keep the temp workdir (debug face)")
+    ap.add_argument("--strict", action="store_true",
+                    help="strict mode: compile-broken files and trust-surface "
+                    "alarm files are red (default: debt / verdict-neutral)")
     ap.add_argument("--selftest", action="store_true",
                     help="run the frozen offline vector group and exit")
     return ap
@@ -901,7 +957,7 @@ def main():
 
     code, _report = guard(args.repo, args.rocq, args.coqchk,
                           args.allow_axioms, args.timeout, args.out,
-                          args.keep)
+                          args.keep, strict=args.strict)
     sys.exit(code)
 
 
