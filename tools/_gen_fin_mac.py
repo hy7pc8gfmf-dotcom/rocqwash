@@ -18,7 +18,7 @@
       SortAlive_Probe_<W>.ml --manifest manifest_<W>.json --vo SortAlive_Probe_<W>.vo
       --source-v <source.v> --transcript _fin_<W>_build.log (verify on worldT_mac S09 while
       S10.vo is not passing; S10 live runs excluded; census 100/100 is the recorded expected baseline).
-    Dependencies.  mac_stmt_names.py (repository root, sys.path-injected; its extraction core is
+    Dependencies.  mac_stmt_names.py (<repo>/names, sys.path-injected; its extraction core is
       reused so the statement list shares the census grain — same token walk, same list);
       Python 3 standard library only; bash for the emitted driver.
     Evidence.  Field-verified at the October 22, 2026 Mac-adaptation pass (worldT_mac S09 dry run,
@@ -33,7 +33,7 @@ import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
-sys.path.insert(0, os.path.dirname(_HERE))  # mac_stmt_names.py sits at the repository root
+sys.path.insert(0, os.path.join(os.path.dirname(_HERE), "names"))  # mac_stmt_names.py sits at <repo>/names
 # reuse mac_stmt_names.py's extraction core (same token walk = the census-grain statement list): list consistency is guaranteed by the shared tool
 import mac_stmt_names  # noqa: E402
 
