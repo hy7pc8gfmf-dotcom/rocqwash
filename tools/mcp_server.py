@@ -26,7 +26,10 @@ Interface.  `python -I mcp_server.py [--stdio] [--http PORT
   process, so a dead stdio pipe or a dead HTTP session costs one
   transport, never the tool registry.  The HTTP listener binds
   127.0.0.1 unless --http-host widens it (trusted-network-only: the
-  endpoint performs no authentication); GET /mcp answers 405 with a
+  endpoint performs no authentication unless ROCWASH_MCP_TOKEN is
+  configured - then every POST must carry X-ROCQWASH-TOKEN or
+  Authorization: Bearer, else 401; unconfigured prints one loud
+  auth-disabled warning at startup and stays open, never fail-closed); GET /mcp answers 405 with a
   plain hint, other methods and paths answer 404, and a malformed
   body answers a JSON-RPC parse-error object, never a traceback.  The
   service face needs ROCQWASH_HOME at the repository root and answers
@@ -71,6 +74,7 @@ HTTP_ENDPOINT_PATH = "/mcp"
 HTTP_DEFAULT_HOST = "127.0.0.1"
 HTTP_SESSION_HEADER = "Mcp-Session-Id"
 HTTP_SMOKE_ENV = "ROCQWASH_MCP_HTTP_SMOKE"
+AUTH_TOKEN_ENV = "ROCWASH_MCP_TOKEN"
 HTTP_MAX_BODY_BYTES = 32 * 1024 * 1024
 # Frozen selftest vector: the M2 roster (25 standing specs, six M1
 # additions, eleven M2 ticket additions, the tree_audit registration
@@ -2955,6 +2959,29 @@ class _McpSessionTable:
             return session_id in self._known
 
 
+def _http_auth_failure(headers):
+    """The HTTP token gate (ROCWASH_MCP_TOKEN): when the env token is
+    configured, every POST must carry it (an X-ROCQWASH-TOKEN header, or
+    Authorization: Bearer <token>); an unauthenticated request answers 401.
+    Unconfigured = the gate is open (never fail-closed: a runner upgrading
+    to this build keeps serving); the serve faces print one loud
+    auth-disabled warning at startup so the open gate is never silent.
+    GET is the 405 hint face only and carries no data, so it is ungated.
+    Reads the env per request, so a running server can be gated or opened
+    by env changes without a restart (the smoke vectors rely on this)."""
+    expected = os.environ.get(AUTH_TOKEN_ENV, "")
+    if not expected:
+        return None
+    supplied = headers.get("X-ROCQWASH-TOKEN") or ""
+    if not supplied:
+        auth = headers.get("Authorization") or ""
+        if auth.startswith("Bearer "):
+            supplied = auth[len("Bearer "):].strip()
+    if supplied != expected:
+        return "missing" if not supplied else "mismatch"
+    return None
+
+
 class _McpHttpHandler(http.server.BaseHTTPRequestHandler):
     """The HTTP face of the shared MCP dispatcher.
 
@@ -3039,6 +3066,16 @@ class _McpHttpHandler(http.server.BaseHTTPRequestHandler):
                 404,
                 "Not Found: the MCP endpoint is POST {0} with a JSON-RPC 2.0 "
                 "object; this path serves nothing.".format(HTTP_ENDPOINT_PATH),
+            )
+            return
+        auth_reason = _http_auth_failure(self.headers)
+        if auth_reason is not None:
+            self._read_declared_body()
+            self._respond_hint(
+                401,
+                "Unauthorized ({0}): the ROCQWASH_MCP_TOKEN gate is configured; "
+                "carry the X-ROCQWASH-TOKEN header (or Authorization: Bearer "
+                "<token>).".format(auth_reason),
             )
             return
         length_header = self.headers.get("Content-Length")
@@ -3172,6 +3209,10 @@ def _serve_http(host, port):
     if server is None:
         return 1
     bound_host, bound_port = server.server_address[:2]
+    if not os.environ.get(AUTH_TOKEN_ENV):
+        _log("WARNING auth-disabled: {0} unset - the HTTP face answers "
+             "unauthenticated POSTs (trusted-network-only binding; set the "
+             "token to require X-ROCQWASH-TOKEN on every POST)".format(AUTH_TOKEN_ENV))
     _log(
         "rocqwash MCP http server ready: POST http://{0}:{1}{2} "
         "(application/json, {3} header per response); stdio face not served; "
@@ -3201,6 +3242,10 @@ def _serve_stdio_and_http(host, port):
     if server is None:
         return 1
     bound_host, bound_port = server.server_address[:2]
+    if not os.environ.get(AUTH_TOKEN_ENV):
+        _log("WARNING auth-disabled: {0} unset - the HTTP face answers "
+             "unauthenticated POSTs (trusted-network-only binding; set the "
+             "token to require X-ROCQWASH-TOKEN on every POST)".format(AUTH_TOKEN_ENV))
     thread = threading.Thread(
         target=server.serve_forever, kwargs={"poll_interval": 0.2}, daemon=True
     )
@@ -3375,6 +3420,66 @@ def _http_smoke_vectors(check):
         server.shutdown()
         server.server_close()
         thread.join(timeout=5.0)
+
+    # V7 token gate (ROCWASH_MCP_TOKEN): one fresh ephemeral server with
+    # the env token configured - unauthenticated POST answers 401, the
+    # authenticated POST is served, and the gate reads the env per request
+    # so the finally-restore reopens the face without a restart.
+    token_server = _build_http_server("127.0.0.1", 0)
+    if token_server is None:
+        check("V7 token gate bind", False, "the ephemeral loopback bind failed")
+    else:
+        token_port = token_server.server_address[1]
+        token_thread = threading.Thread(
+            target=token_server.serve_forever, kwargs={"poll_interval": 0.05},
+            daemon=True,
+        )
+        token_thread.start()
+        token_connection = http.client.HTTPConnection(
+            "127.0.0.1", token_port, timeout=10)
+        init_body = json.dumps(
+            {"jsonrpc": "2.0", "id": 41, "method": "initialize",
+             "params": {"protocolVersion": "2025-03-26", "capabilities": {},
+                        "clientInfo": {"name": "smoke", "version": "0"}}})
+        os.environ[AUTH_TOKEN_ENV] = "smoke-token-42"
+        try:
+            token_connection.request(
+                "POST",
+                HTTP_ENDPOINT_PATH,
+                body=init_body,
+                headers={"Content-Type": "application/json",
+                         "Accept": "application/json",
+                         "Content-Length": str(len(init_body))},
+            )
+            response = token_connection.getresponse()
+            payload = response.read()
+            check(
+                "V7 token 401 unauthenticated",
+                response.status == 401 and b"Unauthorized" in payload,
+                "status {0} body {1!r}".format(response.status, payload[:50]),
+            )
+            token_connection.request(
+                "POST",
+                HTTP_ENDPOINT_PATH,
+                body=init_body,
+                headers={"Content-Type": "application/json",
+                         "Accept": "application/json",
+                         "Content-Length": str(len(init_body)),
+                         "X-ROCQWASH-TOKEN": "smoke-token-42"},
+            )
+            response = token_connection.getresponse()
+            payload = response.read()
+            check(
+                "V7 token authenticated passes",
+                response.status == 200,
+                "status {0} body {1!r}".format(response.status, payload[:50]),
+            )
+        finally:
+            os.environ.pop(AUTH_TOKEN_ENV, None)
+            token_connection.close()
+            token_server.shutdown()
+            token_server.server_close()
+            token_thread.join(timeout=5.0)
 
 
 def _build_parser():
