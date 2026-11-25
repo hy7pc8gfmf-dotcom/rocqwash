@@ -3,10 +3,10 @@
   "certify/frozen8.py",
   "certify/push_gate.py"
  ],
- "freeze_commit": "19257b770b12c6cdf02492d379e3e0d0340f0082",
+ "freeze_commit": "46f71eed61ceb66bb8b8937f25e80cb14326c506",
  "ledger_source": "更新账.md §三（在役八组件冻结自证·账载口径）",
  "n_files": 10,
- "root": "/Users/apple/Desktop/rocqwash",
+ "root": "D:\\ComplexAnalysis\\attn\\_offpeak_wt_rec_t1",
  "schema": "rocqwash-frozen8-manifest/2",
  "tier1": [
   [
@@ -15,7 +15,7 @@
   ],
   [
    "certify/frozen8.py",
-   "a7bbc0fb453f416726e921c9817a9e2e"
+   "387c99afffa1436b7fceaf11f58cc92b"
   ],
   [
    "certify/push_gate.py",
@@ -47,8 +47,8 @@
   ],
   [
    "wash/wash_engine.py",
-   "eed0699addc3593368da5f5e993b382e"
+   "b06bd886d4e47bb9cd2be1dd4e857e81"
   ]
  ],
- "tier2_md5_of_tier1_text": "11b9e91fb15d6f22ad03fb4a38fbdc5e"
+ "tier2_md5_of_tier1_text": "3b6d151149e36a48e957398495c5599c"
 }
