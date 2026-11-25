@@ -1,10 +1,10 @@
 {
  "meta": {
-  "generated_at_utc": "2026-11-22T11:12:59Z",
+  "generated_at_utc": "2026-11-25T21:22:12Z",
   "method": "python -I AST word-face parse; no listed tool executed; stdlib only",
   "tools_dir": "tools",
   "git_head_recorded": "",
-  "py_files_censused": 70,
+  "py_files_censused": 81,
   "non_py_files_present": [
    "__pycache__",
    "_abl1_4b_compile.py.zh.md",
@@ -34,6 +34,23 @@
    "invocation_usage_string": 0,
    "invocation_not_reconstructed": 2,
    "syntax_errors": 0
+  },
+  "rescan_generation": {
+   "added_this_generation": [
+    "anchor_guard.py",
+    "attest_join.py",
+    "census_rescan.py",
+    "coqtop_batch.py",
+    "count_guard.py",
+    "independence_screener.py",
+    "lean_parity_crosswalk.py",
+    "mutant_manifest.py",
+    "pipeline_lite.py",
+    "qed_cost_lint.py",
+    "require_rewire.py"
+   ],
+   "generator": "tools/census_rescan.py v1",
+   "method_note": "rows above the generation split keep their original generator's semantics; rows added by the generation follow census_rescan.py's documented v1 rules"
   }
  },
  "files": [
@@ -567,6 +584,286 @@
    },
    "selftest_flag": true,
    "selftest_token_face": true
+  },
+  {
+   "name": "anchor_guard.py",
+   "bytes": 59067,
+   "sha256": "ae008b50458f77f9bddfff9dbffd260bdaa520b8731dfa92e7b335c1ba81d840",
+   "lines": 1333,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 28,
+    "head": "anchor_guard.py - anchor and certificate guard for one module directory (rocqwash tools/).\nPurpose.  A certificate that cannot fail proves nothing.  Two mechanical\n  questions for one module directory: is every declared anchor actually\n  anchored (compile, zero axioms, holds at the declared sample points), and\n  is every certificate mutation-killing (an injected declared defect flips at\n  least one verdict)?  Zero kills = VACUOUS and red; no axiom whitelist in v1.\nInterface.  python -I tools/anchor_guard.py --repo DIR --manifest FILE\n  [--out DIR] [--rocq BIN] [--coqchk BIN] [--timeout SEC] [-"
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [
+     "Anchor and certificate guard (manifest validation, compile tri-classification, coqchk kernel recheck, per-anchor probe face, mutation kill matrix)."
+    ],
+    "add_argument": [
+     {
+      "flags": [
+       "--repo"
+      ],
+      "kwargs": {
+       "required": true,
+       "help": "module directory"
+      }
+     },
+     {
+      "flags": [
+       "--manifest"
+      ],
+      "kwargs": {
+       "required": true,
+       "help": "certificate manifest JSON (rocqwash.anchor/1)"
+      }
+     },
+     {
+      "flags": [
+       "--out"
+      ],
+      "kwargs": {
+       "help": "report directory (anchor-guard-report.json written here; absent = stdout only)"
+      }
+     },
+     {
+      "flags": [
+       "--rocq"
+      ],
+      "kwargs": {
+       "help": "rocq binary (default ROCWASH_ROCQ)"
+      }
+     },
+     {
+      "flags": [
+       "--coqchk"
+      ],
+      "kwargs": {
+       "help": "coqchk binary (default ROCWASH_COQCHK)"
+      }
+     },
+     {
+      "flags": [
+       "--timeout"
+      ],
+      "kwargs": {
+       "default": 600,
+       "help": "per-subprocess timeout seconds (default 600)"
+      }
+     },
+     {
+      "flags": [
+       "--keep"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "keep the temp workdir (debug face)"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--coqchk",
+     "--keep",
+     "--manifest",
+     "--out",
+     "--repo",
+     "--rocq",
+     "--timeout"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "hashlib",
+     "io",
+     "json",
+     "os",
+     "re",
+     "shutil",
+     "subprocess",
+     "sys",
+     "tempfile"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": []
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": false,
+    "zero_network": true,
+    "git_subprocess_network_face": {
+     "present": false,
+     "tokens": []
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "env_rocwash",
+      "count": 14,
+      "samples": [
+       "ROCWASH_ROCQ",
+       "ROCWASH_COQCHK"
+      ]
+     },
+     {
+      "kind": "coq_rocq",
+      "count": 92,
+      "samples": [
+       "rocqwash",
+       "rocq",
+       "coqchk"
+      ]
+     },
+     {
+      "kind": "thermal_wrapper",
+      "count": 1,
+      "samples": [
+       "cpu_guard"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": false,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/anchor_guard.py [--repo] [--manifest] [--out] [--rocq] [--coqchk] [--timeout] [--keep]",
+    "basis": "argparse-reconstructed"
+   }
+  },
+  {
+   "name": "attest_join.py",
+   "bytes": 46468,
+   "sha256": "a697c6ca39873f379b9da01645f8081942b1f40b09171ccf4487c90007da6ae6",
+   "lines": 1079,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 28,
+    "head": "attest_join.py - side-by-side join of the cw.attest/v1 module archive\nand the rocqwash.b-axiom-audit/1 axiom-audit report.\nPurpose.  Produce one machine-readable juxtaposition table: archive\n  modules (keys \"<Stem>.v\" / \"Local/<Stem>.v\", entries {vo_sha256, size}\n  over the compiled .vo bytes) join the audit report's files[] entries\n  (repo-relative .v paths carrying the source md5, the file\n  classification and the statement-level census) on the exact module\n  key; the two hash faces are different objects (compiled bytes vs\n  source bytes), so rows record both verbatim and no equality verdict"
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [
+     "Side-by-side join of the cw.attest/v1 module archive and the rocqwash.b-axiom-audit/1 audit report (juxtaposition, never an equality check)."
+    ],
+    "add_argument": [
+     {
+      "flags": [
+       "--attest"
+      ],
+      "kwargs": {
+       "default": null,
+       "help": "cw.attest/v1 archive JSON (read-only)"
+      }
+     },
+     {
+      "flags": [
+       "--report"
+      ],
+      "kwargs": {
+       "default": null,
+       "help": "rocqwash.b-axiom-audit/1 report JSON (read-only)"
+      }
+     },
+     {
+      "flags": [
+       "--out"
+      ],
+      "kwargs": {
+       "default": null,
+       "help": "join table JSON output path"
+      }
+     },
+     {
+      "flags": [
+       "--basename-fallback"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "join on basename + .v for misaligned roots; ambiguous basenames fail loud (exit 2)"
+      }
+     },
+     {
+      "flags": [
+       "--selftest"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "run the frozen offline vector group and exit"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--attest",
+     "--basename-fallback",
+     "--out",
+     "--report",
+     "--selftest"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "hashlib",
+     "json",
+     "os",
+     "shutil",
+     "subprocess",
+     "sys",
+     "tempfile"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": []
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": false,
+    "zero_network": true,
+    "git_subprocess_network_face": {
+     "present": false,
+     "tokens": []
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "coq_rocq",
+      "count": 12,
+      "samples": [
+       "rocqwash",
+       "coqchk",
+       "coqc"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": true,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/attest_join.py [--attest] [--report] [--out] [--basename-fallback] [--selftest]",
+    "basis": "argparse-reconstructed"
+   }
   },
   {
    "name": "auto_merge.py",
@@ -2076,6 +2373,195 @@
    "selftest_token_face": true
   },
   {
+   "name": "census_rescan.py",
+   "bytes": 26326,
+   "sha256": "336de514e10018a81ab5b8e9ce16f7b063a583e3015e2ce053d4febf1be2d628",
+   "lines": 600,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 63,
+    "head": "census_rescan.py - AST word-face census re-scan generator (rocqwash tools/).\nPurpose.  The in-repo reproduction face of the census lane: the standing\n  docs/census-tools.json (70 records, meta method \"python -I AST word-face\n  parse; no listed tool executed; stdlib only\", generated 2026-11-22) was\n  produced by a lane-side one-off that is not in the repository, so the\n  files that landed after it could not be censused and count_guard's R6\n  face reads a permanent declared-lag.  This tool re-produces the record\n  set under its own documented v1 rules (below), appends the rows for\n  tools the st"
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [
+     "AST word-face census re-scan generator"
+    ],
+    "add_argument": [
+     {
+      "flags": [
+       "--repo"
+      ],
+      "kwargs": {
+       "help": "repository root (default .)"
+      }
+     },
+     {
+      "flags": [
+       "--tools"
+      ],
+      "kwargs": {
+       "help": "tools directory (default --repo/tools)"
+      }
+     },
+     {
+      "flags": [
+       "--only"
+      ],
+      "kwargs": {
+       "help": "comma-separated tool names to scan"
+      }
+     },
+     {
+      "flags": [
+       "--stand"
+      ],
+      "kwargs": {
+       "help": "standing census path (merge source)"
+      }
+     },
+     {
+      "flags": [
+       "--merge"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "merge into the standing census (writes --out)"
+      }
+     },
+     {
+      "flags": [
+       "--out"
+      ],
+      "kwargs": {
+       "help": "output path"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--merge",
+     "--only",
+     "--out",
+     "--repo",
+     "--stand",
+     "--tools"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "ast",
+     "datetime",
+     "hashlib",
+     "io",
+     "json",
+     "os",
+     "re",
+     "subprocess",
+     "sys"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": [
+     "shutil",
+     "tempfile"
+    ]
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [
+     "https://example.invalid/x"
+    ],
+    "subprocess_bridge_suspect": true,
+    "zero_network": false,
+    "git_subprocess_network_face": {
+     "present": true,
+     "tokens": [
+      "git",
+      "git push"
+     ]
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "ocaml_opam",
+      "count": 4,
+      "samples": [
+       "ocaml",
+       "opam",
+       "ocamlfind"
+      ]
+     },
+     {
+      "kind": "coq_rocq",
+      "count": 9,
+      "samples": [
+       "rocqwash",
+       "coq",
+       "coqc"
+      ]
+     },
+     {
+      "kind": "thermal_wrapper",
+      "count": 2,
+      "samples": [
+       "cpu_guard",
+       "thermal"
+      ]
+     },
+     {
+      "kind": "selfhosted_runner",
+      "count": 1,
+      "samples": [
+       "runner"
+      ]
+     },
+     {
+      "kind": "lean_lake_mathlib",
+      "count": 4,
+      "samples": [
+       "lean4",
+       "lake",
+       "mathlib"
+      ]
+     },
+     {
+      "kind": "windows_guard",
+      "count": 3,
+      "samples": [
+       "windows",
+       "win32",
+       ""
+      ]
+     },
+     {
+      "kind": "macos_tooling",
+      "count": 5,
+      "samples": [
+       "macos",
+       "darwin",
+       "dyld"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": false,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/census_rescan.py [--repo] [--tools] [--only] [--stand] [--merge] [--out]",
+    "basis": "argparse-reconstructed"
+   }
+  },
+  {
    "name": "chain_graph.py",
    "bytes": 14854,
    "sha256": "ede0ea1ee8399b0614e25516052d952cc745c56facfa4d5a805c29fae50d1889",
@@ -2784,6 +3270,239 @@
    },
    "selftest_flag": false,
    "selftest_token_face": true
+  },
+  {
+   "name": "coqtop_batch.py",
+   "bytes": 11107,
+   "sha256": "a2bcf9d47aefc7295dc9cc50012ec0453232d4d14df464a87e5c70228600a1c6",
+   "lines": 267,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 24,
+    "head": "coqtop_batch.py - batch statement feed through coqtop with error classification (rocqwash tools/).\nPurpose.  One deterministic batch face for the external-evaluation gap\n  finding \"coqtop-stdin multi-error batch collection\": feeds one statement\n  file to coqtop over stdin, chunks the transcript on the prompt markers,\n  and classifies per-statement outcomes (ok / error with the captured\n  message lines / unmatched tail), so a multi-error session yields every\n  error at once with statement attribution instead of one-compile-one-error\n  triage (probe_engine.py covers the single-error compile face"
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [
+     "coqtop batch statement feed with per-statement error classification"
+    ],
+    "add_argument": [
+     {
+      "flags": [
+       "--input"
+      ],
+      "kwargs": {
+       "required": true,
+       "help": "statements file"
+      }
+     },
+     {
+      "flags": [
+       "--coqtop"
+      ],
+      "kwargs": {
+       "default": "",
+       "help": "coqtop binary (default ROCWASH_COQTOP)"
+      }
+     },
+     {
+      "flags": [
+       "--timeout"
+      ],
+      "kwargs": {
+       "default": 300,
+       "help": "per-run timeout seconds (default 300)"
+      }
+     },
+     {
+      "flags": [
+       "--json"
+      ],
+      "kwargs": {
+       "dest": "json_out",
+       "default": null,
+       "help": "report output path (absent = stdout)"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--coqtop",
+     "--input",
+     "--json",
+     "--timeout"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "io",
+     "json",
+     "os",
+     "re",
+     "subprocess",
+     "sys"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": [
+     "tempfile"
+    ]
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": false,
+    "zero_network": true,
+    "git_subprocess_network_face": {
+     "present": false,
+     "tokens": []
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "env_rocwash",
+      "count": 4,
+      "samples": [
+       "ROCWASH_COQTOP"
+      ]
+     },
+     {
+      "kind": "coq_rocq",
+      "count": 19,
+      "samples": [
+       "coqtop",
+       "rocqwash"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": false,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/coqtop_batch.py [--input] [--coqtop] [--timeout] [--json]",
+    "basis": "argparse-reconstructed"
+   }
+  },
+  {
+   "name": "count_guard.py",
+   "bytes": 25212,
+   "sha256": "c9e445b9485bad0816c6329e1638c16ed70bba01d99384a389d6fbb753bf61a2",
+   "lines": 620,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 29,
+    "head": "count_guard.py - the six-face roster count reconciler (check-only).\n\nPurpose.  One read-only check that re-derives every standing tool-count\n  face from its sources and fails loudly on cross-face inequality - the\n  standing machine gate for external evaluation #2 finding P0-1: the\n  suite roster and the README-cw title were guarded, while the README.md\n  selftest-universe line, the CAPABILITY-INDEX tree row, the MCP roster\n  pair, and the disk itself had no gate and drifted silently.  The six\n  groups R1-R6 are specified at the CHECKS table; R6's unequal census is\n  the declared-lag verdict (r"
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [
+     "six-face roster count reconciler (check-only)"
+    ],
+    "add_argument": [
+     {
+      "flags": [
+       "--repo"
+      ],
+      "kwargs": {
+       "default": ".",
+       "help": "repository root to check (default: cwd)"
+      }
+     },
+     {
+      "flags": [
+       "--json"
+      ],
+      "kwargs": {
+       "dest": "json_out",
+       "default": null,
+       "help": "write the rocqwash-count-guard/1 report to this caller-owned path"
+      }
+     },
+     {
+      "flags": [
+       "--selftest"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "run the embedded selftest vectors against temp fixtures"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--json",
+     "--repo",
+     "--selftest"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "ast",
+     "importlib",
+     "io",
+     "json",
+     "os",
+     "re",
+     "shutil",
+     "sys",
+     "tempfile",
+     "time"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": []
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": false,
+    "zero_network": true,
+    "git_subprocess_network_face": {
+     "present": false,
+     "tokens": []
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "env_rocwash",
+      "count": 3,
+      "samples": [
+       "ROCWASH_TOOLS_DIR"
+      ]
+     },
+     {
+      "kind": "coq_rocq",
+      "count": 5,
+      "samples": [
+       "rocqwash"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": true,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/count_guard.py [--repo] [--json] [--selftest]",
+    "basis": "argparse-reconstructed"
+   }
   },
   {
    "name": "cw_doctor.py",
@@ -5195,6 +5914,116 @@
    "selftest_token_face": true
   },
   {
+   "name": "independence_screener.py",
+   "bytes": 14432,
+   "sha256": "2c9c39a9290f888eb36d8db4f7ba6c1ed0ead8a2de7f9827e897b8912a3bcecf",
+   "lines": 338,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 37,
+    "head": "independence_screener.py - name-level independence screening (rocqwash tools/).\nPurpose.  The mechanical first-pass face of the independence requirement\n  that mutants-v1.json records as an authoring obligation (\"Anchors must\n  derive their certificate independently of the suspect series\") and that\n  anchor_guard v2 honestly leaves as future work beyond V7's non-emptiness\n  check.  Given a rocqwash.anchor/1 manifest and the rocqwash.mutants/1\n  defect library, the screener extracts each mutant's site identifiers\n  (the function/module names its pattern+replacement fields name - the\n  suspect-s"
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [
+     "name-level independence screening over an anchor manifest against the mutant defect library"
+    ],
+    "add_argument": [
+     {
+      "flags": [
+       "--manifest"
+      ],
+      "kwargs": {
+       "help": "rocqwash.anchor/1 manifest JSON"
+      }
+     },
+     {
+      "flags": [
+       "--library"
+      ],
+      "kwargs": {
+       "help": "rocqwash.mutants/1 library JSON"
+      }
+     },
+     {
+      "flags": [
+       "--out"
+      ],
+      "kwargs": {
+       "help": "report output path"
+      }
+     },
+     {
+      "flags": [
+       "--selftest"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "embedded vectors on canned fixtures"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--library",
+     "--manifest",
+     "--out",
+     "--selftest"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "io",
+     "json",
+     "os",
+     "re",
+     "subprocess",
+     "sys"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": [
+     "shutil",
+     "tempfile"
+    ]
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": false,
+    "zero_network": true,
+    "git_subprocess_network_face": {
+     "present": false,
+     "tokens": []
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "coq_rocq",
+      "count": 8,
+      "samples": [
+       "rocqwash"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": true,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/independence_screener.py [--manifest] [--library] [--out] [--selftest]",
+    "basis": "argparse-reconstructed"
+   }
+  },
+  {
    "name": "jargon_apply.py",
    "bytes": 51479,
    "sha256": "7eca4cbbd21cee43e6284e31b0021997c183b5a7a89a7769562e5799de32b575",
@@ -5657,6 +6486,205 @@
    },
    "selftest_flag": true,
    "selftest_token_face": true
+  },
+  {
+   "name": "lean_parity_crosswalk.py",
+   "bytes": 62468,
+   "sha256": "dc404b8c1335738a1d06d542419bbd0cc82f6d95bf99a7b7f093d5f19d62f41a",
+   "lines": 1307,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 29,
+    "head": "lean_parity_crosswalk.py - the Lean/Rocq axiom parity crosswalk engine.\nPurpose.  Put the Lean face (tools/lean_axiom_sweep.py) and the Rocq face\n  (tools/axiom_audit.py) side by side and judge their agreement row by row\n  over one shared sample set: both sides are enumerated by their own tools'\n  pure functions, joined on the five mirror proposition keys (clean /\n  classical / funext / custom / sorry), and each row asserts\n  map(rocq grade) == lean class plus the axiom-set mirror.  The mapping is\n  read verbatim from axiom_audit.LEAN_PARITY_ROWS (never a second table);\n  the Rocq Admitted <->"
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [],
+    "add_argument": [
+     {
+      "flags": [
+       "--fixtures"
+      ],
+      "kwargs": {
+       "metavar": "DIR",
+       "default": null,
+       "help": "the bilingual mirror fixture group (default tests/fixtures/lean_parity under the repo root)"
+      }
+     },
+     {
+      "flags": [
+       "--rocq-face"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "run the real axiom_audit census over the mirror .v files (engine chain --rocq / ROCWASH_ROCQ / PATH; absent engine = loud SKIP leg)"
+      }
+     },
+     {
+      "flags": [
+       "--lean-face"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "run the real lean_axiom_sweep over the mirror .lean files (toolchain probed; absent toolchain = loud SKIP leg)"
+      }
+     },
+     {
+      "flags": [
+       "--rocq"
+      ],
+      "kwargs": {
+       "help": "compile engine binary (default ROCWASH_ROCQ, then PATH coqc / rocq)"
+      }
+     },
+     {
+      "flags": [
+       "--lean-sweep-json"
+      ],
+      "kwargs": {
+       "metavar": "FILE",
+       "default": null,
+       "help": "consume an existing rocqwash-axiom-sweep/1 payload as the lean side (layer 3 without spawning)"
+      }
+     },
+     {
+      "flags": [
+       "--census-json"
+      ],
+      "kwargs": {
+       "metavar": "FILE",
+       "default": null,
+       "help": "consume an existing rocqwash.b-axiom-audit/1 census payload as the rocq side (layer 2 without spawning)"
+      }
+     },
+     {
+      "flags": [
+       "--snapshot"
+      ],
+      "kwargs": {
+       "metavar": "OUT",
+       "default": null
+      }
+     },
+     {
+      "flags": [
+       "--baseline"
+      ],
+      "kwargs": {
+       "metavar": "SNAP",
+       "default": null,
+       "help": "diff this run's lean-side snapshot against a previous snapshot file (the sweep tool's own diff_closures; the closure_diff and diff_alarm fields ride the payload)"
+      }
+     },
+     {
+      "flags": [
+       "--timeout"
+      ],
+      "kwargs": {}
+     },
+     {
+      "flags": [
+       "--json"
+      ],
+      "kwargs": {
+       "metavar": "OUT",
+       "default": null,
+       "help": "write the stdout JSON payload to OUT as well"
+      }
+     },
+     {
+      "flags": [
+       "--selftest"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "run the frozen offline vector group and exit"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--baseline",
+     "--census-json",
+     "--fixtures",
+     "--json",
+     "--lean-face",
+     "--lean-sweep-json",
+     "--rocq",
+     "--rocq-face",
+     "--selftest",
+     "--snapshot",
+     "--timeout"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "importlib",
+     "json",
+     "os",
+     "shutil",
+     "subprocess",
+     "sys",
+     "tempfile"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": []
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": false,
+    "zero_network": true,
+    "git_subprocess_network_face": {
+     "present": false,
+     "tokens": []
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "env_rocwash",
+      "count": 17,
+      "samples": [
+       "ROCWASH_ROCQ",
+       "ROCWASH_CENSUS_CUSTOM_TEXT",
+       "ROCWASH_CENSUS_CUSTOM_STMTS"
+      ]
+     },
+     {
+      "kind": "coq_rocq",
+      "count": 40,
+      "samples": [
+       "rocq",
+       "rocqwash",
+       "coqc"
+      ]
+     },
+     {
+      "kind": "lean_lake_mathlib",
+      "count": 62,
+      "samples": [
+       "lean",
+       "lake"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": true,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/lean_parity_crosswalk.py [--fixtures] [--rocq-face] [--lean-face] [--rocq] [--lean-sweep-json] [--census-json] [--snapshot] [--baseline] [--timeout] [--json] [--selftest]",
+    "basis": "argparse-reconstructed"
+   }
   },
   {
    "name": "lean_sweep.py",
@@ -6281,6 +7309,125 @@
    },
    "selftest_flag": true,
    "selftest_token_face": true
+  },
+  {
+   "name": "mutant_manifest.py",
+   "bytes": 11473,
+   "sha256": "0b485f781a45584f6b230e135f260742866b9d266f9a2d0673cc6f7a9d7281dc",
+   "lines": 261,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 23,
+    "head": "mutant_manifest.py - manifest skeleton generator for anchor_guard (rocqwash tools/).\nPurpose.  One deterministic bridge from the frozen mutation library\n  (tools/mutants-v1.json, schema rocqwash.mutants/1) to an anchor_guard\n  manifest skeleton (schema rocqwash.anchor/1): copies the selected mutant\n  rows verbatim (never re-derived), narrows them per the author-narrowing\n  precedent recorded in the library itself (PROJ-001/CONST-001 carry their\n  own narrowing notes), and emits the skeleton with an empty anchors array -\n  the author then fills anchors (referent/certificate_face/sample_points\n "
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [
+     "anchor_guard manifest skeleton generator (mutants-v1 -> rocqwash.anchor/1 draft)"
+    ],
+    "add_argument": [
+     {
+      "flags": [
+       "--library"
+      ],
+      "kwargs": {
+       "help": "mutation library JSON (rocqwash.mutants/1)"
+      }
+     },
+     {
+      "flags": [
+       "--module"
+      ],
+      "kwargs": {
+       "help": "target module name (must end .v)"
+      }
+     },
+     {
+      "flags": [
+       "--families"
+      ],
+      "kwargs": {
+       "default": null,
+       "help": "comma-separated family ids (default: all)"
+      }
+     },
+     {
+      "flags": [
+       "--out"
+      ],
+      "kwargs": {
+       "default": null,
+       "help": "skeleton output path (absent = stdout)"
+      }
+     },
+     {
+      "flags": [
+       "--selftest"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "embedded vectors on temp fixtures, exit"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--families",
+     "--library",
+     "--module",
+     "--out",
+     "--selftest"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "io",
+     "json",
+     "os",
+     "sys"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": [
+     "shutil",
+     "tempfile"
+    ]
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": false,
+    "zero_network": true,
+    "git_subprocess_network_face": {
+     "present": false,
+     "tokens": []
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "coq_rocq",
+      "count": 8,
+      "samples": [
+       "rocqwash"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": true,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/mutant_manifest.py [--library] [--module] [--families] [--out] [--selftest]",
+    "basis": "argparse-reconstructed"
+   }
   },
   {
    "name": "net_probe.py",
@@ -7073,6 +8220,302 @@
    "selftest_token_face": true
   },
   {
+   "name": "pipeline_lite.py",
+   "bytes": 42272,
+   "sha256": "42902ed4896d377c2f409b09cbec5c69d46cb1eb54ccfc7383eeed91958d7916",
+   "lines": 924,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 28,
+    "head": "pipeline_lite.py - gap-to-admission pipeline executor, D2-2 data layer.\n\nPurpose.  Joins the standing chain into one run: scheduler_lite (trigger\n  plan, verdict imported, never re-derived) -> gap_cluster (clusters) ->\n  row_render (emit packet, ingest backfill, draft rows carry\n  tenpointVerdict PENDING).  Automation ends at the first code-layer\n  boundary: ten-point review, taxonomy row integration, apply passes and\n  auto_round commit/approve stay human-gated, never composed (D2-2, open\n  item 2).\nInterface.  `py -I tools/pipeline_lite.py run [--plan FILE | re-derive via\n  scheduler_lite] ["
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [
+     "gap-to-admission pipeline executor (D2-2 data layer; trigger verdict imported from scheduler_lite; rows enter PENDING; code-layer faces stay human-gated)"
+    ],
+    "add_argument": [
+     {
+      "flags": [],
+      "kwargs": {
+       "nargs": "?",
+       "default": "run",
+       "help": "the run face (default)"
+      }
+     },
+     {
+      "flags": [
+       "--plan"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "FILE",
+       "help": "scheduler_lite plan document to consume (default: re-derive via scheduler_lite)"
+      }
+     },
+     {
+      "flags": [
+       "--gap-ledger"
+      ],
+      "kwargs": {
+       "action": "append",
+       "metavar": "PATH",
+       "help": "gap feed ledger input (repeatable; default docs/gap-feed-ledger.jsonl when present)"
+      }
+     },
+     {
+      "flags": [
+       "--reports"
+      ],
+      "kwargs": {
+       "action": "append",
+       "metavar": "PATH",
+       "help": "vacgen report file or directory (repeatable; default docs/vacgen-reports when present)"
+      }
+     },
+     {
+      "flags": [
+       "--rounds"
+      ],
+      "kwargs": {
+       "action": "append",
+       "metavar": "PATH",
+       "help": "round ledger (default docs/round-ledger.jsonl)"
+      }
+     },
+     {
+      "flags": [
+       "--autonomy"
+      ],
+      "kwargs": {
+       "action": "append",
+       "metavar": "PATH",
+       "help": "autonomy gear config (default autonomy.json)"
+      }
+     },
+     {
+      "flags": [
+       "--state"
+      ],
+      "kwargs": {
+       "action": "append",
+       "metavar": "PATH",
+       "help": "round state roster (default docs/round-state.json)"
+      }
+     },
+     {
+      "flags": [
+       "--ef-marker"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "PATH",
+       "help": "EF all-green marker file (the ignition gate)"
+      }
+     },
+     {
+      "flags": [
+       "--threshold"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "N",
+       "help": "TODO-SEAT trigger threshold (scheduler_lite default applies)"
+      }
+     },
+     {
+      "flags": [
+       "--interval-seconds"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "N",
+       "help": "round spacing override (scheduler_lite default applies)"
+      }
+     },
+     {
+      "flags": [
+       "--now-utc"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "ISO8601Z",
+       "help": "plan clock override (default: real UTC now)"
+      }
+     },
+     {
+      "flags": [
+       "--gap-out"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "FILE",
+       "help": "gap_cluster aggregate output (default docs/gap-ledger-latest.json)"
+      }
+     },
+     {
+      "flags": [
+       "--render-gaps"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "FILE",
+       "help": "row_render gap input written by this tool (default docs/drafts/gap-ledger-render-input.json)"
+      }
+     },
+     {
+      "flags": [
+       "--packet-out"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "FILE",
+       "help": "render packet JSONL (default docs/drafts/render-packet-latest.jsonl)"
+      }
+     },
+     {
+      "flags": [
+       "--backfill"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "FILE",
+       "help": "model-side backfill JSONL for the packet (absent = pending-backfill stop)"
+      }
+     },
+     {
+      "flags": [
+       "--draft-out"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "FILE",
+       "help": "candidate draft JSON (default docs/drafts/taxonomy-candidates-pipeline.json)"
+      }
+     },
+     {
+      "flags": [
+       "--b-gate-audit"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "PATH",
+       "help": "b-gate audit JSON to carry in the report (default docs/b-gate-audit.json)"
+      }
+     },
+     {
+      "flags": [
+       "--policy-ref"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "S",
+       "help": "layer-law first-admission reference stamped into the gap rows (a D2-2 default applies)"
+      }
+     },
+     {
+      "flags": [
+       "--stop-at"
+      ],
+      "kwargs": {
+       "default": "human",
+       "help": "stop after the pure data steps or run ingest to the PENDING draft (default human)"
+      }
+     },
+     {
+      "flags": [
+       "--json"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "print the run report JSON on stdout"
+      }
+     }
+    ],
+    "positionals": [
+     "command"
+    ],
+    "optionals": [
+     "--autonomy",
+     "--b-gate-audit",
+     "--backfill",
+     "--draft-out",
+     "--ef-marker",
+     "--gap-ledger",
+     "--gap-out",
+     "--interval-seconds",
+     "--json",
+     "--now-utc",
+     "--packet-out",
+     "--plan",
+     "--policy-ref",
+     "--render-gaps",
+     "--reports",
+     "--rounds",
+     "--state",
+     "--stop-at",
+     "--threshold"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "json",
+     "os",
+     "re",
+     "subprocess",
+     "sys"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": [
+     "shutil",
+     "tempfile"
+    ]
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": false,
+    "zero_network": true,
+    "git_subprocess_network_face": {
+     "present": false,
+     "tokens": []
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "coq_rocq",
+      "count": 11,
+      "samples": [
+       "rocqwash"
+      ]
+     },
+     {
+      "kind": "lean_lake_mathlib",
+      "count": 1,
+      "samples": [
+       "lean"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": false,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/pipeline_lite.py [--plan] [--gap-ledger] [--reports] [--rounds] [--autonomy] [--state] [--ef-marker] [--threshold] [--interval-seconds] [--now-utc] [--gap-out] [--render-gaps] [--packet-out] [--backfill] [--draft-out] [--b-gate-audit] [--policy-ref] [--stop-at] [--json]",
+    "basis": "argparse-reconstructed"
+   }
+  },
+  {
    "name": "pushci.py",
    "bytes": 104495,
    "sha256": "e6f1c7431c77a159d5bf519c3480dca7710b738ff261e70e219e086c097f5f1c",
@@ -7423,6 +8866,124 @@
    },
    "selftest_flag": false,
    "selftest_token_face": true
+  },
+  {
+   "name": "qed_cost_lint.py",
+   "bytes": 10003,
+   "sha256": "976028cf8bf6b2d5bccbfab78ce1e79d435956e276089bd98f600d15c30d6c55",
+   "lines": 238,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 22,
+    "head": "qed_cost_lint.py - candidate Qed-cost lint over source blocks (rocqwash tools/).\nPurpose.  The v1 candidate face of the Qed-cost design volume\n  (docs/qed-cost-lint-design-20261126.md): every Proof..Qed block is\n  measured (line count, closing tactic, fast-closure classification) and\n  long non-fast blocks surface as \"candidate\" rows - the source face of\n  the three-source design (source candidates + glob span + coqc -time\n  logs; only the log face can judge, the source face only nominates).\n  Known blind spot recorded in the design: the kernel slow-path grind\n  (unfold chains) is invisible to"
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [
+     "candidate Qed-cost lint (report-only; design volume docs/qed-cost-lint-design-20261126.md)"
+    ],
+    "add_argument": [
+     {
+      "flags": [
+       "--file"
+      ],
+      "kwargs": {
+       "help": "one .v file"
+      }
+     },
+     {
+      "flags": [
+       "--tree"
+      ],
+      "kwargs": {
+       "help": "directory of .v files"
+      }
+     },
+     {
+      "flags": [
+       "--threshold"
+      ],
+      "kwargs": {}
+     },
+     {
+      "flags": [
+       "--gate"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "rc 1 when candidates exist (default report-only)"
+      }
+     },
+     {
+      "flags": [
+       "--json"
+      ],
+      "kwargs": {
+       "dest": "json_out",
+       "default": null,
+       "help": "report output path"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--file",
+     "--gate",
+     "--json",
+     "--threshold",
+     "--tree"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "io",
+     "json",
+     "os",
+     "re",
+     "sys"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": [
+     "tempfile"
+    ]
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": false,
+    "zero_network": true,
+    "git_subprocess_network_face": {
+     "present": false,
+     "tokens": []
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "coq_rocq",
+      "count": 3,
+      "samples": [
+       "rocqwash",
+       "coqc"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": false,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/qed_cost_lint.py [--file] [--tree] [--threshold] [--gate] [--json]",
+    "basis": "argparse-reconstructed"
+   }
   },
   {
    "name": "red_dispatch.py",
@@ -9232,6 +10793,144 @@
    },
    "selftest_flag": true,
    "selftest_token_face": true
+  },
+  {
+   "name": "require_rewire.py",
+   "bytes": 18721,
+   "sha256": "acf97e4c12e9c53046914823e0a5c32942850df148a42afc3ca6a2552e8c9758",
+   "lines": 411,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 29,
+    "head": "require_rewire.py - module-retirement rewiring orchestrator (rocqwash tools/).\nPurpose.  The v1 orchestrator face of the external-evaluation gap\n  \"Require Export retirement/rewiring\": given a retirement plan (module M\n  retires onto successor S), scan a .v tree for every Require face that\n  references M (the three wash_shape-anchored line shapes: From Stdlib /\n  From <dir> / bare, each with optional Import/Export), classify Import vs\n  Export per consumer, and emit a wash_engine-compatible patch ledger\n  (tag/old/new/expect, the exact-string count-asserted form) that rewrites\n  every referenc"
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [
+     "module-retirement rewiring orchestrator (plan -> wash_engine ledger -> verify closure)"
+    ],
+    "add_argument": [
+     {
+      "flags": [
+       "--tree"
+      ],
+      "kwargs": {
+       "help": ".v tree root"
+      }
+     },
+     {
+      "flags": [
+       "--retire"
+      ],
+      "kwargs": {
+       "help": "module name retiring"
+      }
+     },
+     {
+      "flags": [
+       "--successor"
+      ],
+      "kwargs": {
+       "help": "module name replacing it"
+      }
+     },
+     {
+      "flags": [
+       "--plan"
+      ],
+      "kwargs": {
+       "help": "plan JSON {retire, successor[, notes]}"
+      }
+     },
+     {
+      "flags": [
+       "--verify"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "retirement-closure face: rc 1 on survivors"
+      }
+     },
+     {
+      "flags": [
+       "--out"
+      ],
+      "kwargs": {
+       "help": "ledger/report output path"
+      }
+     },
+     {
+      "flags": [
+       "--selftest"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "embedded vectors on temp fixtures"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--out",
+     "--plan",
+     "--retire",
+     "--selftest",
+     "--successor",
+     "--tree",
+     "--verify"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "io",
+     "json",
+     "os",
+     "re",
+     "subprocess",
+     "sys"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": [
+     "shutil",
+     "tempfile"
+    ]
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": false,
+    "zero_network": true,
+    "git_subprocess_network_face": {
+     "present": false,
+     "tokens": []
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "coq_rocq",
+      "count": 2,
+      "samples": [
+       "rocqwash"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": true,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/require_rewire.py [--tree] [--retire] [--successor] [--plan] [--verify] [--out] [--selftest]",
+    "basis": "argparse-reconstructed"
+   }
   },
   {
    "name": "roster_resync.py",

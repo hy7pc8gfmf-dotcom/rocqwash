@@ -209,6 +209,8 @@
 #                 cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest
 #   independence-screener  name-level independence screening over an anchor manifest against the mutant defect library (the mechanical first-pass face of the authoring obligation mutants-v1.json records and anchor_guard honestly leaves as future work beyond V7's non-emptiness: extracts each mutant's site identifiers from its regex-source pattern/replacement fields - a composed site name appears there as regex fragments, rsT_ / recipQ - and each anchor's independent_derivation tokens, and flags every underscore-part intersection (parts >= 3) as a collision, the VACUOUS-certificate risk shape; prose can never false-positive because a part counts only when it equals a real library fragment part, generic-name hits are listed as data for review; no-name rows (the CONST-001 numeric shape) are recorded, never judged; screening is not proof - the report records the library independence_note verbatim and states the obligation stays with review; zero network, zero toolchain) -> tools/independence_screener.py
 #                 cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest
+#   census-rescan  AST word-face census re-scan generator (the in-repo reproduction face of the census lane: the standing docs/census-tools.json was produced by a lane-side one-off absent from the repository, so this tool re-produces records under its own documented v1 rules - file facts, main guard, docstring head truncation at 600, argparse capture, import buckets incl. guarded conditionals, network classification with the git-bridge subset, skip-face token vocabulary, selftest flag vs token face, invocation reconstruction - and --merge appends the missing tools to the standing census with the old rows preserved verbatim and meta.rescan_generation recording the split: mixed-generation lineage is data, never passed off as one method; deterministic sorted rows, double-run byte-identical; zero network, zero subprocess on the scan face) -> tools/census_rescan.py
+#                 cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest
 #   help        this help (help <tool> = the tool's one-line usage hint)
 #
 # Routing contract:
@@ -435,6 +437,9 @@ Tools:
   independence-screener  name-level independence screening over an anchor manifest against the mutant defect library (the mechanical first-pass face of the authoring obligation mutants-v1.json records and anchor_guard honestly leaves as future work beyond V7's non-emptiness: extracts each mutant's site identifiers from its regex-source pattern/replacement fields - a composed site name appears there as regex fragments, rsT_ / recipQ - and each anchor's independent_derivation tokens, and flags every underscore-part intersection (parts >= 3) as a collision, the VACUOUS-certificate risk shape; prose can never false-positive because a part counts only when it equals a real library fragment part, generic-name hits are listed as data for review; no-name rows (the CONST-001 numeric shape) are recorded, never judged; screening is not proof - the report records the library independence_note verbatim and states the obligation stays with review; zero network, zero toolchain) -> tools/independence_screener.py
                 cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest
 
+  census-rescan  AST word-face census re-scan generator (the in-repo reproduction face of the census lane: the standing docs/census-tools.json was produced by a lane-side one-off absent from the repository, so this tool re-produces records under its own documented v1 rules - file facts, main guard, docstring head truncation at 600, argparse capture, import buckets incl. guarded conditionals, network classification with the git-bridge subset, skip-face token vocabulary, selftest flag vs token face, invocation reconstruction - and --merge appends the missing tools to the standing census with the old rows preserved verbatim and meta.rescan_generation recording the split: mixed-generation lineage is data, never passed off as one method; deterministic sorted rows, double-run byte-identical; zero network, zero subprocess on the scan face) -> tools/census_rescan.py
+                cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest
+
   help        this help (help <tool> = the tool's one-line usage hint)
 
 Exit codes: 0=pass  2=unknown-tool  9=target-script-missing  others = each tool's own convention, passed through
@@ -532,6 +537,7 @@ hint_for() {  # $1=tool
     qed-cost-lint) echo "cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest   # candidate Qed-cost lint (long non-fast Proof..Qed blocks nominate; vm_compute-family closure demotes; report-only default; design volume in docs/) -> tools/qed_cost_lint.py" ;;
     require-rewire) echo "cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest   # module-retirement rewiring orchestrator (plan -> wash_engine patch ledger -> standalone verify closure face; survivors fail loud rc 1; zero network, zero toolchain) -> tools/require_rewire.py" ;;
     independence-screener) echo "cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest   # name-level independence screening (anchor manifest x mutant library; underscore-part collisions listed fail-loud rc 1; no-name rows recorded; screening is not proof; zero network) -> tools/independence_screener.py" ;;
+    census-rescan) echo "cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest   # census lane reproduction (AST word-face rows v1; --merge appends missing tools verbatim-preserving; meta generation split; zero network) -> tools/census_rescan.py" ;;
     *) return 1 ;;
   esac
 }
@@ -635,6 +641,7 @@ case "${1:-}" in
   qed-cost-lint) shift; run_tool qed-cost-lint "tools/qed_cost_lint.py" "$@" ;;
   require-rewire) shift; run_tool require-rewire "tools/require_rewire.py" "$@" ;;
   independence-screener) shift; run_tool independence-screener "tools/independence_screener.py" "$@" ;;
+  census-rescan) shift; run_tool census-rescan "tools/census_rescan.py" "$@" ;;
   lean-parity-crosswalk) shift; run_tool lean-parity-crosswalk "tools/lean_parity_crosswalk.py" "$@" ;;
   help|-h|--help)
     if [ "$#" -ge 2 ]; then

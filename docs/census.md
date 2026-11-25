@@ -668,6 +668,23 @@ Deltas, each measured at this anchor:
 - Caller note: the four counts measure four different faces at four different times; none
   is derivable from another, and each stays bound to its own time point and basis.
 
+### Re-scan generation, November 26, 2026 (rec-gen6)
+
+The 2026-11-22 census (70 records, meta method "python -I AST word-face
+parse; no listed tool executed; stdlib only") was produced by a lane-side
+one-off that is not in the repository; the files that landed after it
+could not be censused and count_guard's R6 face read the gap as a
+declared-lag. This generation ships the lane as a repository tool
+(`tools/census_rescan.py`, v1 rules documented in its docstring and cast
+into seven selftest vectors, double-run stable) and appends the missing
+rows through its --merge face: the 2026-11-22 rows are preserved verbatim
+(spot-checked by bytes/sha256), the appended rows follow
+census_rescan.py's documented v1 rules, and `meta.rescan_generation`
+records the split (added list, generator, method note) so the mixed
+generation is data rather than a silent method change.
+`py_files_censused` now equals the disk count and the R6 face reads
+anchored-current (zero-lag).
+
 ## 6. Negative-Finding Boundaries (four elements)
 
 Each item below is a negative finding of this scan, not an absolute claim.
