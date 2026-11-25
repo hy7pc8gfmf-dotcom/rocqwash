@@ -41,20 +41,24 @@ PASS=0
 FAIL=0
 
 expect_rc() {  # $1=description $2=expected rc $3=observed rc
-  if [ "$3" -eq "$2" ]; then
+  # an absent/empty observation counts as a FAIL, never a harness crash:
+  # command-substitution call sites $(grep -c ...) yield no third argument
+  # when the file is missing, and under set -u an unset $3 aborted the
+  # whole script mid-report (the 20261126 patrol face)
+  if [ "${3:-x}" -eq "$2" ] 2>/dev/null; then
     PASS=$((PASS + 1))
   else
     FAIL=$((FAIL + 1))
-    echo "FAIL: $1 — expected rc=$2, observed rc=$3" >&2
+    echo "FAIL: $1 — expected rc=$2, observed rc=${3:-<empty>}" >&2
   fi
 }
 
 expect_grep() {  # $1=description $2=expected hit count $3=observed hit count
-  if [ "$3" -eq "$2" ]; then
+  if [ "${3:-x}" -eq "$2" ] 2>/dev/null; then
     PASS=$((PASS + 1))
   else
     FAIL=$((FAIL + 1))
-    echo "FAIL: $1 — expected $2 hits, observed $3" >&2
+    echo "FAIL: $1 — expected $2 hits, observed ${3:-<empty>}" >&2
   fi
 }
 
