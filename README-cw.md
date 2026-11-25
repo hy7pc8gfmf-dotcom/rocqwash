@@ -1,4 +1,4 @@
-# cw.sh — unified entry quick reference (rocqos (rocqwash), the Rocq operations suite · 75 routes over 77 tools)
+# cw.sh — unified entry quick reference (rocqos (rocqwash), the Rocq operations suite · 76 routes over 77 tools)
 
 > **Language versions:** this file is the English-first version of the quick
 > reference. The original Chinese full text is preserved verbatim in
@@ -23,7 +23,7 @@ Exit-codes.  0 pass; 2 unknown tool or passthrough usage error; 9 target script
 ## Overview
 
 `cw.sh` is the **one-command entry** for the rocqwash suite: it dispatches
-**75 routes onto 73 target scripts** — the same roster-derived count the
+**76 routes onto 74 target scripts** — the same roster-derived count the
 title carries (64 = 62 target scripts + 2 alias routes; derivation in
 Design contract below). Two alias pairs share one
 target script each (`triage`/`ci-triage` → `tools/ci_triage.py`;
@@ -445,7 +445,7 @@ prints a one-line usage hint per tool. It complements the existing
 `cli/rocqwash` router, which covers the pre-v29 modules — the v29-v32 tools
 live in directories with several generic entries each, where the module
 auto-router's ambiguity guard declines to guess, so this entry routes them by
-explicit tool name. The title count (75 routes over 77 tools) is a derived
+explicit tool name. The title count (76 routes over 77 tools) is a derived
 face: the tool registry is the `cw.sh` case routes joined with the `tools/`
 entry points whose name does not start with `_` (the same registry doc-lint
 check 1 reconciles), and the doc-count guard (`tools/repair_scope.py`,

@@ -191,6 +191,8 @@
 #               cw.sh tree-audit --root DIR [--json OUT] | --selftest
 #   pipeline-lite  gap-to-admission pipeline executor, D2-2 data layer (scheduler_lite plan verdict imported, never re-derived; gap_cluster clusters transformed to row_render gap rows with the layer-law policyPrecheckRef stamped; emit packet then ingest a backfill into a draft whose rows enter at tenpointVerdict PENDING; quiet and blocked write nothing; pending-backfill and pending-human stops are data; code-layer faces (ten-point verdicts, taxonomy row integration, apply pass, auto_round commit and approve) stay human-gated and are never composed; b-gate audit counter carried read-only; zero network) -> tools/pipeline_lite.py
 #               cw.sh pipeline-lite [--plan F] [--gap-ledger P]... [--reports P]... [--rounds P] [--autonomy P] [--state P] [--ef-marker P] [--threshold N] [--interval-seconds N] [--now-utc ISO8601Z] [--gap-out F] [--render-gaps F] [--packet-out F] [--backfill F] [--draft-out F] [--b-gate-audit P] [--policy-ref S] [--stop-at {data,human}] [--json] | --selftest
+#   anchor-guard  anchor and certificate guard for one module directory (manifest validation V1-V10, module compile tri-classification in a private temp workdir, coqchk -o kernel recheck baseline, per-anchor probe face over vm_compute checks plus Print Assumptions, mutation kill matrix over the manifest's copied defect rows: a certificate that kills zero mutants is VACUOUS and red, a non-hold baseline is an unanchored anchor, module compile-broken is red; manifest copies its mutant rows from tools/mutants-v1.json, the guard never loads the library; env-gated, rc 111 honest skip; zero repository writes) -> tools/anchor_guard.py
+#               cw.sh anchor-guard --repo DIR --manifest FILE [--out DIR] [--rocq BIN] [--coqchk BIN] [--timeout SEC] [--keep] | --selftest
 #   help        this help (help <tool> = the tool's one-line usage hint)
 #
 # Routing contract:
@@ -392,6 +394,8 @@ Tools:
               cw.sh tree-audit --root DIR [--json OUT] | --selftest
   pipeline-lite  gap-to-admission pipeline executor, D2-2 data layer (scheduler_lite plan verdict imported, never re-derived; gap_cluster clusters transformed to row_render gap rows with the layer-law policyPrecheckRef stamped; emit packet then ingest a backfill into a draft whose rows enter at tenpointVerdict PENDING; quiet and blocked write nothing; pending-backfill and pending-human stops are data; code-layer faces (ten-point verdicts, taxonomy row integration, apply pass, auto_round commit and approve) stay human-gated and are never composed; b-gate audit counter carried read-only; zero network) -> tools/pipeline_lite.py
               cw.sh pipeline-lite [--plan F] [--gap-ledger P]... [--reports P]... [--rounds P] [--autonomy P] [--state P] [--ef-marker P] [--threshold N] [--interval-seconds N] [--now-utc ISO8601Z] [--gap-out F] [--render-gaps F] [--packet-out F] [--backfill F] [--draft-out F] [--b-gate-audit P] [--policy-ref S] [--stop-at {data,human}] [--json] | --selftest
+  anchor-guard  anchor and certificate guard for one module directory (manifest validation V1-V10, module compile tri-classification in a private temp workdir, coqchk -o kernel recheck baseline, per-anchor probe face over vm_compute checks plus Print Assumptions, mutation kill matrix over the manifest's copied defect rows: a certificate that kills zero mutants is VACUOUS and red, a non-hold baseline is an unanchored anchor, module compile-broken is red; manifest copies its mutant rows from tools/mutants-v1.json, the guard never loads the library; env-gated, rc 111 honest skip; zero repository writes) -> tools/anchor_guard.py
+              cw.sh anchor-guard --repo DIR --manifest FILE [--out DIR] [--rocq BIN] [--coqchk BIN] [--timeout SEC] [--keep] | --selftest
 
   help        this help (help <tool> = the tool's one-line usage hint)
 
@@ -481,6 +485,7 @@ hint_for() {  # $1=tool
     b-gate) echo "cw.sh b-gate [--selftest]   # B-level generalization threshold audit over the round records (3 instances, each grounded in at least 1 executed round; per-class instance and round counts, a per-class readiness verdict, and an explicit gap list into docs/b-gate-audit.json, schema rocqwash.b-gate-audit/1; counts are measured from the records, never inflated) -> tools/b_gate_audit.py" ;;
     tree-audit) echo "cw.sh tree-audit --root DIR [--json OUT] | --selftest   # read-only tree health audit over .lean/.v source trees (one JSON-line census; zero subprocess, zero network, zero tree writes) -> tools/tree_audit.py" ;;
     pipeline-lite) echo "cw.sh pipeline-lite [--plan F] [--gap-ledger P]... [--reports P]... [--rounds P] [--autonomy P] [--state P] [--ef-marker P] [--threshold N] [--interval-seconds N] [--now-utc ISO8601Z] [--gap-out F] [--render-gaps F] [--packet-out F] [--backfill F] [--draft-out F] [--b-gate-audit P] [--policy-ref S] [--stop-at {data,human}] [--json] | --selftest   # gap-to-admission pipeline executor, D2-2 data layer (verdict imported from scheduler_lite; rows enter PENDING; code-layer faces stay human-gated; zero network) -> tools/pipeline_lite.py" ;;
+    anchor-guard) echo "cw.sh anchor-guard --repo DIR --manifest FILE [--out DIR] [--rocq BIN] [--coqchk BIN] [--timeout SEC] [--keep] | --selftest   # anchor and certificate guard for one module directory (manifest validation V1-V10; compile tri-classification; coqchk -o kernel baseline; per-anchor probe face; mutation kill matrix, zero kills = VACUOUS = red; env-gated rc 111 honest skip; write faces: the caller-named --out report and the private temp workdir; rc 0=PASS 1=red 2=usage 9=fail-loud 111=honest skip) -> tools/anchor_guard.py" ;;
     *) return 1 ;;
   esac
 }
@@ -576,6 +581,7 @@ case "${1:-}" in
   b-gate) shift; run_tool b-gate "tools/b_gate_audit.py" "$@" ;;
   tree-audit) shift; run_tool tree-audit "tools/tree_audit.py" "$@" ;;
   pipeline-lite) shift; run_tool pipeline-lite "tools/pipeline_lite.py" "$@" ;;
+  anchor-guard) shift; run_tool anchor-guard "tools/anchor_guard.py" "$@" ;;
   help|-h|--help)
     if [ "$#" -ge 2 ]; then
       if hint_for "$2"; then
