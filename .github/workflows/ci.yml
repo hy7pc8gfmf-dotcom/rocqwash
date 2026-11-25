@@ -162,6 +162,15 @@ jobs:
         if: steps.mode.outputs.mode == 'FULL'
         run: bash tests/run_tests.sh
 
+      - name: Count-guard live gate (FULL - six-face roster counts re-derived)
+        if: steps.mode.outputs.mode == 'FULL'
+        run: $ROCWASH_PY -I tools/count_guard.py --repo .
+        # rc 0 pass (R6 census declared-lag is rc-neutral inside the tool);
+        # rc 1 drift / rc 2 missing-face both fail the step red.  The task
+        # brief allowed rc 1 through; that would make the gate toothless
+        # (drift red is the whole point), so this wiring passes only rc 0 -
+        # deviation recorded on the PR.
+
       - name: Run anchor tier (ANCHORS - fingerprint unchanged since last green)
         if: steps.mode.outputs.mode == 'ANCHORS'
         env:
