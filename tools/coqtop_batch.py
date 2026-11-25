@@ -24,6 +24,9 @@ Dependencies.  Python 3 standard library only; coqtop binary from flags
   or environment (never downloaded, never simulated).
 Evidence.  Deterministic: the same transcript bytes give the
   byte-identical report on a double run (sorted keys, no wall clock).
+  Thermal: no embedded guard, wrap guarded real runs in
+  tools/cpu_guard.sh (the coqtop child stays in the guard's process
+  tree; the selftest and the honest-skip face never launch a toolchain).
 """
 # Extended contract:
 # Chunking.  The transcript is split on the frozen prompt marker
