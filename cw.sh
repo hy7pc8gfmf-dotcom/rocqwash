@@ -201,6 +201,8 @@
 #                 cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest
 #   mutant-manifest  anchor_guard manifest skeleton generator (the deterministic bridge from the frozen mutation library tools/mutants-v1.json, schema rocqwash.mutants/1, to a rocqwash.anchor/1 draft: selected mutant rows copied verbatim - never re-derived, never mechanically narrowed - the anchors array deliberately empty because anchor_guard rejects an empty anchors array by rule, so the skeleton is judgeable-by-design only after authoring; the authoring checklist prints loudly on stdout; --families selects rows by exact id, unknown id = fail-loud rc 2; sorted keys, double-run byte-identical; zero network, zero toolchain) -> tools/mutant_manifest.py
 #                 cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest
+#   coqtop-batch  batch statement feed through coqtop with per-statement error classification (one stdin-fed session chunks on the toplevel prompt markers Rocq < / legacy Coq < ; nested proof prompts never split a chunk; every error lands at once with statement attribution - the interactive-batch face beside probe_engine's single-error compile face; binary resolves flag > ROCWASH_COQTOP > honest skip rc 111; zero network) -> tools/coqtop_batch.py
+#                 cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest
 #   help        this help (help <tool> = the tool's one-line usage hint)
 #
 # Routing contract:
@@ -415,6 +417,9 @@ Tools:
   mutant-manifest  anchor_guard manifest skeleton generator (the deterministic bridge from the frozen mutation library tools/mutants-v1.json, schema rocqwash.mutants/1, to a rocqwash.anchor/1 draft: selected mutant rows copied verbatim - never re-derived, never mechanically narrowed - the anchors array deliberately empty because anchor_guard rejects an empty anchors array by rule, so the skeleton is judgeable-by-design only after authoring; the authoring checklist prints loudly on stdout; --families selects rows by exact id, unknown id = fail-loud rc 2; sorted keys, double-run byte-identical; zero network, zero toolchain) -> tools/mutant_manifest.py
                 cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest
 
+  coqtop-batch  batch statement feed through coqtop with per-statement error classification (one stdin-fed session chunks on the toplevel prompt markers Rocq < / legacy Coq < ; nested proof prompts never split a chunk; every error lands at once with statement attribution - the interactive-batch face beside probe_engine's single-error compile face; binary resolves flag > ROCWASH_COQTOP > honest skip rc 111; zero network) -> tools/coqtop_batch.py
+                cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest
+
   help        this help (help <tool> = the tool's one-line usage hint)
 
 Exit codes: 0=pass  2=unknown-tool  9=target-script-missing  others = each tool's own convention, passed through
@@ -508,6 +513,7 @@ hint_for() {  # $1=tool
     count-guard) echo "cw.sh count-guard [--repo DIR] [--json F] | --selftest   # six-face roster count reconciler (check-only: R1 tools count / R2 tree face / R3 MCP roster pair / R4 cw.sh route face / R5 routed-target face / R6 census declared-lag rc-neutral; cross-face inequality names both file:line faces and both values; rc 0 green / 1 drift / 2 missing-face) -> tools/count_guard.py" ;;
     lean-parity-crosswalk) echo "cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest   # Lean/Rocq axiom parity crosswalk engine (five mirror proposition keys; mapping = axiom_audit.LEAN_PARITY_ROWS verbatim; Admitted <-> sorryAx mirror rule design-frozen; gated legs honestly SKIP; schema rocqwash.parity.lean-census/1) -> tools/lean_parity_crosswalk.py" ;;
     mutant-manifest) echo "cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest   # anchor_guard manifest skeleton generator (mutant rows verbatim from the frozen library; anchors empty by rule - the authoring checklist prints; unknown family id fail-loud rc 2; double-run byte-identical; zero network) -> tools/mutant_manifest.py" ;;
+    coqtop-batch) echo "cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest   # batch coqtop session with per-statement error classification (toplevel prompt chunks; nested proof prompts stay one chunk; honest skip rc 111 without a binary; zero network) -> tools/coqtop_batch.py" ;;
     *) return 1 ;;
   esac
 }
@@ -607,6 +613,7 @@ case "${1:-}" in
   attest-join) shift; run_tool attest-join "tools/attest_join.py" "$@" ;;
   count-guard) shift; run_tool count-guard "tools/count_guard.py" "$@" ;;
   mutant-manifest) shift; run_tool mutant-manifest "tools/mutant_manifest.py" "$@" ;;
+  coqtop-batch) shift; run_tool coqtop-batch "tools/coqtop_batch.py" "$@" ;;
   lean-parity-crosswalk) shift; run_tool lean-parity-crosswalk "tools/lean_parity_crosswalk.py" "$@" ;;
   help|-h|--help)
     if [ "$#" -ge 2 ]; then
