@@ -83,7 +83,7 @@ HTTP_MAX_BODY_BYTES = 32 * 1024 * 1024
 # registration increment, the v2-B audit-line batch of three:
 # source_fetch, sweep_verdict, release_chain, plus the numeric-probe
 # registration batch of two: numeric_probe, statement_probes, plus the
-# vacgen-coq registration increment (ticket 14 wave 1, one face:
+# vacgen-coq registration increment (ticket 14 work stream 1, one face:
 # vacgen_coq_generate, plus the formal-audit trust-face registration
 # increment of four: attest_join, frozen8, verify_vo, gate4_comment_guard
 # (R2-122; the MCP faces wire existing differentiated CLIs, zero new tool
@@ -238,12 +238,12 @@ TOOL_SPECS = [
         "fixed_args": [],
         # Full MCP flag face of tools/vacgen.py (21 flags, argparse
         # declaration order).  Count convention (baseline 20/23, unchanged
-        # by the cast-repair wave): the argparse face now holds 24
+        # by the cast-repair work stream): the argparse face now holds 24
         # add_argument sites; the 3 mode flags stay outside this schema on
         # purpose (--from-statements/--from-repo ride the statement_probes
         # MCP face, --selftest is not exposed), so 24 - 3 = 21 here.  The
         # micro-ticket expanded this schema from the previous 11-flag
-        # subset; the cast-repair wave appended the opt-in
+        # subset; the cast-repair work stream appended the opt-in
         # allow_bare_type_limb W5 waiver flag; properties and arg_map stay
         # one-to-one.
         "arg_map": (
@@ -1769,7 +1769,7 @@ TOOL_SPECS = [
     # transcribed from its tool's own frozen CLI contract header (the
     # axiom_sweep/claim_watch precedent; the INDEX entries await their
     # own lane), and each arg_map covers exactly the tool's real
-    # argparse flag face: the three CLIs dispatch --selftest before
+    # argparse flag face: the three CLIs route --selftest before
     # argparse, so that route is not an argparse flag and stays out of
     # the arg_maps (the registered chain_graph precedent).  Additive
     # after the block above: the existing specs and schemas untouched.
@@ -2014,7 +2014,7 @@ TOOL_SPECS = [
             "as text, never executed."
         ),
     },
-    # ---- the vacgen-coq registration increment (ticket 14 wave 1, the
+    # ---- the vacgen-coq registration increment (ticket 14 work stream 1, the
     # Rocq domain support): one zero-network batch coverage face over the
     # landed Coq-side sibling CLI (tools/vacgen_coq.py --from-v/
     # --taxonomy/--out/--limit/--selftest, exactly the tool's real
@@ -2569,8 +2569,8 @@ def _dispatch_message(message):
     """One parsed JSON-RPC message object in, one response object out.
 
     The single dispatcher face both transports feed: the stdio loop and
-    the HTTP endpoint call it unchanged, so a dispatch rule lands on both
-    wires at once.  A dispatch exception becomes an INTERNAL_ERROR
+    the HTTP endpoint call it unchanged, so a route rule lands on both
+    wires at once.  A route exception becomes an INTERNAL_ERROR
     envelope, never a traceback on the wire; a notification returns None
     (no response under JSON-RPC 2.0 and MCP).
     """
