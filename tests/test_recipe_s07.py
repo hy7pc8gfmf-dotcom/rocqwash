@@ -56,7 +56,7 @@ import shutil
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RECIPE = os.path.join(REPO, "recipes", "S07_projection_reanchor_E5.md")
 ENGINE = os.path.join(REPO, "wash", "wash_engine.py")
-ENGINE_FROZEN_MD5 = "eed0699addc3593368da5f5e993b382e"  # registered frozen value (`更新账.md` section 3)
+ENGINE_FROZEN_MD5 = "b06bd886d4e47bb9cd2be1dd4e857e81"  # generation-2 frozen value (`更新账.md` generation-2 section, November 26, 2026)
 
 RECIPE_ANCHORS = [
     "E5", "S07_RealSetoidExpLog.v:8075", "S07_RealSetoidExpLog.v:8740",

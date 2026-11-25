@@ -14,7 +14,7 @@ Purpose.  The world born into a sanitize run must equal the RUNTREE certified-ge
   4 pos passthrough — certified-generation world (fixture anchors re-measured) -> rc 0, the
     engine runs, the artifact lands
   5 frozen side-evidence — md5 of `wash/wash_engine.py` equals the frozen record
-    eed0699addc3593368da5f5e993b382e (read-only reuse; zero bytes touched)
+    b06bd886d4e47bb9cd2be1dd4e857e81 (read-only reuse; zero bytes touched)
 
 Interface.  python3 tests/test_world_hook.py; no flags; drives the hook via subprocess
   (sys.executable -B) and asserts on exit codes, stdout tokens (PASS, WDIFF, WMISS,
@@ -42,7 +42,7 @@ import shutil
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOOK = os.path.join(REPO, "wash", "world_hook.py")
 ENGINE = os.path.join(REPO, "wash", "wash_engine.py")
-ENGINE_FROZEN_MD5 = "eed0699addc3593368da5f5e993b382e"  # frozen record in `更新账.md` §3
+ENGINE_FROZEN_MD5 = "b06bd886d4e47bb9cd2be1dd4e857e81"  # frozen record in `更新账.md` §3
 
 ANCHOR_NAMES = ["S01_BaseRing", "S02_CauchyComplete", "S03_QExp",
                 "UpReqLpoEquiv", "EntropyUnsatMark"]

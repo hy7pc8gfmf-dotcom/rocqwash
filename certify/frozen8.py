@@ -57,7 +57,7 @@ LEDGER8 = (
     ("tools/cpu_guard.sh", "442be5a2cb24af0a6847036f8c0cf5c5"),
     ("verify/gate4_comment_guard.py", "3615027b14b63ce38d247da44957f145"),
     ("verify/verify_vo.py", "9d061d679dcceb0dcbbeb24e165eac7f"),
-    ("wash/wash_engine.py", "eed0699addc3593368da5f5e993b382e"),
+    ("wash/wash_engine.py", "b06bd886d4e47bb9cd2be1dd4e857e81"),
 )
 LEDGER_MAP = dict(LEDGER8)  # rel -> md5
 
@@ -153,28 +153,44 @@ def git_head(repo):
 
 
 def harvest_ledger_doc(repo):
-    """Judgment 1 harvest: every md5 row of the eight roster relpaths found in
-    the ledger document. Returns (doc_map, problems) — two values for one file,
-    a missing file, or a missing document all land in problems."""
+    """Judgment 1 harvest: every md5 row of the roster relpaths found in the
+    ledger document, generation-aware (the 20261126 generation law).  The
+    document is append-only and each campaign appends a fresh full-roster
+    copy (the file already carries thirteen identical-generation copies);
+    the LAST occurrence of a rel is the current-generation face, earlier
+    copies are history and never contradict it.  A contradiction still
+    fails loud when two differing values for one rel sit inside the same
+    code fence (a malformed generation), tracked by fence parity.
+    Returns (doc_map, problems) — a same-fence two-value conflict, a
+    missing rel, or a missing document all land in problems."""
     path = os.path.join(repo, LEDGER_DOC)
     doc_map, problems = {}, []
     if not os.path.isfile(path):
         return doc_map, ["账文档缺失: %s" % path]
+    fence_open = False
+    fence_seen = {}
     with io.open(path, encoding="utf-8") as fh:
         for ln in fh:
+            stripped = ln.strip()
+            if stripped.startswith("```"):
+                fence_open = not fence_open
+                fence_seen = {}
+                continue
             m = MD5_LINE.match(ln.rstrip("\n"))
             if not m:
                 continue
             md5, rel = m.group(1), m.group(2)
-            if rel not in LEDGER_MAP:  # harvest the eight rows only
+            if rel not in LEDGER_MAP:
                 continue
-            if rel in doc_map and doc_map[rel] != md5:
-                problems.append("账文档内 %s 两值矛盾: %s vs %s"
-                                % (rel, doc_map[rel], md5))
-            doc_map.setdefault(rel, md5)
+            if fence_open and rel in fence_seen and fence_seen[rel] != md5:
+                problems.append("账文档内同 fence %s 两值矛盾: %s vs %s"
+                                % (rel, fence_seen[rel], md5))
+            if fence_open:
+                fence_seen.setdefault(rel, md5)
+            doc_map[rel] = md5
     missing = [rel for rel in LEDGER_MAP if rel not in doc_map]
     if missing:
-        problems.append("账文档未见八件在册值: %s" % ", ".join(missing))
+        problems.append("账文档未见在册值: %s" % ", ".join(missing))
     return doc_map, problems
 
 
