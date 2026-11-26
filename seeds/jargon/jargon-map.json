@@ -26,7 +26,7 @@
         "role": "tool-repository track: standard cells for faces absent from the annotation-track mapping table",
         "pin": {
           "kind": "git-blob-sha",
-          "value": "bc07148e664d64a143948d5a6f50e344d7387851"
+          "value": "8f265868edd66e102ca025d7d68441932e0e8a99"
         }
       },
       {
