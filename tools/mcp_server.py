@@ -1020,18 +1020,21 @@ TOOL_SPECS = [
         ),
         "schema": _object_schema(
             {
-                "selftest": {"type": "boolean", "description": "run the seven selftest vectors on temporary fixtures (zero repository paths); CLI flag --selftest"},
+                "selftest": {"type": "boolean", "description": "run the fourteen selftest vectors on temporary fixtures (zero repository paths); CLI flag --selftest"},
             }
         ),
         "description": (
             "Scheduling feedback face over the three standing ledgers: the "
             "round ledger, the round state, and the experience ledger are read "
             "strictly read-only and cast into the scheduling feedback face "
-            "(schema rocqwash.scheduling-feedback/1). The default run writes "
+            "(schema rocqwash.scheduling-feedback/1). The feedback edge is "
+            "computed, never hard-coded: closed / partial / open derived from "
+            "an AST scan of the standing consumer tools/scheduler_lite.py "
+            "plus the round-ledger scheduling_input trace. The default run writes "
             "exactly one derived report, docs/scheduling-feedback.json (a "
             "deterministic regeneration; the three inputs are never written); "
             "missing or corrupt inputs are named in the errors list and exit 1 "
-            "fail-loud (tools/learning_feedback.py). --selftest runs the seven "
+            "fail-loud (tools/learning_feedback.py). --selftest runs the fourteen "
             "vectors on temporary fixtures. Zero network face."
         ),
     },

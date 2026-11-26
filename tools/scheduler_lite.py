@@ -2,28 +2,31 @@
 # -*- coding: utf-8 -*-
 """scheduler_lite.py - TODO-SEAT threshold trigger face, jargon tier-B auto gear.
 
-Purpose.  The lite scheduler of recursive batch 3 (ticket X2): watches the
-  TODO-SEAT gap account (gap feed ledger plus vacgen report directory,
-  aggregated by tools/gap_cluster.py) and the round cadence
-  (docs/round-ledger.jsonl), and decides whether a jargon-class auto round
-  is due under the tier-B auto gear (autonomy.json mode auto, admitted
-  roster docs/round-state.json).  Ignition stays behind the EF all-green
-  marker gate; the face plans only and never fires (dry-run by design).
+Purpose.  Watches the TODO-SEAT gap account (tools/gap_cluster.py
+  aggregation) and the round cadence, and decides whether a jargon-class
+  auto round is due under the tier-B auto gear (autonomy.json mode auto,
+  roster docs/round-state.json).  Ratchet ticket B: consumes
+  rounds.approval_rate_auto from docs/scheduling-feedback.json (the
+  sibling learning_feedback writer); below 0.5 the round interval
+  doubles, 0.5 and up keeps the measured cadence; the applied influence
+  rides the plan document (schedulingInput).  Ignition stays behind the
+  EF marker gate; the face plans only and never fires.
 Interface.  `py -I tools/scheduler_lite.py plan [--gap-ledger P]...
-  [--reports P]... [--rounds P] [--autonomy P] [--state P] [--ef-marker P]
-  [--threshold N] [--interval-seconds N] [--now-utc ISO8601Z] [--out FILE]
-  [--json]` or --selftest; one summary line, or with --json the plan
-  document (rocqwash.scheduler-lite.plan/1; verdict quiet | due | blocked
-  with reason tokens; absent defaults are data, corrupt explicit exit 9).
-Dependencies.  Python 3 standard library only; tools/gap_cluster.py is the
-  same-source gap aggregator (absent module exits 9).  The round-interval
-  default is a measured backfill: round-ledger tail pair
-  2026-11-15T04:49:24Z -> 2026-11-15T16:05:30Z = 40566 s (round 1 to
-  round 2 tail pair); --interval-seconds amends the same knob.
-Evidence.  --selftest fixture vectors on tmp inputs: threshold trigger and
-  quiet, threshold override, the vacgen report face, measured and backfill
-  cadence, due and not-due probes, gate/admission/gear blocks,
-  determinism, zero writes, exit code 9, CJK-free / em-dash-free probe.
+  [--reports P]... [--rounds P] [--autonomy P] [--state P] [--feedback P]
+  [--ef-marker P] [--threshold N] [--interval-seconds N]
+  [--now-utc ISO8601Z] [--out FILE] [--json]` or --selftest; one summary
+  line or, with --json, the plan document (rocqwash.scheduler-lite.plan/1;
+  verdict quiet | due | blocked; absent defaults are data, corrupt exit 9).
+  MCP withholds --feedback: unflagged runs read the standing default.
+Dependencies.  Python 3 stdlib only; tools/gap_cluster.py absent exits 9;
+  the edge selfscan vectors load tools/learning_feedback.py by path (the
+  grade face imported, never re-implemented); interval default 40566 s.
+Evidence.  --selftest tmp-fixture vectors: threshold trigger and quiet,
+  override, vacgen report face, measured/backfill cadence, due probes,
+  gate/admission/gear blocks, feedback consumption (downshift flips due
+  to blocked, current/null rates, corrupt/absent exit 9), the edge
+  selfscan kill face plus the live-trace closed face, determinism, zero
+  writes, CJK/em-dash-free probe.
 Exit-codes.  0 = the plan face answered (quiet and blocked are data);
   1 = selftest red; 2 = usage; 9 = corrupt or explicitly missing input.
 """
@@ -46,8 +49,18 @@ DEFAULT_REPORTS_DIR = ("docs", "vacgen-reports")
 DEFAULT_ROUNDS = ("docs", "round-ledger.jsonl")
 DEFAULT_STATE = ("docs", "round-state.json")
 DEFAULT_AUTONOMY = ("autonomy.json",)
+DEFAULT_FEEDBACK = ("docs", "scheduling-feedback.json")
 
 DEFAULT_THRESHOLD = 1
+
+# The standing feedback-consumption constants (ratchet ticket B): the
+# approval rate key the plan face consumes from the sibling feedback doc,
+# and the consumption rule - below the downshift rate the cadence
+# interval doubles, 0.5 and up keeps the measured cadence, and an
+# unreadable rate (no rounds yet) keeps it too.
+FEEDBACK_RATE_KEY = "approval_rate_auto"
+FEEDBACK_DOWNSHIFT_RATE = 0.5
+FEEDBACK_DOWNSHIFT_FACTOR = 2
 
 # Measured backfill: docs/round-ledger.jsonl tail pair, round 1
 # 2026-11-15T04:49:24Z -> round 2 2026-11-15T16:05:30Z = 40566 s.
@@ -71,6 +84,7 @@ _CJK_RE = re.compile(u"[\u4e00-\u9fff\u3400-\u4dbf]")
 _EM_DASH = u"\u2014"
 
 _GC = None
+_LF = None
 
 
 class SchedulerInputError(Exception):
@@ -95,6 +109,75 @@ def gap_cluster_module():
         spec.loader.exec_module(mod)
         _GC = mod
     return _GC
+
+
+def learning_feedback_module():
+    """Load tools/learning_feedback.py by path (the sibling feedback-edge
+    grader; the grade face is imported, never re-implemented)."""
+    global _LF
+    if _LF is None:
+        path = os.path.join(REPO_ROOT, "tools", "learning_feedback.py")
+        if not os.path.isfile(path):
+            fail("sibling tools/learning_feedback.py is absent", 9)
+        spec = importlib.util.spec_from_file_location(
+            "rocqwash_scheduler_learning_feedback", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _LF = mod
+    return _LF
+
+
+def feedback_face(flagged):
+    """The feedback input face: the standing approval rate the round gear
+    consumes.  An explicitly flagged absent path is an exit-9 input
+    error; the absent default is a data state (the sibling feedback
+    writer has not run yet); a present doc without a readable
+    rounds.approval_rate_auto (None or a number, never a bool) fails
+    loud exit 9.  Never guessed."""
+    paths, present, default_absent = resolve_member_paths(
+        [flagged] if flagged else [], DEFAULT_FEEDBACK, "feedback")
+    if not present:
+        return {"present": False, "approvalRateAuto": None,
+                "source": None,
+                "note": ("feedback doc absent at the standing default %s"
+                         " (data state; cadence unchanged)"
+                         % os.path.join(REPO_ROOT, *DEFAULT_FEEDBACK))}
+    doc = read_json_doc(paths[0])
+    rounds = doc.get("rounds")
+    if not isinstance(rounds, dict) or FEEDBACK_RATE_KEY not in rounds:
+        raise SchedulerInputError(
+            "%s carries no rounds.%s reading" % (paths[0],
+                                                 FEEDBACK_RATE_KEY))
+    rate = rounds[FEEDBACK_RATE_KEY]
+    if rate is not None and (isinstance(rate, bool)
+                             or not isinstance(rate, (int, float))):
+        raise SchedulerInputError(
+            "%s rounds.%s is not null or a number: %r"
+            % (paths[0], FEEDBACK_RATE_KEY, rate))
+    return {"present": True, "approvalRateAuto": rate,
+            "source": paths[0], "note": "ok"}
+
+
+def apply_feedback_input(interval, rate):
+    """The consumption rule: approval_rate_auto below 0.5 downshifts the
+    round cadence - the interval doubles, so the next auto round waits
+    longer - and 0.5 and up (or an unreadable rate: no rounds yet) keeps
+    the measured cadence.  Returns (interval, action, basis); the pair
+    rides the plan document as schedulingInput so every influence stays
+    traceable."""
+    if rate is None:
+        return interval, "cadence-current", (
+            "approval_rate_auto unreadable (the feedback face holds no"
+            " rounds yet); cadence unchanged")
+    if rate < FEEDBACK_DOWNSHIFT_RATE:
+        doubled = int(interval * FEEDBACK_DOWNSHIFT_FACTOR)
+        return doubled, "cadence-interval-x2", (
+            "approval_rate_auto %s < %s: round cadence downshifted, the"
+            " interval doubles (%d s)" % (rate, FEEDBACK_DOWNSHIFT_RATE,
+                                          doubled))
+    return interval, "cadence-current", (
+        "approval_rate_auto %s >= %s: cadence stays measured"
+        % (rate, FEEDBACK_DOWNSHIFT_RATE))
 
 
 def parse_ts(text, label):
@@ -201,12 +284,16 @@ def gap_face(gap_ledgers, reports, threshold):
     }
 
 
-def cadence_face(rows, now_dt, interval_override):
-    """Measure the round cadence and test whether the next round is due.
+def cadence_face(rows, now_dt, interval_override, feedback_rate=None):
+    """Measure the round cadence, apply the feedback gear, test due.
 
     Two or more rows: the measured interval is the tail pair delta.  Fewer
-    rows fall back to the measured backfill constant.  No standing round
-    is not cadence-blocked (a first round cannot violate a spacing rule).
+    rows fall back to the measured backfill constant.  The standing
+    feedback gear (apply_feedback_input) then amends the interval BEFORE
+    the due test, so the approval rate steers the decision whatever the
+    interval source; the applied action and basis ride the face.  No
+    standing round is not cadence-blocked (a first round cannot violate
+    a spacing rule).
     """
     rounds_present = bool(rows)
     if rounds_present:
@@ -223,12 +310,16 @@ def cadence_face(rows, now_dt, interval_override):
         else:
             interval = interval_override
             source = "backfill"
-        due = now_dt >= last_ts + timedelta(seconds=interval)
-        due_reason = "spacing elapsed" if due else "spacing not elapsed"
     else:
         last_ts, last_id = None, None
         interval = interval_override
         source = "backfill"
+    interval, fb_action, fb_basis = apply_feedback_input(interval,
+                                                         feedback_rate)
+    if rounds_present:
+        due = now_dt >= last_ts + timedelta(seconds=interval)
+        due_reason = "spacing elapsed" if due else "spacing not elapsed"
+    else:
         due = True
         due_reason = "no standing round"
     return {
@@ -238,6 +329,8 @@ def cadence_face(rows, now_dt, interval_override):
         "lastTs": last_ts.strftime(TS_FORMAT) if last_ts else None,
         "intervalSeconds": interval,
         "source": source,
+        "feedbackAction": fb_action,
+        "feedbackBasis": fb_basis,
         "due": due,
         "dueReason": due_reason,
     }
@@ -279,7 +372,8 @@ def gate_face(marker_path):
             "reason": "marker first line non-empty"}
 
 
-def build_plan(now_text, gap_signal, cadence, tier, gate, threshold):
+def build_plan(now_text, gap_signal, cadence, tier, gate, threshold,
+               scheduling_input):
     """Assemble the plan document and decide the verdict (pure assembly)."""
     reasons = []
     if not gap_signal["triggered"]:
@@ -302,6 +396,7 @@ def build_plan(now_text, gap_signal, cadence, tier, gate, threshold):
         "cadence": cadence,
         "tierB": tier,
         "efGate": gate,
+        "schedulingInput": scheduling_input,
         "verdict": verdict,
         "fireReady": verdict == VERDICT_DUE,
         "reasons": reasons,
@@ -316,13 +411,14 @@ def render_line(plan):
     cad = plan["cadence"]
     tier = plan["tierB"]
     return ("scheduler-lite plan: verdict=%s todoSeat=%d/%d cadence=%s %ds "
-            "due=%s gear=%s class=%s admitted=%s gate=%s (dry-run only; no "
-            "ignition face)" % (
+            "due=%s gear=%s class=%s admitted=%s gate=%s feedback=%s "
+            "(dry-run only; no ignition face)" % (
                 plan["verdict"], gap["todoSeatTotal"], gap["threshold"],
                 cad["source"], cad["intervalSeconds"],
                 str(cad["due"]).lower(), tier["autonomyMode"], tier["class"],
                 str(tier["classAdmitted"]).lower(),
-                "open" if plan["efGate"]["open"] else "closed"))
+                "open" if plan["efGate"]["open"] else "closed",
+                plan["schedulingInput"]["action"]))
 
 
 def plan_bytes(plan):
@@ -353,13 +449,27 @@ def run_plan(args):
             resolve_member_paths(args.state, DEFAULT_STATE, "state")
         state = read_json_doc(state_paths[0]) if state_present else {}
         gap_signal = gap_face(args.gap_ledger, args.reports, args.threshold)
-        cadence = cadence_face(rows, now_dt, interval_override)
+        # The standing feedback-consumption path: the approval rate rides
+        # the cadence decision (the gear amends the interval inside the
+        # face, before the due test), and the applied influence rides the
+        # plan document (schedulingInput) so every influence stays
+        # traceable.
+        feedback = feedback_face(args.feedback)
+        cadence = cadence_face(rows, now_dt, interval_override,
+                               feedback["approvalRateAuto"])
+        scheduling_input = {
+            "approvalRateAuto": feedback["approvalRateAuto"],
+            "feedbackPresent": feedback["present"],
+            "source": feedback["source"],
+            "action": cadence["feedbackAction"],
+            "basis": cadence["feedbackBasis"],
+        }
     except SchedulerInputError as exc:
         fail(str(exc), 9)
     tier = tier_face(autonomy, state)
     gate = gate_face(args.ef_marker)
     plan = build_plan(now_text, gap_signal, cadence, tier, gate,
-                      args.threshold)
+                      args.threshold, scheduling_input)
     payload = plan_bytes(plan)
     if args.out:
         with open(args.out, "wb") as fh:
@@ -442,6 +552,16 @@ def selftest():
                         "admitted_classes": [
                             {"class": "jargon", "confidence": 1.0,
                              "basis": "fixture gear auto"}]}) + "\n"
+    # The standing feedback face at the measured rate (the real repo
+    # reading at ticket-B time): the cadence stays current, so the
+    # standing vectors keep their verdicts hermetically regardless of
+    # the repository's own docs/scheduling-feedback.json state.
+    FEEDBACK_OK = json.dumps({"schema": "rocqwash.scheduling-feedback/1",
+                              "rounds": {"total": 2, "auto": 1,
+                                         "human_approved": 1,
+                                         "approval_rate_auto": 0.5,
+                                         "by_class": [], "errors": []}},
+                             sort_keys=True) + "\n"
     TMP = tempfile.mkdtemp(prefix="scheduler_lite_selftest_")
 
     def all_green():
@@ -450,14 +570,16 @@ def selftest():
         marker = os.path.join(TMP, "ef-done.marker")
         autonomy = os.path.join(TMP, "autonomy.json")
         state = os.path.join(TMP, "state.json")
+        feedback = os.path.join(TMP, "feedback.json")
         write(ledger, GAP_LINE)
         write(rounds, ROUND_ROWS)
         write(marker, "abcdef1234567890\n")
         write(autonomy, AUTONOMY)
         write(state, STATE)
+        write(feedback, FEEDBACK_OK)
         return ["--gap-ledger", ledger, "--rounds", rounds,
                 "--ef-marker", marker, "--autonomy", autonomy,
-                "--state", state]
+                "--state", state, "--feedback", feedback]
 
     def v_due():
         proc, plan, _ = run_cli(all_green())
@@ -603,6 +725,166 @@ def selftest():
                    for s in pipe), pipe
         assert plan["dryRun"] is True and plan["fireReady"] is True, plan
 
+    # Synthetic consumer sources for the edge selfscan (fixture text judged
+    # by the sibling grader; they live inside this selftest face, so a scan
+    # of this module's runtime faces never sees them as evidence).
+    DEAD_EDGE_SOURCE = (
+        "DEFAULT_PATH = ('docs', 'feedback-absent.json')\n"
+        "\n"
+        "def plan_face(args):\n"
+        "    return {'verdict': 'quiet'}\n")
+    SELFTEST_ONLY_EDGE_SOURCE = (
+        "def selftest():\n"
+        "    def feedback_face(flagged):\n"
+        "        doc = read_json_doc(flagged[0])\n"
+        "        return doc.get('rounds', {}).get('approval_rate_auto')\n"
+        "\n"
+        "    def apply_feedback_input(interval, rate):\n"
+        "        return interval * 2, 'cadence-interval-x2'\n"
+        "\n"
+        "    def run_plan(args):\n"
+        "        rate = feedback_face(args.feedback)\n"
+        "        interval, action = apply_feedback_input(60, rate)\n"
+        "        return {'schedulingInput': {'rate': rate}}\n")
+
+    def feedback_doc(rate):
+        return json.dumps({"schema": "rocqwash.scheduling-feedback/1",
+                           "rounds": {"total": 4, "auto": 1,
+                                      "human_approved": 3,
+                                      "approval_rate_auto": rate,
+                                      "by_class": [], "errors": []}},
+                          sort_keys=True) + "\n"
+
+    def v_feedback_downshift_flips_due():
+        # The consumption rule bites on the decision: at the same clock a
+        # rate below 0.5 doubles the interval and flips due to blocked,
+        # while the measured-rate control stays due.
+        argv = all_green()
+        write(os.path.join(TMP, "feedback.json"), feedback_doc(0.25))
+        proc, plan, _ = run_cli(argv, now="2026-11-16T08:00:00Z")
+        assert proc.returncode == 0, proc.stderr[-300:]
+        assert plan["verdict"] == "blocked" \
+            and plan["reasons"] == ["cadence-not-due"], plan
+        assert plan["cadence"]["intervalSeconds"] == 81132, plan["cadence"]
+        assert plan["cadence"]["feedbackAction"] == "cadence-interval-x2", \
+            plan["cadence"]
+        si = plan["schedulingInput"]
+        assert si["approvalRateAuto"] == 0.25 \
+            and si["action"] == "cadence-interval-x2" \
+            and si["feedbackPresent"] is True \
+            and si["source"] == os.path.join(TMP, "feedback.json"), si
+        write(os.path.join(TMP, "feedback.json"), FEEDBACK_OK)
+        proc2, plan2, _ = run_cli(argv, now="2026-11-16T08:00:00Z")
+        assert plan2["verdict"] == "due" and plan2["fireReady"] is True, \
+            plan2["verdict"]
+        assert plan2["cadence"]["intervalSeconds"] == 40566, plan2["cadence"]
+        assert plan2["cadence"]["feedbackAction"] == "cadence-current", \
+            plan2["cadence"]
+
+    def v_feedback_rate_forms_current_and_null():
+        # 0.5 and up keeps the measured cadence; the null rate (the real
+        # zero-round shape the feedback writer casts) is a data state that
+        # keeps the cadence and says so in the basis.
+        argv = all_green()
+        write(os.path.join(TMP, "feedback.json"), feedback_doc(0.8))
+        proc, plan, _ = run_cli(argv, now="2026-11-16T08:00:00Z")
+        assert plan["verdict"] == "due", plan["verdict"]
+        assert plan["cadence"]["intervalSeconds"] == 40566, plan["cadence"]
+        assert plan["schedulingInput"]["action"] == "cadence-current", plan
+        write(os.path.join(TMP, "feedback.json"), feedback_doc(None))
+        proc2, plan2, _ = run_cli(argv)
+        assert plan2["verdict"] == "due", plan2["verdict"]
+        si = plan2["schedulingInput"]
+        assert si["approvalRateAuto"] is None \
+            and si["action"] == "cadence-current" \
+            and "unreadable" in si["basis"], si
+
+    def v_feedback_bad_exit9():
+        # Corrupt bytes, a doc without the rounds face, a non-numeric rate,
+        # and an explicitly flagged absent path all fail loud exit 9.
+        argv = all_green()
+        write(os.path.join(TMP, "feedback.json"), "{not json}\n")
+        proc, _, _ = run_cli(argv)
+        assert proc.returncode == 9, proc.returncode
+        write(os.path.join(TMP, "feedback.json"),
+              json.dumps({"schema": "rocqwash.scheduling-feedback/1"}) + "\n")
+        proc, _, _ = run_cli(argv)
+        assert proc.returncode == 9, proc.returncode
+        write(os.path.join(TMP, "feedback.json"),
+              json.dumps({"rounds": {"approval_rate_auto": "high"}}) + "\n")
+        proc, _, _ = run_cli(argv)
+        assert proc.returncode == 9, proc.returncode
+        absent = drop_flag(argv, "--feedback")
+        absent += ["--feedback", os.path.join(TMP, "absent-feedback.json")]
+        proc, _, _ = run_cli(absent)
+        assert proc.returncode == 9, proc.returncode
+
+    def v_edge_selfscan_kill_face():
+        # The kill-test vector, standing: this module's own source grades
+        # live (read + apply edge + record, no trace in the tmp ledger ->
+        # partial), while a dead source (call sites commented out) and a
+        # markers-only-inside-selftest source grade open.  When the real
+        # consumption path is commented out for the kill test, the own-
+        # source assertion here goes red.
+        try:
+            lf = learning_feedback_module()
+        except SystemExit as exc:
+            raise AssertionError("sibling learning_feedback unavailable:"
+                                 " %r" % (exc,))
+        empty_rounds = os.path.join(TMP, "edge-rounds.jsonl")
+        write(empty_rounds, "")
+        own = lf.feedback_edge_grade(os.path.abspath(__file__), empty_rounds)
+        assert own["status"] == "partial", own
+        assert own["read"] is True and own["apply_edge"] is True \
+            and own["record"] is True and own["ledger_trace"] is False, own
+        dead = os.path.join(TMP, "dead_scheduler.py")
+        write(dead, DEAD_EDGE_SOURCE)
+        grade_dead = lf.feedback_edge_grade(dead, empty_rounds)
+        assert grade_dead["status"] == "open" and grade_dead["read"] is False, \
+            grade_dead
+        stonly = os.path.join(TMP, "selftest_only_scheduler.py")
+        write(stonly, SELFTEST_ONLY_EDGE_SOURCE)
+        grade_st = lf.feedback_edge_grade(stonly, empty_rounds)
+        assert grade_st["status"] == "open" and grade_st["read"] is False, \
+            grade_st
+
+    def v_edge_live_trace_closed():
+        # The closed-side vector, standing: this module's own source (a
+        # live consumption path) over a round-ledger row carrying the
+        # scheduling_input trace grades closed with the row counted; the
+        # same source over a row whose trace carries no readable rate
+        # stays below closed.  When the real consumption path is
+        # commented out for the kill test, this vector goes red together
+        # with the kill-face vector above.
+        try:
+            lf = learning_feedback_module()
+        except SystemExit as exc:
+            raise AssertionError("sibling learning_feedback unavailable:"
+                                 " %r" % (exc,))
+        traced = os.path.join(TMP, "edge-traced-rounds.jsonl")
+        write(traced, json.dumps({
+            "schema": "rocqwash-round/1", "round_id": 1, "mode": "auto",
+            "verify_rc": 0, "classes_applied": ["jargon"],
+            "admissions": [],
+            "scheduling_input": {"approval_rate_auto": 0.25,
+                                 "action": "cadence-interval-x2",
+                                 "basis": "fixture"}}, sort_keys=True) + "\n")
+        own = lf.feedback_edge_grade(os.path.abspath(__file__), traced)
+        assert own["status"] == "closed", own
+        assert own["read"] is True and own["apply_edge"] is True \
+            and own["record"] is True and own["ledger_trace"] is True \
+            and own["trace_rows"] == 1, own
+        untraced = os.path.join(TMP, "edge-untraced-rounds.jsonl")
+        write(untraced, json.dumps({
+            "schema": "rocqwash-round/1", "round_id": 1, "mode": "auto",
+            "verify_rc": 0, "classes_applied": ["jargon"],
+            "admissions": [],
+            "scheduling_input": {"approval_rate_auto": None,
+                                 "action": "cadence-current"}},
+            sort_keys=True) + "\n")
+        own2 = lf.feedback_edge_grade(os.path.abspath(__file__), untraced)
+        assert own2["status"] == "partial" and own2["trace_rows"] == 0, own2
+
     def v_source_language_surface():
         with open(tool, encoding="utf-8") as fh:
             text = fh.read()
@@ -625,6 +907,13 @@ def selftest():
         check("determinism-fixed-now", v_determinism)
         check("zero-write-posture", v_zero_writes)
         check("ignite-pipeline-informational", v_ignite_is_informational)
+        check("feedback-downshift-flips-due", v_feedback_downshift_flips_due)
+        check("feedback-rate-forms-current-and-null",
+              v_feedback_rate_forms_current_and_null)
+        check("feedback-corrupt-malformed-explicit-absent-exit9",
+              v_feedback_bad_exit9)
+        check("feedback-edge-selfscan-kill-face", v_edge_selfscan_kill_face)
+        check("feedback-edge-live-trace-closed", v_edge_live_trace_closed)
         check("source-cjk-free-em-dash-free", v_source_language_surface)
     finally:
         shutil.rmtree(TMP, ignore_errors=True)
@@ -666,6 +955,10 @@ def main(argv=None):
                         metavar="PATH",
                         help="round state roster (default "
                              "docs/round-state.json)")
+    parser.add_argument("--feedback", default=None, metavar="PATH",
+                        help="scheduling feedback document (default "
+                             "docs/scheduling-feedback.json; the standing "
+                             "approval-rate input the cadence consumes)")
     parser.add_argument("--ef-marker", default=None, metavar="PATH",
                         help="EF all-green marker file (the ignition gate)")
     parser.add_argument("--threshold", type=int, default=DEFAULT_THRESHOLD,

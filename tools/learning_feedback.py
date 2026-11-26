@@ -2,30 +2,30 @@
 # -*- coding: utf-8 -*-
 """learning_feedback.py - scheduling feedback face over the three standing ledgers.
 Purpose.  Read the round ledger, the round state, and the experience
-  ledger (rocqwash-round/1, rocqwash.round-state/1, rocqwash-exp/1)
-  strictly read-only, and cast the scheduling feedback face (schema
-  rocqwash.scheduling-feedback/1) into docs/scheduling-feedback.json: the
-  round admission face, the repair outcome face, and the optional
-  calibration reading.  The opt-in --promote scan is the only writing
-  mode: it appends promotion event rows (rocqwash-exp/1+promotion,
-  kind=promotion; one per round admission, one per b-gate-ready class)
-  into docs/exp-ledger.jsonl through the sibling exp_port seen set, so
-  reruns skip recorded events (append-only, idempotent).  Missing or
-  corrupt inputs land in the
-  per-account "errors" list, never guessed; the run continues on the
-  remaining valid rows and exits 1.
+  ledger strictly read-only, and cast the scheduling feedback face
+  (schema rocqwash.scheduling-feedback/1) into docs/scheduling-feedback.json:
+  the round admission face, the repair outcome face, the optional
+  calibration reading, and the computed feedback edge (closed / partial
+  / open, never hard-coded).  The opt-in --promote scan appends promotion
+  event rows (rocqwash-exp/1+promotion) into docs/exp-ledger.jsonl through
+  the sibling exp_port seen set (append-only, idempotent).  Missing or
+  corrupt inputs land in the per-account "errors" list, never guessed;
+  the run continues on the remaining valid rows and exits 1.
 Interface.  `python -I tools/learning_feedback.py [--selftest]
   [--promote] [--ledger P] [--ts TS] [--actor A] [--dry-run]`; the
   default run writes exactly one file, docs/scheduling-feedback.json
   (the three inputs are never written); --promote appends the promotion
   event rows (extended contract below).
 Dependencies.  Python 3 stdlib only; zero network; zero eval/exec;
-  deterministic default run (the runtime clock never enters its logic;
-  --promote stamps the supplied or current UTC time); sibling imports
-  exp_port (seen set, ledger resolution, line form) and b_gate_audit
-  (the ready verdict, imported, never re-implemented).
-Evidence.  --selftest on temporary fixtures, ten vectors: the eight
-  standing faces plus the promotion row lock and the exp_port interop.
+  deterministic default run (--promote stamps the supplied or current UTC
+  time); sibling imports exp_port (seen set, ledger resolution, line form)
+  and b_gate_audit (the ready verdict, imported, never re-implemented);
+  the feedback edge AST-scans tools/scheduler_lite.py (the standing
+  consumer, comment-proof: a parsed source carries no comments).
+Evidence.  --selftest on temporary fixtures, fourteen vectors: the eight
+  standing faces plus the promotion row lock, the exp_port interop, and
+  the four feedback-edge faces (closed, partial, open-kill-shape and
+  tolerant-absent).
 Exit-codes.  0 = face produced / promotion scan clean (appends and skips
   are both clean); 1 = at least one account error or a write failure,
   named on stdout; 2 = usage error.
@@ -78,6 +78,29 @@ Exit-codes.  0 = face produced / promotion scan clean (appends and skips
 #   grades), sorted by name.  A calibration row whose points text carries
 #   no readable pair stays counted in entries, is excluded from the
 #   readings, and is named in errors (fail loud, never swallowed).
+# - feedback_edge (computed, never hard-coded): three states over the
+#   standing consumer tools/scheduler_lite.py.  closed = the scheduler
+#   live-reads approval_rate_auto, applies it to the round cadence, records
+#   every influence, AND at least one round-ledger row carries the trace
+#   (a scheduling_input object with approval_rate_auto and a non-empty
+#   action); partial = the consumption is live at the plan face but the
+#   face is a subset (the per-influence record site or the ledger trace
+#   is missing); open = no live consumption (the kill-test state).  The
+#   scan is mechanical and comment-proof: the scheduler source is parsed
+#   with ast (comments never survive a parse), the declared selftest face
+#   is excluded (fixture keys there are test data, not consumption), and
+#   the evidence is the consumption constants plus the apply call edge
+#   (a dead definition with its call sites commented out scans absent).
+#   An absent or unparseable scheduler source scans absent (the consumer
+#   is not there) and is stated in the note, never an error; the edge
+#   face itself carries no errors list.
+# - scheduling_input (the round-row trace contract): the influence record
+#   a round-ledger row carries for a round steered by the scheduler:
+#   {"approval_rate_auto": <num|null>, "action": <str>, "basis": <str>}.
+#   The trace scan accepts only rows that are round rows (round_id and
+#   mode present) whose scheduling_input is such an object with a
+#   non-null rate and a non-empty action; anything else, including a
+#   ledger no writer has traced yet, leaves the trace count untouched.
 # - errors: per-account strings in deterministic order; an empty list is a
 #   clean account.
 
@@ -132,6 +155,7 @@ Exit-codes.  0 = face produced / promotion scan clean (appends and skips
 #   (the tool field differs from calibration_ledger).
 
 import argparse
+import ast
 import contextlib
 import datetime
 import hashlib
@@ -168,8 +192,16 @@ TAXONOMY_DEFAULT = ("tools", "taxonomy.json")
 CALIB_TOOL = "calibration_ledger"
 CALIB_GRADES = ("HIGH", "MID")
 CALIB_FACES = ("PASS", "FAIL")
-NOTE = ("approval-rate now readable; scheduling does not yet consume it"
-        " (declared blank)")
+
+# Feedback-edge constants (the computed edge; the standing consumer is the
+# sibling scheduler, the rules mirror the field notes above).
+SCHED_DEFAULT = ("tools", "scheduler_lite.py")
+EDGE_RATE_KEY = "approval_rate_auto"
+EDGE_DOC_TOKEN = "scheduling-feedback"
+EDGE_APPLY_CALL = "apply_feedback_input"
+EDGE_RECORD_KEY = "schedulingInput"
+EDGE_TRACE_KEY = "scheduling_input"
+SELFTEST_FACE_NAME = "selftest"
 
 # Promotion face constants (the opt-in --promote writer; the default run
 # never touches these).
@@ -414,18 +446,176 @@ def compute_calibration(exp_rows, ledger_present):
             "errors": errors}
 
 
-def build_face(rounds_path, state_path, exp_path):
-    """Cast the full scheduling feedback face from the three input paths."""
+def _str_constants(tree):
+    """Every string constant in the tree (ast walk; comments never reach
+    an ast, so a commented-out literal scans absent by construction)."""
+    found = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            found.add(node.value)
+    return found
+
+
+def _called_names(tree):
+    """Every called function name in the tree (plain and attribute calls;
+    a dead definition is not a call, so an uncalled consumer scans
+    absent)."""
+    found = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Name):
+                found.add(func.id)
+            elif isinstance(func, ast.Attribute):
+                found.add(func.attr)
+    return found
+
+
+def scan_scheduler_consumption(source_path):
+    """AST-scan the scheduler source for the live feedback-consumption
+    chain -> {"scanned", "read", "apply_edge", "record", "detail"}.
+
+    The runtime faces are the module body minus the declared selftest
+    face (fixture keys inside a selftest are test data, not consumption;
+    its nested helpers never enter the walk because the selftest subtree
+    is skipped whole).  Evidence: read = the consumed key and the
+    consumed doc token both appear; apply_edge = the influence
+    application is called; record = the per-influence record site
+    exists.  An absent or unparseable source scans absent with the
+    reason in detail (the consumer is not there; stated, never an
+    error, never guessed).
+    """
+    try:
+        with open(source_path, "r", encoding="utf-8") as fh:
+            text = fh.read()
+    except OSError as exc:
+        # The reason rides without the filesystem path: the detail reaches
+        # the tracked face, which must stay free of machine-specific paths.
+        reason = getattr(exc, "strerror", None) or type(exc).__name__
+        return {"scanned": False, "read": False, "apply_edge": False,
+                "record": False,
+                "detail": "scheduler source unreadable (%s)" % reason}
+    try:
+        tree = ast.parse(text)
+    except SyntaxError as exc:
+        return {"scanned": False, "read": False, "apply_edge": False,
+                "record": False,
+                "detail": "scheduler source unparseable (%s)" % exc}
+    runtime = ast.Module(body=[], type_ignores=[])
+    for node in tree.body:
+        if (isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and node.name == SELFTEST_FACE_NAME):
+            continue
+        runtime.body.append(node)
+    strings = _str_constants(runtime)
+    calls = _called_names(runtime)
+    read = any(s == EDGE_RATE_KEY for s in strings) and any(
+        EDGE_DOC_TOKEN in s for s in strings)
+    apply_edge = EDGE_APPLY_CALL in calls
+    record = any(s == EDGE_RECORD_KEY for s in strings)
+    detail = ("consumption constants and the apply call edge found"
+              if (read and apply_edge)
+              else "no live consumption chain in the runtime faces")
+    return {"scanned": True, "read": read, "apply_edge": apply_edge,
+            "record": record, "detail": detail}
+
+
+def scan_ledger_trace(rounds_path):
+    """Count round-ledger rows carrying the scheduling_input trace.
+
+    A trace row is a round row (round_id and mode present) whose
+    scheduling_input is an object carrying a non-null approval_rate_auto
+    and a non-empty action string.  Ledger read errors stay here silent:
+    the rounds account above already reports them, and the edge face
+    never invents a second account.
+    """
+    rows, _errors = _read_jsonl(rounds_path, "round-ledger")
+    traced = 0
+    for _lineno, row in rows:
+        if row.get("round_id") is None or "mode" not in row:
+            continue
+        record = row.get(EDGE_TRACE_KEY)
+        if not isinstance(record, dict):
+            continue
+        rate = record.get("approval_rate_auto")
+        action = record.get("action")
+        if rate is None or isinstance(rate, bool) \
+                or not isinstance(rate, (int, float)):
+            continue
+        if not isinstance(action, str) or not action:
+            continue
+        traced += 1
+    return traced
+
+
+def feedback_edge_grade(source_path, rounds_path, source_label=None):
+    """Grade the feedback edge from the two carriers (computed, never
+    hard-coded): open = no live consumption; partial = live consumption
+    with a subset face (record site or ledger trace missing); closed =
+    full consumption with the ledger trace landed.  The returned face is
+    self-certifying: every boolean input to the grade is carried, so an
+    auditor can re-derive the status from the face alone.  source_path is
+    what gets scanned; the face reports scheduler_source as source_label
+    when given (the default run passes the repo-relative standing path,
+    since the face is a tracked artifact), else as source_path."""
+    scan = scan_scheduler_consumption(source_path)
+    trace_rows = scan_ledger_trace(rounds_path)
+    consumed = scan["read"] and scan["apply_edge"]
+    if not consumed:
+        status = "open"
+    elif scan["record"] and trace_rows > 0:
+        status = "closed"
+    else:
+        status = "partial"
+    if status == "open":
+        note = ("edge open: no live consumption of %s in the scheduler"
+                " source (%s); %d round-ledger row(s) carry %s"
+                % (EDGE_RATE_KEY, scan["detail"], trace_rows,
+                   EDGE_TRACE_KEY))
+    elif status == "partial":
+        note = ("edge partial: the scheduler consumes %s at the plan face"
+                " (read=%s apply=%s record=%s) but the face is a subset;"
+                " %d round-ledger row(s) carry %s"
+                % (EDGE_RATE_KEY, str(scan["read"]).lower(),
+                   str(scan["apply_edge"]).lower(),
+                   str(scan["record"]).lower(), trace_rows, EDGE_TRACE_KEY))
+    else:
+        note = ("edge closed: the scheduler consumes %s (read+apply+record)"
+                " and %d round-ledger row(s) carry the %s trace"
+                % (EDGE_RATE_KEY, trace_rows, EDGE_TRACE_KEY))
+    return {"status": status,
+            "scheduler_source": (source_path if source_label is None
+                                 else source_label),
+            "read": scan["read"],
+            "apply_edge": scan["apply_edge"],
+            "record": scan["record"],
+            "ledger_trace": trace_rows > 0,
+            "trace_rows": trace_rows,
+            "note": note}
+
+
+def build_face(rounds_path, state_path, exp_path, scheduler_path=None):
+    """Cast the full scheduling feedback face from the input paths (the
+    scheduler source defaults to the standing consumer next to this
+    file, scanned at its absolute path and reported by its repo-relative
+    path so the tracked face carries no machine-specific path; selftests
+    always pass an explicit fixture path, which is then reported as
+    given)."""
     rounds = compute_rounds(rounds_path, state_path)
     exp_rows, exp_errors = _read_jsonl(exp_path, "exp-ledger")
     repair = compute_repair(exp_rows, exp_errors)
     ledger_present = os.path.isfile(exp_path) and bool(exp_rows)
     calibration = compute_calibration(exp_rows, ledger_present)
+    source_label = None
+    if scheduler_path is None:
+        source_label = os.path.join(*SCHED_DEFAULT)
+        scheduler_path = os.path.join(_repo_root(), *SCHED_DEFAULT)
+    edge = feedback_edge_grade(scheduler_path, rounds_path, source_label)
     return {"schema": SCHEMA,
             "rounds": rounds,
             "repair_outcomes": repair,
             "calibration": calibration,
-            "feedback_edge": {"status": "open", "note": NOTE}}
+            "feedback_edge": edge}
 
 
 def summarize(face, out_display):
@@ -433,6 +623,7 @@ def summarize(face, out_display):
     rounds = face["rounds"]
     repair = face["repair_outcomes"]
     calibration = face["calibration"]
+    edge = face["feedback_edge"]
     lines = ["scheduling-feedback: schema %s" % SCHEMA,
              "rounds: total=%d auto=%d human_approved=%d approval_rate_auto=%s"
              % (rounds["total"], rounds["auto"], rounds["human_approved"],
@@ -445,7 +636,10 @@ def summarize(face, out_display):
              "calibration: ledger_present=%s entries=%d agreement_rate=%s"
              % (str(calibration["ledger_present"]).lower(),
                 calibration["entries"], calibration["agreement_rate"]),
-             "feedback_edge: %s" % face["feedback_edge"]["status"]]
+             "feedback_edge: %s (read=%s apply=%s record=%s trace_rows=%d)"
+             % (edge["status"], str(edge["read"]).lower(),
+                str(edge["apply_edge"]).lower(), str(edge["record"]).lower(),
+                edge["trace_rows"])]
     for msg in rounds["errors"]:
         lines.append("ERROR %s" % msg)
     for msg in repair["errors"]:
@@ -720,8 +914,86 @@ def _check(failures, vector, name, cond, detail):
         failures.append("vector %d %s: %s" % (vector, name, detail))
 
 
+# Synthetic scheduler sources for the feedback-edge vectors (fixture text,
+# parsed by scan_scheduler_consumption; each shape states which evidence it
+# carries so the open/partial/closed grades are pinned from both sides).
+DEAD_SCHED_SOURCE = (
+    "DEFAULT_PATH = ('docs', 'feedback-absent.json')\n"
+    "\n"
+    "def plan_face(args):\n"
+    "    return {'verdict': 'quiet'}\n")
+LIVE_SCHED_SOURCE = (
+    "DEFAULT_FEEDBACK = ('docs', 'scheduling-feedback.json')\n"
+    "\n"
+    "def feedback_face(flagged):\n"
+    "    doc = read_json_doc(flagged[0])\n"
+    "    rounds = doc.get('rounds') or {}\n"
+    "    return rounds.get('approval_rate_auto')\n"
+    "\n"
+    "def apply_feedback_input(interval, rate):\n"
+    "    if rate is not None and rate < 0.5:\n"
+    "        return interval * 2, 'cadence-interval-x2'\n"
+    "    return interval, 'cadence-current'\n"
+    "\n"
+    "def build_plan(rate, action):\n"
+    "    return {'schedulingInput': {'approvalRateAuto': rate,\n"
+    "                                'action': action}}\n"
+    "\n"
+    "def run_plan(args):\n"
+    "    rate = feedback_face(args.feedback)\n"
+    "    interval, action = apply_feedback_input(60, rate)\n"
+    "    return build_plan(rate, action)\n")
+NORECORD_SCHED_SOURCE = (
+    "DEFAULT_FEEDBACK = ('docs', 'scheduling-feedback.json')\n"
+    "\n"
+    "def feedback_face(flagged):\n"
+    "    doc = read_json_doc(flagged[0])\n"
+    "    rounds = doc.get('rounds') or {}\n"
+    "    return rounds.get('approval_rate_auto')\n"
+    "\n"
+    "def apply_feedback_input(interval, rate):\n"
+    "    return interval * 2, 'cadence-interval-x2'\n"
+    "\n"
+    "def build_plan(rate, action):\n"
+    "    return {'rate': rate, 'action': action}\n"
+    "\n"
+    "def run_plan(args):\n"
+    "    rate = feedback_face(args.feedback)\n"
+    "    interval, action = apply_feedback_input(60, rate)\n"
+    "    return build_plan(rate, action)\n")
+KILLED_SCHED_SOURCE = (
+    "DEFAULT_FEEDBACK = ('docs', 'scheduling-feedback.json')\n"
+    "\n"
+    "def feedback_face(flagged):\n"
+    "    doc = read_json_doc(flagged[0])\n"
+    "    rounds = doc.get('rounds') or {}\n"
+    "    return rounds.get('approval_rate_auto')\n"
+    "\n"
+    "def apply_feedback_input(interval, rate):\n"
+    "    return interval * 2, 'cadence-interval-x2'\n"
+    "\n"
+    "def run_plan(args):\n"
+    "    # rate = feedback_face(args.feedback)\n"
+    "    # interval, action = apply_feedback_input(60, rate)\n"
+    "    return {'verdict': 'quiet'}\n")
+SELFTEST_ONLY_SCHED_SOURCE = (
+    "def selftest():\n"
+    "    def feedback_face(flagged):\n"
+    "        doc = read_json_doc(flagged[0])\n"
+    "        return doc.get('rounds', {}).get('approval_rate_auto')\n"
+    "\n"
+    "    def apply_feedback_input(interval, rate):\n"
+    "        return interval * 2, 'cadence-interval-x2'\n"
+    "\n"
+    "    def run_plan(args):\n"
+    "        rate = feedback_face(args.feedback)\n"
+    "        interval, action = apply_feedback_input(60, rate)\n"
+    "        return {'schedulingInput': {'rate': rate, 'action': action}}\n")
+
+
 def selftest():
-    """Ten offline vectors on temp fixtures; zero repository paths."""
+    """Fourteen offline vectors on temp fixtures; zero repository paths."""
+    total_vectors = 14
     root = tempfile.mkdtemp(prefix="learning_feedback_selftest_")
     failures = []
     try:
@@ -763,7 +1035,9 @@ def selftest():
             json.dumps({"id": "EXP-1-0004", "points": "run 4: plain note"},
                        sort_keys=True),
         ])
-        face1 = build_face(rounds1, state1, exp1)
+        sched1 = os.path.join(v1, "scheduler_lite.py")
+        _write_fixture(sched1, [DEAD_SCHED_SOURCE.rstrip("\n")])
+        face1 = build_face(rounds1, state1, exp1, sched1)
         expect1 = {
             "schema": SCHEMA,
             "rounds": {"total": 2, "auto": 1, "human_approved": 1,
@@ -781,7 +1055,14 @@ def selftest():
             "calibration": {"section": "calibration", "ledger_present": True,
                             "entries": 0, "agreement_rate": None,
                             "by_class": [], "errors": []},
-            "feedback_edge": {"status": "open", "note": NOTE},
+            "feedback_edge": {
+                "status": "open", "scheduler_source": sched1,
+                "read": False, "apply_edge": False, "record": False,
+                "ledger_trace": False, "trace_rows": 0,
+                "note": ("edge open: no live consumption of"
+                         " approval_rate_auto in the scheduler source (no"
+                         " live consumption chain in the runtime faces);"
+                         " 0 round-ledger row(s) carry scheduling_input")},
         }
         _check(failures, 1, "face", face1 == expect1,
                "face %r != expected %r" % (face1, expect1))
@@ -827,12 +1108,14 @@ def selftest():
         rounds3 = os.path.join(v3, "round-ledger.jsonl")
         state3 = os.path.join(v3, "round-state.json")
         exp3 = os.path.join(v3, "exp-ledger.jsonl")
+        sched3 = os.path.join(v3, "scheduler_lite.py")
         for path in (rounds3, exp3):
             _write_fixture(path, [])
+        _write_fixture(sched3, [DEAD_SCHED_SOURCE.rstrip("\n")])
         _write_fixture(state3, [json.dumps({"schema": "rocqwash.round-state/1",
                                             "admitted_classes": []},
                                            sort_keys=True)])
-        face3 = build_face(rounds3, state3, exp3)
+        face3 = build_face(rounds3, state3, exp3, sched3)
         expect3 = {
             "schema": SCHEMA,
             "rounds": {"total": 0, "auto": 0, "human_approved": 0,
@@ -845,7 +1128,14 @@ def selftest():
             "calibration": {"section": "calibration", "ledger_present": False,
                             "entries": 0, "agreement_rate": None,
                             "by_class": [], "errors": []},
-            "feedback_edge": {"status": "open", "note": NOTE},
+            "feedback_edge": {
+                "status": "open", "scheduler_source": sched3,
+                "read": False, "apply_edge": False, "record": False,
+                "ledger_trace": False, "trace_rows": 0,
+                "note": ("edge open: no live consumption of"
+                         " approval_rate_auto in the scheduler source (no"
+                         " live consumption chain in the runtime faces);"
+                         " 0 round-ledger row(s) carry scheduling_input")},
         }
         _check(failures, 3, "face", face3 == expect3,
                "face %r != expected %r" % (face3, expect3))
@@ -1268,17 +1558,185 @@ def selftest():
                and entries10[0]["id"] == "promotion-round-1-solo",
                "entries %r"
                % ([e.get("id") for e in (entries10 or [])],))
+
+        # Vector 11: the closed edge.  A live consumer source (read + apply
+        # call edge + per-influence record site) plus a round-ledger row
+        # carrying the scheduling_input trace grades closed with the trace
+        # counted.
+        v11 = os.path.join(root, "v11")
+        os.mkdir(v11)
+        sched11 = os.path.join(v11, "scheduler_lite.py")
+        _write_fixture(sched11, [LIVE_SCHED_SOURCE.rstrip("\n")])
+        rounds11 = os.path.join(v11, "round-ledger.jsonl")
+        _write_fixture(rounds11, [
+            json.dumps({"round_id": 1, "mode": "auto", "verify_rc": 0,
+                        "classes_applied": ["alpha"],
+                        "scheduling_input": {"approval_rate_auto": 0.25,
+                                             "action":
+                                             "cadence-interval-x2",
+                                             "basis": "fixture"},
+                        "admissions": []}, sort_keys=True),
+            json.dumps({"round_id": 2, "mode": "auto", "verify_rc": 0,
+                        "classes_applied": [], "admissions": []},
+                       sort_keys=True),
+        ])
+        grade11 = feedback_edge_grade(sched11, rounds11)
+        _check(failures, 11, "closed edge",
+               grade11["status"] == "closed" and grade11["read"] is True
+               and grade11["apply_edge"] is True and grade11["record"] is True
+               and grade11["ledger_trace"] is True
+               and grade11["trace_rows"] == 1,
+               "grade %r" % grade11)
+        # A row that is not a round row, and a trace object without a
+        # readable rate or action, stay outside the trace count.
+        rounds11b = os.path.join(v11, "round-ledger-b.jsonl")
+        _write_fixture(rounds11b, [
+            json.dumps({"note": "not a round row",
+                        "scheduling_input": {"approval_rate_auto": 0.25,
+                                             "action": "x"}},
+                       sort_keys=True),
+            json.dumps({"round_id": 3, "mode": "auto", "verify_rc": 0,
+                        "scheduling_input": {"approval_rate_auto": None,
+                                             "action": "cadence-current"}},
+                       sort_keys=True),
+        ])
+        grade11b = feedback_edge_grade(sched11, rounds11b)
+        _check(failures, 11, "trace shape guard",
+               grade11b["trace_rows"] == 0 and grade11b["status"] == "partial",
+               "grade %r" % grade11b)
+        # A source label rides the face in place of the scanned path (the
+        # default run reports the standing consumer by its repo-relative
+        # path, so the tracked face carries no machine-specific path).
+        label11 = os.path.join("tools", "scheduler_lite.py")
+        grade11c = feedback_edge_grade(sched11, rounds11,
+                                       source_label=label11)
+        _check(failures, 11, "source label carried",
+               grade11c["scheduler_source"] == label11
+               and grade11c["status"] == "closed"
+               and grade11c["trace_rows"] == 1,
+               "grade %r" % grade11c)
+        _check(failures, 11, "no label keeps the scanned path",
+               grade11["scheduler_source"] == sched11,
+               "grade %r" % grade11)
+
+        # Vector 12: the partial edge, both subset forms.  A live consumer
+        # with no scheduling_input trace row grades partial; a live read and
+        # apply edge whose record site is missing grades partial even with
+        # the trace present.
+        v12 = os.path.join(root, "v12")
+        os.mkdir(v12)
+        sched12 = os.path.join(v12, "scheduler_lite.py")
+        _write_fixture(sched12, [LIVE_SCHED_SOURCE.rstrip("\n")])
+        sched12b = os.path.join(v12, "scheduler_lite_b.py")
+        _write_fixture(sched12b, [NORECORD_SCHED_SOURCE.rstrip("\n")])
+        rounds12 = os.path.join(v12, "round-ledger.jsonl")
+        _write_fixture(rounds12, [
+            json.dumps({"round_id": 1, "mode": "auto", "verify_rc": 0,
+                        "classes_applied": [], "admissions": []},
+                       sort_keys=True),
+        ])
+        rounds12b = os.path.join(v12, "round-ledger-b.jsonl")
+        _write_fixture(rounds12b, [
+            json.dumps({"round_id": 1, "mode": "auto", "verify_rc": 0,
+                        "classes_applied": [], "admissions": [],
+                        "scheduling_input": {"approval_rate_auto": 0.25,
+                                             "action":
+                                             "cadence-interval-x2"}},
+                       sort_keys=True),
+        ])
+        grade12 = feedback_edge_grade(sched12, rounds12)
+        _check(failures, 12, "partial without trace",
+               grade12["status"] == "partial" and grade12["read"] is True
+               and grade12["apply_edge"] is True and grade12["record"] is True
+               and grade12["ledger_trace"] is False
+               and grade12["trace_rows"] == 0,
+               "grade %r" % grade12)
+        grade12b = feedback_edge_grade(sched12b, rounds12b)
+        _check(failures, 12, "partial without record",
+               grade12b["status"] == "partial" and grade12b["read"] is True
+               and grade12b["apply_edge"] is True
+               and grade12b["record"] is False
+               and grade12b["ledger_trace"] is True,
+               "grade %r" % grade12b)
+
+        # Vector 13: the open edge, kill-test shapes.  A source whose
+        # consumption call sites are commented out (the definitions stay,
+        # dead code is not consumption) grades open; a source carrying the
+        # markers only inside its selftest face grades open (fixture keys
+        # are test data, not consumption).
+        v13 = os.path.join(root, "v13")
+        os.mkdir(v13)
+        sched13 = os.path.join(v13, "scheduler_lite.py")
+        _write_fixture(sched13, [KILLED_SCHED_SOURCE.rstrip("\n")])
+        sched13b = os.path.join(v13, "scheduler_lite_b.py")
+        _write_fixture(sched13b, [SELFTEST_ONLY_SCHED_SOURCE.rstrip("\n")])
+        rounds13 = os.path.join(v13, "round-ledger.jsonl")
+        _write_fixture(rounds13, [
+            json.dumps({"round_id": 1, "mode": "auto", "verify_rc": 0,
+                        "classes_applied": [], "admissions": [],
+                        "scheduling_input": {"approval_rate_auto": 0.25,
+                                             "action":
+                                             "cadence-interval-x2"}},
+                       sort_keys=True),
+        ])
+        grade13 = feedback_edge_grade(sched13, rounds13)
+        _check(failures, 13, "open kill shape",
+               grade13["status"] == "open" and grade13["apply_edge"] is False
+               and grade13["read"] is True,
+               "grade %r" % grade13)
+        grade13b = feedback_edge_grade(sched13b, rounds13)
+        _check(failures, 13, "selftest face excluded",
+               grade13b["status"] == "open" and grade13b["read"] is False
+               and grade13b["apply_edge"] is False
+               and grade13b["record"] is False,
+               "grade %r" % grade13b)
+
+        # Vector 14: the tolerant-absent faces.  An absent scheduler source
+        # and an unparseable source both grade open with the reason stated
+        # in the note (never an error, never guessed); the edge face stays
+        # error-free while the rounds account reports its own ledger error.
+        v14 = os.path.join(root, "v14")
+        os.mkdir(v14)
+        rounds14 = os.path.join(v14, "round-ledger.jsonl")
+        _write_fixture(rounds14, [])
+        absent14 = os.path.join(v14, "absent_scheduler.py")
+        grade14 = feedback_edge_grade(absent14, rounds14)
+        # The stated reason names the failure, never the filesystem path
+        # (the note reaches the tracked face).
+        _check(failures, 14, "absent source open",
+               grade14["status"] == "open" and grade14["read"] is False
+               and grade14["ledger_trace"] is False
+               and "unreadable" in grade14["note"]
+               and absent14 not in grade14["note"],
+               "grade %r" % grade14)
+        bad14 = os.path.join(v14, "bad_scheduler.py")
+        _write_fixture(bad14, ["def broken(:\n"])
+        grade14b = feedback_edge_grade(bad14, rounds14)
+        _check(failures, 14, "unparseable source open",
+               grade14b["status"] == "open" and grade14b["read"] is False
+               and "unparseable" in grade14b["note"]
+               and bad14 not in grade14b["note"],
+               "grade %r" % grade14b)
+        face14 = build_face(rounds14,
+                            os.path.join(v14, "round-state.json"),
+                            os.path.join(v14, "exp-ledger.jsonl"), bad14)
+        _check(failures, 14, "edge face has no errors list",
+               "feedback_edge" in face14
+               and face14["feedback_edge"]["status"] == "open"
+               and face14["rounds"]["errors"],  # absent state file: one error
+               "face %r" % face14["feedback_edge"])
     finally:
         shutil.rmtree(root, ignore_errors=True)
     for line in failures:
         sys.stdout.write("FAIL %s\n" % line)
     if failures:
         red_vectors = len(set(line.split()[1] for line in failures))
-        sys.stdout.write("selftest: %d of 10 vectors red (%d assertions)\n"
-                         % (red_vectors, len(failures)))
+        sys.stdout.write("selftest: %d of %d vectors red (%d assertions)\n"
+                         % (red_vectors, total_vectors, len(failures)))
         return 1
-    sys.stdout.write("selftest: 10/10 vectors green (temp fixtures only,"
-                     " zero repository paths)\n")
+    sys.stdout.write("selftest: %d/%d vectors green (temp fixtures only,"
+                     " zero repository paths)\n" % (total_vectors,
+                                                    total_vectors))
     return 0
 
 

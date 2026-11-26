@@ -184,13 +184,13 @@ Exit-codes.  0 = all 43 refuse-to-write criteria pass; 1 = at least one
 #         fixtures, plan produces a due verdict while the tmp tree md5 stays
 #         constant; without --out nothing lands at all (dryRun=true stays
 #         pinned)
-#         anchor tools/scheduler_lite.py:364-366 (run_plan if args.out, the
-#         only write gate) + :309 (build_plan dryRun=True always)
+#         anchor tools/scheduler_lite.py:474-476 (run_plan if args.out, the
+#         only write gate) + :404 (build_plan dryRun=True always)
 #      SL2 the only write face = the explicit --out, byte-deterministic: with
 #         --out exactly one file lands (the plan document), the input tree
 #         md5 stays constant, two runs are byte-identical (the plan_bytes
 #         sort_keys deterministic byte form)
-#         anchor tools/scheduler_lite.py:364-366 + :328-331 (plan_bytes
+#         anchor tools/scheduler_lite.py:474-476 + :424-427 (plan_bytes
 #         deterministic bytes)
 #   ⑪ tools/auto_merge.py (automatic merge gate, X5 face; write face = the
 #      --apply merge-ledger append path only)
@@ -1258,6 +1258,18 @@ SL_STATE = json.dumps({"schema": "rocqwash.round-state/1",
                            {"class": "jargon", "confidence": 1.0,
                             "basis": "matrix fixture"}]}) + "\n"
 
+# The standing feedback face at the measured rate (ratchet ticket B added
+# the --feedback consumption face to the scheduler; the matrix pins it to
+# a canned fixture so SL1/SL2 stay hermetic regardless of the repository's
+# own docs/scheduling-feedback.json state; the face is read-only, so the
+# zero-write guards keep their exact meaning).
+SL_FEEDBACK = json.dumps({"schema": "rocqwash.scheduling-feedback/1",
+                          "rounds": {"total": 2, "auto": 1,
+                                     "human_approved": 1,
+                                     "approval_rate_auto": 0.5,
+                                     "by_class": [], "errors": []}},
+                         sort_keys=True) + "\n"
+
 
 def sl_fixture(tmp, tag):
     d = os.path.join(tmp, tag)
@@ -1267,7 +1279,8 @@ def sl_fixture(tmp, tag):
     marker = wf(os.path.join(d, "ef-done.marker"), "abcdef1234567890\n")
     autonomy = wf(os.path.join(d, "autonomy.json"), SL_AUTONOMY)
     state = wf(os.path.join(d, "state.json"), SL_STATE)
-    return ledger, rounds, marker, autonomy, state
+    feedback = wf(os.path.join(d, "feedback.json"), SL_FEEDBACK)
+    return ledger, rounds, marker, autonomy, state, feedback
 
 
 def sl_run(argv, now="2026-11-17T00:00:00Z"):
@@ -1280,11 +1293,11 @@ def row_sl1(tmp):
     the tmp tree md5 stays constant; without --out nothing lands at all;
     dryRun=true stays pinned (the ignition face is informational only and
     never initiates here)."""
-    ledger, rounds, marker, autonomy, state = sl_fixture(tmp, "sl1")
+    ledger, rounds, marker, autonomy, state, feedback = sl_fixture(tmp, "sl1")
     before = tree_manifest(tmp)
     rc, out = sl_run(["plan", "--gap-ledger", ledger, "--rounds", rounds,
                       "--ef-marker", marker, "--autonomy", autonomy,
-                      "--state", state, "--json"])
+                      "--state", state, "--feedback", feedback, "--json"])
     assert rc == 0, "the plan on the data state should exit 0, got %d\n%s" % (rc, out[-400:])
     plan = json.loads(out)
     assert plan["schema"] == "rocqwash.scheduler-lite.plan/1", plan["schema"]
@@ -1302,12 +1315,13 @@ def row_sl2(tmp):
     exactly one file lands (a deterministic plan document), the input tree
     md5 stays constant, and two runs are byte-identical (the sort_keys
     deterministic form)."""
-    ledger, rounds, marker, autonomy, state = sl_fixture(tmp, "sl2")
+    ledger, rounds, marker, autonomy, state, feedback = sl_fixture(tmp, "sl2")
     outp = os.path.join(tmp, "sl2", "plan.json")
     before = tree_manifest(tmp)
     rc, out = sl_run(["plan", "--gap-ledger", ledger, "--rounds", rounds,
                       "--ef-marker", marker, "--autonomy", autonomy,
-                      "--state", state, "--out", outp])
+                      "--state", state, "--feedback", feedback,
+                      "--out", outp])
     assert rc == 0, "plan --out should exit 0, got %d\n%s" % (rc, out[-400:])
     assert os.path.isfile(outp), "--out did not land = write face lost"
     assert tree_manifest(tmp) == before | {
@@ -1318,7 +1332,8 @@ def row_sl2(tmp):
     first = io.open(outp, "rb").read()
     rc2, _ = sl_run(["plan", "--gap-ledger", ledger, "--rounds", rounds,
                      "--ef-marker", marker, "--autonomy", autonomy,
-                     "--state", state, "--out", outp])
+                     "--state", state, "--feedback", feedback,
+                     "--out", outp])
     assert rc2 == 0, rc2
     assert io.open(outp, "rb").read() == first, \
         "plan bytes drifted between runs = deterministic form broken (bytes lost)"
@@ -2183,9 +2198,9 @@ ROWS = [
     ("J1", "jargon_apply", "the sanitizing tool's self-reference guard: the mapping source table never enters the target set (--tree excludes it, --file refused rc=1)",
      "tools/jargon_apply.py:550-560,471-484", row_j1),
     ("SL1", "scheduler_lite", "plan defaults to zero-write (fully flagged canned inputs plan a due verdict, tree constant, dryRun always true)",
-     "tools/scheduler_lite.py:364-366,309", row_sl1),
+     "tools/scheduler_lite.py:474-476,404", row_sl1),
     ("SL2", "scheduler_lite", "only write face = explicit --out (exactly one file lands, input tree constant, two runs byte-identical)",
-     "tools/scheduler_lite.py:364-366,328-331", row_sl2),
+     "tools/scheduler_lite.py:474-476,424-427", row_sl2),
     ("AM1", "auto_merge", "no --apply zero-write (rail rules allowed yet the merge ledger is not created)",
      "tools/auto_merge.py:244-247", row_am1),
     ("AM2", "auto_merge", "hold never authorizes (zero writes even under --apply) plus out-of-scope branch refused rc=1 by the whitelist with zero writes",
