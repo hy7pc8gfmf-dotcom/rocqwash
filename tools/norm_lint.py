@@ -24,7 +24,7 @@ Interface.  --tree DIR | --file PATH [--jargon-map P] [--cjk-threshold F]
 Dependencies.  Python 3 standard library only; the mapping table and the
   optional CJK whitelist are path-parameterized data faces.
 
-Evidence.  --selftest covers six vectors on temporary fixtures (jargon hit,
+Evidence.  --selftest covers seven vectors on temporary fixtures (jargon hit,
   fields missing, substring and technical-usage exemption, whitelist
   exemption, compliant English triple, Coq comment face; byte-identical reruns).
 
@@ -61,7 +61,7 @@ Exit-codes.  0 accounted (findings are data); 1 instrument failure; 2 usage; 9 m
 #                    file is exempt from the wording battery only (it carries
 #                    the faces by design); the em-dash count is exempt nowhere.
 # --json P / --md P  report targets, schema rocqwash-norm-lint/1.
-# --selftest         six vectors on temporary fixtures; runs standalone.
+# --selftest         seven vectors on temporary fixtures; runs standalone.
 # --gate / --strict  reserved for the future gated form; passing either
 #                    today is a usage error (exit 2).  Grading follows the
 #                    annotation standard card: header and jargon findings are
@@ -73,7 +73,7 @@ Exit-codes.  0 accounted (findings are data); 1 instrument failure; 2 usage; 9 m
 # markdown files contribute their whole text; Coq (* *) comment lines are
 # extracted nested-aware with the vernacular body and string bodies masked
 # (the complement of anchor_guard mask_comments_strings).  Backtick spans are
-# identifier citations and are masked out of the jargon and CJK faces alike.
+# identifier citations and are masked out of the jargon, CJK and forbidden faces alike (positions preserved; a cited path is never read as a prose date stamp).
 # Determinism: findings and files are sorted, reports carry no wall-clock
 # fields, and identical inputs rerun byte-identical.
 
@@ -171,7 +171,8 @@ def load_jargon_map(path):
     except OSError as exc:
         fail("jargon map unreadable: " + path + " (" + str(exc) + ")", 9)
     # JSON seed form (schema rocqwash-jargon-map/1): entries[] carrying
-    # face/standard/exempts — the sync tool's cast shape (20261118 wave59).
+    # face/standard/exempts — the sync tool's cast shape (cast generation
+    # in the ledger surface).
     # The md-table parser below stays for the docs/ detection-table form.
     if raw.lstrip().startswith("{"):
         try:
@@ -461,6 +462,11 @@ def jargon_findings(segs, terms):
 def forbidden_findings(segs):
     findings = []
     for ln, txt in segs:
+        # backtick spans are identifier citations (real file and directory
+        # names carry cast dates); blank them with the position-preserving
+        # mask so a cited path is never read as a prose date stamp, while a
+        # bare prose date outside backticks stays flagged
+        txt = mask_backticks(txt)
         seen = set()
         for rx, suggest in FORBIDDEN:
             for m in rx.finditer(txt):
@@ -901,6 +907,19 @@ Lemma red : True.
 Proof. exact I. Qed.
 '''
 
+V7_PY = '''"""v7_citation: forbidden-date vector.
+
+Purpose.  Fixture proving a backticked path citation carrying a date is
+  exempt while a bare prose date on the same line stays flagged.
+Interface.  None (fixture).
+Dependencies.  None.
+Evidence.  Selftest vector 7.
+Exit-codes.  0.
+"""
+# see `docs/design-20261126.md` for the plan; cast on 2026-11-26
+x = 3
+'''
+
 
 def write_text(path, content):
     with io.open(path, "w", encoding="utf-8") as fh:
@@ -1003,6 +1022,20 @@ def run_selftest():
               and j6[0]["line"] == want_line6 and not other6,
               "jargon findings: " + json.dumps(j6, ensure_ascii=False)
               + "; non-jargon findings: " + str(len(other6)))
+
+        # vector 7: a backticked path citation carrying a date is exempt
+        # (identifier citation, positions preserved); a bare prose date on
+        # the same line stays flagged
+        p7 = os.path.join(tmp, "v7_citation.py")
+        write_text(p7, V7_PY)
+        r7 = scan_file("v7_citation.py", p7, "py", terms, 0.0, set(), map_path)
+        f7 = [f for f in r7["findings"] if f["kind"] == "forbidden"]
+        want_line7 = V7_PY.splitlines().index(
+            "# see `docs/design-20261126.md` for the plan; cast on 2026-11-26") + 1
+        check("citation-date-exempt",
+              len(f7) == 1 and f7[0]["term"] == "2026-11-26"
+              and f7[0]["line"] == want_line7,
+              "forbidden findings: " + json.dumps(f7, ensure_ascii=False))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     ok_all = all(ok for _, ok, _ in results)
@@ -1036,7 +1069,7 @@ def main(argv=None):
                          " em_dash findings (data, error level)")
     ap.add_argument("--md", metavar="P", help="write the human-readable report there")
     ap.add_argument("--selftest", action="store_true",
-                    help="run the six selftest vectors on temporary fixtures")
+                    help="run the seven selftest vectors on temporary fixtures")
     args = ap.parse_args(argv)
     if args.selftest:
         if args.tree or args.file or args.json or args.md or args.cjk_whitelist:

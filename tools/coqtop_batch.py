@@ -13,7 +13,8 @@ Purpose.  One deterministic batch face for the external-evaluation gap
 Interface.  python -I tools/coqtop_batch.py --input FILE [--coqtop BIN]
   [--timeout SEC] [--json OUT] | --selftest.  Binary resolves per flag,
   then ROCWASH_COQTOP, then honest skip 111 (verify/ convention: judged
-  nothing, reported not simulated).  Exit-codes.  0 clean transcript; 1
+  nothing, reported not simulated).
+Exit-codes.  0 clean transcript; 1
   errors found (classified, rc is data); 2 usage; 9 binary configured but
   missing, launch failure, or timeout (fail-loud); 111 honest skip;
   --selftest red = 1.  The selftest never launches a toolchain: the

@@ -18,7 +18,8 @@
       validates and prints the plan plus the draft skeleton with zero
       network and zero writes; --selftest runs the offline vector group.
       Config schema: rocqwash-periscope-config/1; draft: bilingual markdown
-      mirroring the 2026-11-13 round-1 adjudication ledger form.
+      mirroring the round-1 adjudication ledger form (the cast date lives in
+      the ledger surface, not in prose).
 
     Dependencies.  Python 3 standard library only; `curl` on PATH for real
       runs (never invoked by --dry-run or --selftest); bearer credentials
@@ -33,7 +34,7 @@
       issue with comments sub-face), cap/stop/retry machine, read-only
       pledge over every built argument vector, draft-template invariants,
       dry-run zero-write.  Ground-truth round-1 ledger:
-      attn/_periscope_20261113/intel-ledger-20261113.md.
+      `attn/_periscope_20261113/intel-ledger-20261113.md`.
 
     Exit-codes.  0 = run/dry-run/selftest green (negative findings and a C1
       trigger are data, reported loudly, never an error); 1 = selftest red
@@ -147,8 +148,9 @@ class SchemaError(Exception):
 
 
 # --------------------------------------------------------------------------
-# Default configuration: the six-source list as built in round 1 (2026-11-13
-# watchlist).  Endpoints are complete URLs; arXiv URLs carry a {WINDOW}
+# Default configuration: the six-source list as built in the round-1
+# watchlist (cast date in the ledger surface).  Endpoints are complete
+# URLs; arXiv URLs carry a {WINDOW}
 # placeholder replaced by the rolling submittedDate range when days_window
 # is set.
 # --------------------------------------------------------------------------

@@ -11,7 +11,7 @@ Purpose.  Brings the annotation-face normalization lint (report-only first
 
 Interface.  Invoked by tests/run_tests.sh (t_norm_lint) or standalone:
   python3 -B tests/test_norm_lint.py.  Three checks:
-  1 --selftest exits 0 with seven PASS vector lines and no FAIL line;
+  1 --selftest exits 0 with eight PASS check lines and no FAIL line;
   2 --help exits 0 (argparse usage face present);
   3 exit-code contract spot checks: --bogus 2; missing --tree 9;
     --selftest combined with scan flags 2; --file with an unsupported
@@ -47,8 +47,8 @@ def main():
     fails = []
     rc, out = run(["--selftest"])
     n_pass = sum(1 for line in out.splitlines() if line.startswith("PASS "))
-    if rc != 0 or n_pass != 7 or "FAIL " in out:
-        fails.append("check1 --selftest should exit 0 with seven PASS vector "
+    if rc != 0 or n_pass != 8 or "FAIL " in out:
+        fails.append("check1 --selftest should exit 0 with eight PASS check "
                      "lines and no FAIL line (got rc=%d, PASS=%d)"
                      % (rc, n_pass))
         print(out)

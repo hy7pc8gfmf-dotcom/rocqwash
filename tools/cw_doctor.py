@@ -145,7 +145,7 @@ DEFAULT_GUARD = "/Users/apple/Desktop/ConstructiveWorld/cpu_guard.sh"
 def _clean_mode():
     # Clean mode (ROCWASH_CLEAN=1) declares the canonical environment absent:
     # canonical-dependency faces report "requires canonical environment" and
-    # refuse instead of probing (docs/clean-mode-manual-20261114.md). Default
+    # refuse instead of probing (`docs/clean-mode-manual-20261114.md`). Default
     # (env unset) keeps historical behavior byte-identical.
     return os.environ.get("ROCWASH_CLEAN", "").strip() == "1"
 

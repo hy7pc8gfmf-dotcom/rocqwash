@@ -21,10 +21,14 @@ Interface.  python -I tools/require_rewire.py --tree DIR --retire M
   --retire M --verify [--out FILE] | --selftest.  The --verify closure
   face runs standalone on --tree + --retire (the successor is a plan-face
   obligation, never required for closure): rc 0 = no surviving M face in
-  the tree; rc 1 = survivors listed (data, fail-loud).  Exit-codes.  0
+  the tree; rc 1 = survivors listed (data, fail-loud).
+Exit-codes.  0
   clean; 1 verify survivors or selftest red; 2 usage (bad plan shape,
   M == S on the plan face, module name malformed); 9 --tree/--plan path
   missing.  Deterministic: sorted consumers, double-run byte-identical.
+Dependencies.  Python 3 standard library only; the selftest's
+  subprocess face is a detached temp copy of this module only; zero
+  network, zero toolchain (planning is text-only; the wash engine applies).
 Evidence.  --selftest: canned-tree vectors (three line shapes captured,
   Import/Export classification, ledger old-string verbatim + expect
   counts, verify survivors face, M == S refusal, determinism, no-M tree
