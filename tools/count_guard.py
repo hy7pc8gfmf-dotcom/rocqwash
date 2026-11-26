@@ -75,7 +75,11 @@ MCPMD_SEC_RX = re.compile(r"apply to all (\d+) capabilities equally")
 
 CAP_INDEX_REL = os.path.join("docs", "CAPABILITY-INDEX.md")
 CENSUS_REL = os.path.join("docs", "census-tools.json")
-MCPMD_REL = os.path.join("docs", "mcp.md")
+# literal forward-slash relative path: the R3 red lines and the V7
+# assertion string-match this label, so it must read docs/mcp.md on
+# every platform (os.path.join would hand Windows a backslash label;
+# the read path joins repo root with this string and works either way)
+MCPMD_REL = "docs/mcp.md"
 
 _UNIVERSE_WHAT = ("the N " + _NONU_PREFIXED
                   + " `tools/*.py` (M files minus K `_` helpers)")
