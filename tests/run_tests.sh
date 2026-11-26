@@ -1,7 +1,7 @@
 #!/bin/bash
 # run_tests.sh — rocqwash tests/ self-test suite entry point
 #
-# Purpose.  Run the statically rostered 89-case suite one case at a time with a
+# Purpose.  Run the statically rostered 91-case suite one case at a time with a
 #   per-case PASS/FAIL/SKIP line and a final summary; all green exits 0, any red
 #   exits 1.  Idempotent: zero bytes written into the repository, byte-identical
 #   reruns; sole exception: ROCWASH_GATE_LEDGER_DIR opts into the gate-ledger
