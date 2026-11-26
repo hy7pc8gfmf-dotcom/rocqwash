@@ -70,7 +70,7 @@ Probes (zero network; probes 1-6 run one session in order, probe 7 is a
   sessions of the same child shape):
   1  initialize -> protocolVersion echo plus serverInfo name rocqwash-mcp
   2  notifications/initialized -> no response line
-  3  tools/list -> exactly the 56 expected names in registration order,
+  3  tools/list -> exactly the 57 expected names in registration order,
      each with a description and a closed-object inputSchema; plus the
      micro-ticket schema-face vectors over three faces (schema-only):
      exp_append carries the optional actor string
@@ -245,6 +245,17 @@ EXPECTED_TOOLS = [
     # toolchain leg stay CLI-side - no such token can be formed from the
     # exposed argument set)
     "anchor_guard",
+    # the capability-ratchet registration increment (one read/plan face
+    # over the landed nine-metric capability ratchet CLI
+    # tools/capability_ratchet.py, schema rocqwash-capability-ratchet/1:
+    # measure (with the --json single-object print), gate --baseline (the
+    # blocking below-baseline wall; no suite or workflow call site is
+    # registered for it yet), and compare --ledger (the
+    # hash-chain anti-tamper equality check) plus the read-only standalone
+    # --selftest vector face; the ledger --append face and the --from-sha
+    # window override stay CLI-side per the ledger-append-face layer law -
+    # no such token can be formed from the exposed argument set)
+    "capability_ratchet",
 ]
 
 # Frozen micro-ticket vector (mu-3): the full argparse flag face of

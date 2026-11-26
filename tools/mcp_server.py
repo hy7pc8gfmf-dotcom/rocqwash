@@ -4,9 +4,9 @@ Purpose.  Expose the repository tool capability surface over the Model
   dispatcher: the newline-delimited JSON-RPC 2.0 stdio face, and the
   --http face (POST application/json on /mcp, streamable-style
   request/response, with an internal Mcp-Session-Id response header;
-  Python stdlib http.server, zero new dependencies).  51 registered
+  Python stdlib http.server, zero new dependencies).  57 registered
   capabilities, each spec transcribed from its docs/CAPABILITY-INDEX.md
-  entry line (seven later increments from their tools' own CLI contract
+  entry line (the later increments from their tools' own CLI contract
   headers).  Default deny for the network and heavy capabilities
   (sentinel_status, net_probe, ci_triage, pushci_status, claim_watch,
   source_fetch, release_chain): a failed tool result names
@@ -39,7 +39,7 @@ Dependencies.  Python 3 standard library only (argparse, http.client
   [selftest smoke only], http.server, json, os, subprocess, sys,
   threading); registered CLIs resolve under ROCQWASH_HOME.
 
-Evidence.  tests/t_mcp_face.py asserts the 51-name roster and the wire
+Evidence.  tests/t_mcp_face.py asserts the 57-name roster and the wire
   contract; --selftest self-proofs the frozen interface-shape vectors
   plus the dispatcher round-trip vectors (initialize, tools/list, one
   tools/call shape), with the socket smoke gated behind
@@ -88,9 +88,12 @@ HTTP_MAX_BODY_BYTES = 32 * 1024 * 1024
 # increment of four: attest_join, frozen8, verify_vo, gate4_comment_guard
 # (R2-122; the MCP faces wire existing differentiated CLIs, zero new tool
 # code; the frozen8 face is an exposure-list gate carrying only its two
-# read-only top-level flags); a roster change re-freezes this value and
+# read-only top-level flags), plus the capability-ratchet registration
+# increment (one read/plan face over the landed nine-metric ratchet CLI
+# tools/capability_ratchet.py: measure/gate/compare/selftest, the ledger
+# --append face staying CLI-side); a roster change re-freezes this value and
 # EXPECTED_TOOLS in tests/t_mcp_face.py in the same round.
-SELFTEST_ROSTER_COUNT = 56
+SELFTEST_ROSTER_COUNT = 57
 
 PARSE_ERROR = -32700
 INVALID_REQUEST = -32600
@@ -2288,6 +2291,58 @@ TOOL_SPECS = [
             "tool exits 2 before argparse (honest usage)."
         ),
     },
+    {
+        "name": "capability_ratchet",
+        "kind": "cli",
+        "cli": os.path.join("tools", "capability_ratchet.py"),
+        "net_gated": False,
+        "fixed_args": [],
+        "arg_map": (
+            ("measure", "--measure"),
+            ("json", "--json"),
+            ("gate", "--gate"),
+            ("baseline", "--baseline"),
+            ("compare", "--compare"),
+            ("selftest", "--selftest"),
+        ),
+        "schema": _object_schema(
+            {
+                "measure": {"type": "boolean", "description": "derive fresh readings of the frozen nine metrics from the source accounts (data files read in place; two owning tools spawned read-only for their stdout faces and two rendered in-process, so a derivation writes nothing inside the repository); with json prints the single snapshot JSON object; CLI flag --measure"},
+                "json": {"type": "boolean", "description": "with measure: print exactly one JSON object, schema rocqwash-capability-ratchet/1; CLI flag --json"},
+                "gate": {"type": "boolean", "description": "judge fresh readings against the baseline snapshot: any metric strictly below baseline is rc 1 (a blocking red wherever the gate is mounted, never advisory), flat or above rc 0; CLI flag --gate"},
+                "baseline": {"type": "string", "description": "path of the baseline snapshot file (a capability-ratchet ledger line is itself a valid baseline); CLI flag --baseline"},
+                "compare": {"type": "string", "description": "path of the capability ledger: validates the whole hash chain and requires the fresh derivation to equal the head line (anti-tamper; with measure the readings print first and the compare verdict decides the exit code); CLI flag --compare"},
+                "selftest": {"type": "boolean", "description": "run the frozen twenty-three-vector offline group on canned sources and private temporary ledgers (zero network, zero repository writes; the append face and --from-sha stay CLI-side); CLI flag --selftest"},
+            }
+        ),
+        "description": (
+            "Capability ratchet face (tools/capability_ratchet.py, schema "
+            "rocqwash-capability-ratchet/1): the nine-metric capability "
+            "measurement and regression gate.  measure re-derives the "
+            "frozen nine readings from their source accounts only (three "
+            "JSON data files, one fixture directory, two owning tools' "
+            "stdout faces, and two owning-tool summaries rendered "
+            "in-process), never hand-filled, each reading carrying "
+            "metric, family (strength or gap-fill), value, basis, "
+            "window {from_sha, to_sha}, source; calibration_agreement_rate "
+            "is null while the calibration ledger has zero entries "
+            "(unmeasured is null, never 0).  gate --baseline is the "
+            "blocking regression wall: strictly-below is rc 1, flat or "
+            "above rc 0.  compare --ledger validates the append-only hash "
+            "chain (seq, prev_digest, digest) and requires fresh equality "
+            "with the head line, so a hand-edited or drifted ledger cannot "
+            "pass.  Zero network; reads are read-only (a derivation writes "
+            "nothing inside the repository); the caller-named "
+            "baseline/compare paths are read faces.  Every snapshot "
+            "carries tree_state {dirty, changed_paths, scope}: readings "
+            "come from the working tree while the window anchor is HEAD, "
+            "so a non-clean tree is disclosed on stderr, never guessed "
+            "away.  The ledger --append face (it refuses a working tree "
+            "that differs from HEAD under the source paths unless "
+            "--allow-dirty-anchor is given) and the --from-sha window "
+            "override stay CLI-side (the ledger-append-face layer law)."
+        ),
+    },
 ]
 
 TOOLS_BY_NAME = {spec["name"]: spec for spec in TOOL_SPECS}
@@ -2601,7 +2656,9 @@ def _selftest():
     the axiom_sweep registration increment, the claim_watch
     registration increment, the v2-B audit-line batch of three:
     source_fetch, sweep_verdict, release_chain, plus the numeric-probe
-    registration batch of two: numeric_probe, statement_probes), the
+    registration batch of two: numeric_probe, statement_probes, plus the
+    capability-ratchet registration increment of one:
+    capability_ratchet), the
     same freeze discipline as EXPECTED_TOOLS in tests/t_mcp_face.py; a
     roster change re-freezes both.
     """
