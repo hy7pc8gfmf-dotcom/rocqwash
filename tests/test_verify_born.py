@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """test_verify_born.py — wrapper/verify_born.py 自测（tests/·Mac 适配席 rqadapt·20261031）
+Purpose.  Self-test for wrapper/verify_born.py, the born-round green-verdict adapter over verify/verify_vo.py: nine subprocess checks, each with its positive and negative verdict, temporary-directory driven with zero repository writes.
+Interface.  Direct run (python tests/test_verify_born.py); no flags; every check runs the sibling tool as a subprocess.
+Dependencies.  Python 3 standard library only; the sibling tool wrapper/verify_born.py on disk.
+Evidence.  Each check prints its verdict line; the runner summarizes and exits nonzero when a check fails.
+Exit-codes.  0 all checks pass; 1 at least one check failed.
+
 
 九判 subprocess 实跑（每例正/负判优先·临时目录驱动零仓写）：
   1 裸调哑成功禁律    零参 → rc=2（判绿三路径 --v/--vo/--rc-file 必填）
