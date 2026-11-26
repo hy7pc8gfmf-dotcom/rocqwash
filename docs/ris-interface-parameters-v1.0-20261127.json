@@ -1,0 +1,90 @@
+{
+  "schema": "rocqwash.ris-interface/1",
+  "version": "1.0",
+  "date": "2026-11-27",
+  "language": "international-english",
+  "governing_documents": [
+    "docs/recursive-improvement-charter-v1.0-20261127.md",
+    "docs/recursive-evolution-whitepaper-v1.0-20261121.md",
+    "docs/ris-interface-spec-v1.0-20261127.md"
+  ],
+  "read_surface": [
+    {"source": "cloud_issue_tracker", "content": "proposals, claims, decisions", "authoritative": true},
+    {"source": "cloud_pull_request_list", "content": "active claims, review state", "authoritative": true},
+    {"source": "repository_documents", "content": "rules, measurements, method", "authoritative": true},
+    {"source": "rocqwash_tool_interface", "content": "toolchain and audit checks", "authoritative": true},
+    {"source": "version_control_files", "content": "persistent records", "authoritative": true},
+    {"source": "local_copy", "content": "stale by default", "authoritative": false}
+  ],
+  "claim": {
+    "title_form": "[actor] subject date",
+    "date_format": "YYYY-MM-DD",
+    "fields": ["actor", "subject", "date"],
+    "collision_action": "stop",
+    "release_on": ["pull_request_closed", "park"],
+    "reserves": ["subject", "file_domain"],
+    "template_reservations": false
+  },
+  "work_item_parameters": [
+    {"name": "objective", "required": true, "type": "string"},
+    {"name": "evidence", "required": true, "type": "path_or_command"},
+    {"name": "scope", "required": true, "type": "path_list"},
+    {"name": "exclusion", "required": true, "type": "path_list"},
+    {"name": "acceptance", "required": true, "type": "check"},
+    {"name": "direction", "required": true, "type": "string"},
+    {"name": "dependencies", "required": true, "type": "item_list"}
+  ],
+  "cycle_parameters": ["detect", "ceremony", "construct", "verify", "land", "record"],
+  "layer_boundary": {
+    "data_tier": "automatic with retry and deduplication",
+    "code_tier": "prepare only; review and gate decide",
+    "constitution_tier": "never automatic"
+  },
+  "tool_interface": {
+    "preferred": true,
+    "use_registered_names_only": true,
+    "registered_faces": [
+      "doc_lint", "norm_lint", "ai_flavor_detect", "i18n_verify",
+      "capability_ratchet", "axiom_guard", "tree_audit", "verify_vo",
+      "gate4_comment_guard", "anchor_guard"
+    ],
+    "shell_fallback": [
+      {
+        "check": "count_reconciliation",
+        "invocation": "python3 -I tools/count_guard.py --repo DIR",
+        "reason": "no registered interface for this check"
+      },
+      {
+        "check": "contribution_intake",
+        "invocation": "python3 -I tools/contrib_intake.py --contrib-repo PATH --contrib-ref REF --base-repo PATH",
+        "reason": "no registered interface for this check"
+      }
+    ]
+  },
+  "writing": {
+    "language": "international-english",
+    "surfaces": ["comment_text", "file_header", "statement_header", "proof_introduction", "inside_proof"],
+    "excluded": ["local_shorthand", "engineering_slang", "colloquial_wording", "informationless_generated_wording"],
+    "outcome_statements_name_their_check": true
+  },
+  "prohibitions": [
+    "weaken_a_check",
+    "approve_own_change",
+    "assign_item_to_self",
+    "merge_own_pull_request",
+    "edit_uncommitted_personal_work"
+  ],
+  "stop_conditions": [
+    "duration_elapsed",
+    "two_derivation_rounds_empty_and_two_surveys_clean",
+    "three_consecutive_items_parked",
+    "unresolved_claim_collision",
+    "governing_document_invalidated_driver"
+  ],
+  "survey_role": "auxiliary; only while no claimed item is in progress",
+  "version_control": {
+    "change_requires_work_item": true,
+    "driver_reads_cloud_at_runtime": true,
+    "embedded_copy_allowed": false
+  }
+}
