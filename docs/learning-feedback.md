@@ -140,18 +140,23 @@ flip the verdict), so the two faces are read together.
 The trace contract (`scheduling_input` on a round-ledger row):
 `{"approval_rate_auto": <number|null>, "action": <string>, "basis":
 <string>}`. The scan accepts only round rows (round_id and mode present)
-whose trace object carries a readable rate and a non-empty action. No
-writer embeds the object yet: the round commit face
-(tools/auto_round.py) validates a strict row key set, and the scheduler
-plans only and never fires. Until a writer lands and the first steered
-round is traced, the honest standing grade is `partial`.
+whose trace object carries a readable rate and a non-empty action. The
+writer face is `commit --scheduler-plan` on tools/auto_round.py: it
+reads the plan document (schema rocqwash.scheduler-lite.plan/1), maps
+`schedulingInput` fields onto the three trace keys, and refuses a
+corrupt or absent plan with exit 9 (observed by auto_round --selftest
+vector V19). The cron face (tools/selfevolve_round.py) runs the
+scheduler_lite plan face before every jargon round and passes the plan
+document to the commit, so the first steered round after this face
+lands carries the trace. Until a steered round is traced on the
+standing ledger, the honest standing grade is `partial`.
 
 ## Honest boundary
 
 The edge grade is derived, not declared: every boolean that decides the
 status is carried on the face.  What the tool does NOT do: it does not
-fire rounds, so the ledger trace appears only when the round machinery
-starts embedding `scheduling_input` on steered rounds; until then the
+fire rounds, so the ledger trace appears with the first steered round
+the cron face commits after the writer face lands; until then the
 standing grade stays `partial` even with the consumption fully live, and
 that is the honest reading, not a gap to be padded.
 
