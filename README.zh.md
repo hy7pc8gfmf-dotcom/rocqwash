@@ -47,7 +47,7 @@ Derivation Chain (input → wash → verify → land → certify → push)
 - **QeqT / QltT / QleT'** — 洗的目标 Set 载体谓词形；Qeq/Qlt/Qle 为标准 Prop 载体原形。QeqT 目标拒绝 Qeq 等式改写——Set/Prop 互斥的推论。
 - **-face（面）** — 工具操作的 `.v` 文件区域：statement-face＝语句行，annotation-face＝注释/头注文本，区别于证明体。
 - **station（站）** — 一处被报告的位置：扫描器/探针列出的（名称， 行）对，交人工裁决；RED station＝判为 Prop 泄漏。
-- **probe（探针）** — 试编译：候选文件在 world 内以 `rocq c` 编译，按退出码分拣为可洗／生而净／红因各类。
+- **probe（检验）** — 试编译：候选文件在 world 内以 `rocq c` 编译，按退出码分拣为可洗／生而净／红因各类。
 - **gate4 / gate6 / gate7** — 正典路径上的编号检查点：gate4＝注释卫生；gate6＝普查包装（`verify/verify_gate6.py`）；gate7＝英文化适配（CJK→0＋五字段头注帽）。
 - **W13** — generation-gap 世代缝隙指纹探针（`seam/seam_probe.py`）：按四种机制指纹分类洗后语句仍红的原因，逐一映射到处方。
 - **R4** — 提取侧三源审计：裸全提取 magic 计数、探针双面、五式 grep 三源须全净（提取侧合取现为部分完成——见英文项目页诚实边界册）。
@@ -305,8 +305,8 @@ rocqwash/
 
 2026-11-19 起工具链闭合自身环路：审计自己的树、修复自己的红例、验证自己的验证器。
 
-- **递归代工具族**（`tools/`）：`tree_audit.py`（只读树健康普查·`.v`/`.lean` 源树）、`axiom_guard.py`（全仓公理守卫·逐定理一枚 `Print Assumptions` 判决）、`auto_round.py`（轮次准入/提交/账本/回滚）、`scheduler_lite.py`（TODO-SEAT 阈值触发器）、`repair_scope.py`（修复面共享排除名册）、`repair_weekly.py`（修复结果周分布）、`selfevolve_round.py`（单发确定性机械轮：普查→apply→验证→提交→push→CI 判读）。
-- **元验证层**：`tests/test_tool_selftests.py` 枚举 selftest 宇宙——57 器非 `_` 前缀 `tools/*.py`（60 件减 3 件 `_` 助手）——逐器运行声明的 `--selftest`，红、缺失或未豁免即响亮失败；套件挂载为 `t_tool_selftests` 例。
+- **递归代工具族**（`tools/`）：`tree_audit.py`（只读树健康普查·`.v`/`.lean` 源树）、`axiom_guard.py`（全仓公理守卫·逐定理一枚 `Print Assumptions` 判决）、`auto_round.py`（轮次准入/提交/账本/回滚）、`scheduler_lite.py`（TODO-SEAT 阈值触发器）、`repair_scope.py`（修复面共享排除名册）、`repair_weekly.py`（修复结果周分布）、`selfevolve_round.py`（单发确定性机械轮：survey→apply→验证→提交→push→CI 判读）。
+- **元验证层**：`tests/test_tool_selftests.py` 枚举 selftest 宇宙——57 器非 `_` 前缀 `tools/*.py`（60 件减 3 件 `_` 助手）——逐器运行声明的 `--selftest`，failing、缺失或未豁免即响亮失败；套件挂载为 `t_tool_selftests` 例。
 - **方法论正典**：[docs/recursive-evolution-whitepaper-v1.0-20261121.md](docs/recursive-evolution-whitepaper-v1.0-20261121.md)——七律、七支柱、§7 2026-11-19/21 链实录。
 - **CI 红例分类表**：[docs/ci-triage-table.json](docs/ci-triage-table.json) v1.5——19 类（R1–R19），上方递归代 CI 白皮书徽章背后的分类表。
 - **逐器契约面**：[docs/CAPABILITY-INDEX.md](docs/CAPABILITY-INDEX.md)——一器一条目，每条七字段（路径、一行用途、调用形、可复制示例、imports、网络面、SKIP 面）。
