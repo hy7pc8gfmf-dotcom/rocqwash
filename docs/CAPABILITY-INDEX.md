@@ -119,7 +119,7 @@ Legend: Doc = module docstring present; Arg = argparse import present; Pos/Opt =
 
 ## 2. Per-Item Contract Lines
 
-57 items in filename order; each entry transcribes the census verbatim; the only added line is the Example line.
+77 items in filename order; each entry transcribes the census verbatim; the only added line is the Example line. (Count line advanced 57 to 77 on November 26, 2026, at the lane-closure count-line increment, branch `supply/rec-d2t21-20261126`: the earlier registration increments left this line at its cast-time 57 while the live count lived on the cross-table row; with the driver2 registration lane closed — fourteen entries landed across `supply/rec-d2t4-20261126` through `supply/rec-d2t17-20261126`, index entries 63 to 77 — the live-count rule is applied to this header face too, `command grep -c "^### tools/" docs/CAPABILITY-INDEX.md` = 77 measured this increment, matching the cross-table row reading.)
 
 Integration note (the engine-body ticket, at integration): the seven engine-body entries are inserted in filename order, transcribed from docs/engine-body-capabilities.md (the lane-8 draft) and re-verified live by the integration agent per file (--selftest); the Status line is this batch's added line (declared single-line addition); the section 1 rows carry live measurements on the integration tree; the aggregates below stay the census-time word-face facts.
 
