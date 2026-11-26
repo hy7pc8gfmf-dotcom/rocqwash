@@ -24,6 +24,11 @@ Interface.  python -I tools/statement_identity.py --claimed <file|dir>
 Dependencies.  Python 3 standard library only; zero network, zero compile,
   zero subprocess (the prober itself runs nothing); deterministic report
   (no wall clock, basenames only on the report face, sort_keys).
+Evidence.  --selftest: tempfile-driven offline fixture vectors (fixture
+  extraction, clean-match and symbol-seam cells, token-scoped header
+  evidence, uncast row detection, matrix-shape vocabulary, cells-unmatched
+  algebra, definition-equivalence and tool-semantic seams, positional
+  pairing, dir pairwise).
 Exit-codes.  0 report emitted (seams and uncast rows are findings, loud
   in the JSON, not failures - the seam_probe caliber); 2 usage error
   (file/dir mix, missing argument, bad --out) or selftest vector failure;
@@ -631,7 +636,7 @@ SCAN_EQUIVALENTS = (
 
 
 def judge(claimed_path, proven_path):
-    """Full judge: input-kind dispatch (file+file / dir+dir pairwise),
+    """Full judge: input-kind routing (file+file / dir+dir pairwise),
     per-pair probing, aggregated wrapped counters, listings, scan_face."""
     ck_f, ck_d = os.path.isfile(claimed_path), os.path.isdir(claimed_path)
     p_f, p_d = os.path.isfile(proven_path), os.path.isdir(proven_path)

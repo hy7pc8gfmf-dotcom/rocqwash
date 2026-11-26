@@ -586,12 +586,12 @@ def parse_binders(region):
 
 
 def is_data_limb_face(t, prop_def_heads=()):
-    """Knife 1 (cast-repair wave, November 22, 2026): is this binder type a
+    """Knife 1 (cast-repair work stream, November 22, 2026): is this binder type a
     bare-type-application face (`Head (args)`, the exact family
     is_bare_type_limb flags) whose head is a data-type family head and not
     Prop-resolvable?  True = the binder is a DATA binder and re-homes into
     S1 (existential prefix); unknown heads return False and keep the v1
-    fail-safe seat (S2 conjunct), where the W5 gate keeps judging them."""
+    fail-safe position (S2 conjunct), where the W5 gate keeps judging them."""
     head = bare_limb_head(t)
     if head is None:
         return False
@@ -603,13 +603,13 @@ def is_data_limb_face(t, prop_def_heads=()):
 def sort_binders_into_segments(binders, prop_def_heads=()):
     """Route binders into S1 vars / S2 assumptions / S2 instance records
     (C2.2: one record per hypothesis, never merged; C2.3 two-step test).
-    Knife 1 correct-seat routing (cast-repair wave, November 22, 2026): a
+    Knife 1 correct-position routing (cast-repair work stream, November 22, 2026): a
     binder whose type is a data-family bare application (`Set (A)`,
     `Finset (α)`, ... - the family is_bare_type_limb flags) re-homes into
     S1 as a bound variable (existential prefix), so the premise conjunction
     only ever assembles propositional premises and the W5 limb check never
     sees a mis-seated data binder; Prop-resolvable heads and unknown heads
-    keep the v1 fail-safe seats."""
+    keep the v1 fail-safe positions."""
     S1_vars, S2_assumps, S2_instances = [], [], []
     for b in binders:
         rec_source = b.get("source", "signature")
@@ -802,7 +802,7 @@ BARE_TYPE_LIMB_MARKER = "bare-type-conjunct-limb"
 # Prop position after a conjunction operator (`Set (...)` applied forms)
 BARE_TYPE_LIMB_CANONICAL = "∧ Set ("
 
-# knife 2 prong b (cast-repair wave, November 22, 2026): Mathlib/Std
+# knife 2 prong b (cast-repair work stream, November 22, 2026): Mathlib/Std
 # predicate head families recognized as Prop by prefix family merge.  The
 # table is data on purpose (externalizable by a later work order without
 # touching the gate logic); entries keep the dotted Lean head spelling and
@@ -818,9 +818,9 @@ PROP_HEAD_FAMILY_PREFIXES = (
     "Topology.IsEmbedding",
 )
 
-# knife 1 (same wave): data-type head families.  A binder whose type is a
+# knife 1 (same work stream): data-type head families.  A binder whose type is a
 # bare application of one of these heads is a DATA binder - its correct
-# seat is the existential prefix (the `variable (I : Set A)` G1-trial
+# position is the existential prefix (the `variable (I : Set A)` G1-trial
 # precedent), never a conjunct limb, so the W5 word-face family stops
 # judging re-homed binders and the premise conjunction only ever assembles
 # propositional premises.
@@ -948,7 +948,7 @@ def envelope_bare_type_limb_hits(stmt, env_text=None):
     segment feeding the conjunction chain - a bare type in a conjunct limb
     position cannot elaborate as a Prop, so the deformed cast must die at
     cast time, before the compile leg ever runs).  Knife-2 Prop resolution
-    (cast-repair wave, November 22, 2026) runs on every flagged limb head
+    (cast-repair work stream, November 22, 2026) runs on every flagged limb head
     BEFORE the verdict: a head resolved as the audited file's own
     `def X ... : Prop` (stmt["propDefHeads"], read before the verdict) or
     as a Mathlib/Std predicate family head (PROP_HEAD_FAMILY_PREFIXES)
@@ -1166,7 +1166,7 @@ def classify_record(rec, table, ctx, ft_cache, s1_names):
     no third path to `recognized`)."""
     if (rec["kind"] in ("assumption", "instance", "conclusion")
             and HOLE_RE.search(rec["type"])):
-        # ticket-15 (需求书v2-B 20261121): the interception now also covers
+        # ticket-15 (`需求书v2-B 20261121`): the interception now also covers
         # conclusion records - the generic conclusion rows would otherwise
         # give a hole-bearing conclusion a recognized path (C4.2: no third
         # path to `recognized` on a degraded face).
@@ -1176,12 +1176,12 @@ def classify_record(rec, table, ctx, ft_cache, s1_names):
         m = entry["row"]["match"]
         target = m["target"]
         if target == "conclusion" and rec["kind"] != "conclusion":
-            # ticket-15 (需求书v2-B 20261121) kind guard: conclusion-face rows
+            # ticket-15 (`需求书v2-B 20261121`) kind guard: conclusion-face rows
             # classify the conclusion record only.  The conclusion face text is
             # file-wide (ctx["conclusion"]), so without this guard an
             # assumption/instance record inherits any matching conclusion row
             # (mis-attributed premise recognition; sample28 A/B regression
-            # 20261121: AtomicGaussian/TriangularGaussian premise hα : 0 < α
+            # v2-B cast: AtomicGaussian/TriangularGaussian premise hα : 0 < α
             # fired recognized@concl.quantified.existential before the guard).
             continue
         if target == "file.text":
@@ -2447,7 +2447,7 @@ def do_cast(args, ts_utc):
     # dies here with rc=1, before any skeleton text is emitted (fail-loud;
     # the statement face must be re-shaped or transcribed by hand before a
     # cast can run).  Existing output directories are never touched here.
-    # Knife-3 waiver face (cast-repair wave, November 22, 2026): the opt-in
+    # Knife-3 waiver face (cast-repair work stream, November 22, 2026): the opt-in
     # --allow-bare-type-limb flag releases ONLY the limb faces that knife-1
     # re-homing and knife-2 Prop resolution left unresolved; every released
     # limb is registered loud on stdout AND in the report JSON
@@ -3731,9 +3731,9 @@ GAP_TELEMETRY_SELFTEST_FIXTURE = (
     "  sorry\n"
 )
 
-# W5 three-knife selftest fixtures (cast-repair wave, November 22, 2026).
+# W5 three-knife selftest fixtures (cast-repair work stream, November 22, 2026).
 # REHOME: the data-family binder face knife 1 re-homes into the existential
-# prefix (correct seat of a data binder), so the W5 limb check sees a clean
+# prefix (correct position of a data binder), so the W5 limb check sees a clean
 # envelope.  OWN_PROP: the audited file's own `def ... : Prop` resolves the
 # limb head (knife 2 prong a).  WAIVER: an unknown-head limb face resolves
 # neither way, so the cast dies fail-loud rc=1 with the flag off and passes
@@ -3774,7 +3774,7 @@ def do_selftest(ts_utc):
     gap-telemetry vector (two-statement fixture, one recognized and one
     todo_seat conclusion: todo_seats=1, one family entry, per-cast blocks
     plus the batch summary aggregation), and the W5 three-knife vectors
-    (cast-repair wave, November 22, 2026: knife-1 data-limb re-homing into
+    (cast-repair work stream, November 22, 2026: knife-1 data-limb re-homing into
     the existential prefix, knife-2 Prop resolution by own-file def : Prop
     and by the Mathlib/Std predicate family table, and knife-3 the opt-in
     --allow-bare-type-limb waiver over the real do_cast entry in both flag
@@ -3881,7 +3881,7 @@ def do_selftest(ts_utc):
               "(\u2203 s : \u2102, (7 / 8 : \u211d) < s.re)",
               "concl.real.const-lt-field-re-exists")
 
-    # T9 - conclusion-row kind guard pin (sample28 20261121 regression: an
+    # T9 - conclusion-row kind guard pin (`sample28 20261121` regression: an
     # assumption record must never inherit the file-wide conclusion face)
     if builtin_only:
         skip("premise-no-conclusion-inheritance",
@@ -4099,7 +4099,7 @@ def do_selftest(ts_utc):
         batch_vector(GAP_TELEMETRY_SELFTEST_FIXTURE, t16_conds,
                      "gap-telemetry-long-tail")
 
-    # T17..T20 - W5 three-knife vectors (cast-repair wave, November 22,
+    # T17..T20 - W5 three-knife vectors (cast-repair work stream, November 22,
     # 2026).  All zero network, zero compile; the flag two-state vector runs
     # the real do_cast entry over a TemporaryDirectory (disk face confined
     # to the temp dir, console output captured) in both --allow-bare-type-
