@@ -2,6 +2,17 @@
 # -*- coding: utf-8 -*-
 """test_verify_born.py — wrapper/verify_born.py 自测（tests/·Mac 适配席 rqadapt·20261031）
 
+Purpose.  Self-test card for wrapper/verify_born.py: nine subprocess vectors
+  over the born-workpiece judgment paths (raw form, normalized form, negative
+  verdict passthrough, account JSON, forged-assertion refusal), zero
+  repository writes.
+Interface.  `python3 -B tests/test_verify_born.py` (also via tests/run_tests.sh);
+  no arguments.
+Dependencies.  Python 3 standard library only; drives wrapper/verify_born.py
+  and verify/verify_vo.py as subprocesses.
+Evidence.  Per-judgment judge calls assert each vector's expected verdict.
+Exit-codes.  0 = all nine vectors pass; 1 = any vector red (fail-loud).
+
 九判 subprocess 实跑（每例正/负判优先·临时目录驱动零仓写）：
   1 裸调哑成功禁律    零参 → rc=2（判绿三路径 --v/--vo/--rc-file 必填）
   2 --help            rc=0 且含用法样例

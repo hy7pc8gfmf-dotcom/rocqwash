@@ -2,6 +2,12 @@
 # -*- coding: utf-8 -*-
 """test_wash_shape.py — tools/wash_shape.py 自测壳（tests/·20261111 v37 洗形席挂接）
 
+Purpose.  Suite-entry harness for tools/wash_shape.py: wires the tool's sixteen-vector selftest into tests/run_tests.sh and smoke-checks the usage faces.
+Interface.  `python3 -B tests/test_wash_shape.py` (also via tests/run_tests.sh); no arguments.
+Dependencies.  Python 3 standard library only; drives tools/wash_shape.py as a subprocess.
+Evidence.  Per-judgment judge calls assert each vector's expected verdict.
+Exit-codes.  0 = all three vectors pass; 1 = any vector red (fail-loud: reds are listed, never silent).
+
 shape-normalizing tool（正典形五洗流水·schema rocqwash-shape/1）挂接件：器自带 --selftest 十六判
 冻结向量组（plan 五洗逐判/正件对照/plan 零写盘/--apply 缺省关/plan-miss 如实/
 apply→rescan clean→shaped/幂等二跑全 clean/锚缺实体/冻结名排除（罐装＋真在册

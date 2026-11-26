@@ -3,6 +3,12 @@
 """test_verify_gate6.py — verify/verify_gate6.py 自测（tests/·五课反馈轮·agent rqsupport·
 20261101）
 
+Purpose.  Self-test card for verify/verify_gate6.py: the gate6 ch1 statement-face census case (EntropyUnsatMark fixture pair).
+Interface.  `python3 -B tests/test_verify_gate6.py` (also via tests/run_tests.sh); no arguments.
+Dependencies.  Python 3 standard library only; drives verify/verify_gate6.py as a subprocess and reads its fixtures under tests/fixtures/.
+Evidence.  Per-judgment judge calls assert each vector's expected verdict; the five vectors are enumerated below.
+Exit-codes.  0 = all five vectors pass; 1 = any vector red (fail-loud).
+
 五课夹具④【gate6 ch1】：语句面裸 Prop 量词 census（EntropyUnsatMark 判例）。
 判例源：seat_eum/账/gate6_report_before.json（ch1=1·L135
 eum_EntropyDiffReal_section_vacuous）→ gate6_report_after.json（ch1=0·names 5=5）。

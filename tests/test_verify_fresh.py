@@ -3,6 +3,12 @@
 """test_verify_fresh.py — verify/verify_vo.py --require-fresh fresh-compile 防线自测
 （tests/·本轮实战判例工具化②·20261101）
 
+Purpose.  Self-test card for verify/verify_vo.py --require-fresh: the stale-vo false-green case toolized (eight vectors).
+Interface.  `python3 -B tests/test_verify_fresh.py` (also via tests/run_tests.sh); no arguments.
+Dependencies.  Python 3 standard library only; drives verify/verify_vo.py (a frozen file) as a subprocess.
+Evidence.  Per-judgment judge calls assert each vector's expected verdict.
+Exit-codes.  0 = all eight sections pass; 1 = any vector red (fail-loud).
+
 divmod_gen 陈旧 vo 假绿判例的工具化防线直测（--require-fresh <v> <vo>）：
   1 自证        verify_vo --selftest 十三判全过（rc 0·含防线四判）
   2 正判        魔数对＋vo 新鲜 → rc 0·FRESH-OK 词面
@@ -20,7 +26,6 @@ divmod_gen 陈旧 vo 假绿判例的工具化防线直测（--require-fresh <v> 
 夹具在正判前显式钉 v=vo−10s，使判据只验语义不赌写盘时刻；判据本体在
 verify/verify_vo.py（frozen8 冻结件·红禁修）不动——其 selftest 内两处背靠背
 写盘（:162-165/:184-186）同病残留，待 frozen8 重签波治理（E2-3 台账升级行）。
-退出码：0=八节全过；1=任一红。
 """
 import io
 import os
