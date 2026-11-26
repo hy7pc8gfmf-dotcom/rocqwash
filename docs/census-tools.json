@@ -1,10 +1,10 @@
 {
  "meta": {
-  "generated_at_utc": "2026-11-25T21:22:12Z",
+  "generated_at_utc": "2026-11-26T17:18:04Z",
   "method": "python -I AST word-face parse; no listed tool executed; stdlib only",
   "tools_dir": "tools",
   "git_head_recorded": "",
-  "py_files_censused": 81,
+  "py_files_censused": 82,
   "non_py_files_present": [
    "__pycache__",
    "_abl1_4b_compile.py.zh.md",
@@ -37,20 +37,29 @@
   },
   "rescan_generation": {
    "added_this_generation": [
-    "anchor_guard.py",
-    "attest_join.py",
-    "census_rescan.py",
-    "coqtop_batch.py",
-    "count_guard.py",
-    "independence_screener.py",
-    "lean_parity_crosswalk.py",
-    "mutant_manifest.py",
-    "pipeline_lite.py",
-    "qed_cost_lint.py",
-    "require_rewire.py"
+    "capability_ratchet.py"
    ],
    "generator": "tools/census_rescan.py v1",
-   "method_note": "rows above the generation split keep their original generator's semantics; rows added by the generation follow census_rescan.py's documented v1 rules"
+   "method_note": "rows above the generation split keep their original generator's semantics; rows added by the generation follow census_rescan.py's documented v1 rules",
+   "history": [
+    {
+     "added_this_generation": [
+      "anchor_guard.py",
+      "attest_join.py",
+      "census_rescan.py",
+      "coqtop_batch.py",
+      "count_guard.py",
+      "independence_screener.py",
+      "lean_parity_crosswalk.py",
+      "mutant_manifest.py",
+      "pipeline_lite.py",
+      "qed_cost_lint.py",
+      "require_rewire.py"
+     ],
+     "generator": "tools/census_rescan.py v1",
+     "method_note": "rows above the generation split keep their original generator's semantics; rows added by the generation follow census_rescan.py's documented v1 rules"
+    }
+   ]
   }
  },
  "files": [
@@ -2371,6 +2380,189 @@
    },
    "selftest_flag": true,
    "selftest_token_face": true
+  },
+  {
+   "name": "capability_ratchet.py",
+   "bytes": 78135,
+   "sha256": "daf13435de14e77998217ace0f270e2454d2ba6ec37669ea9e0956886eab93a6",
+   "lines": 1629,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 24,
+    "head": "capability_ratchet.py - the nine-metric capability ratchet (tools/).\nPurpose.  Keep capability as an append-only series of readings that only\n  rolls forward.  Nine frozen metrics - four capability-carrier faces\n  (triage_classes, regression_vectors, taxonomy_rows, cure_patterns) and\n  five mechanism faces (mcp_roster, selftest_vectors, repair_action_rate,\n  b_gate_ready_classes, calibration_agreement_rate) - are re-derived at\n  every run from their source accounts, never hand-filled; every reading\n  carries {metric, family, value, basis, window {from_sha, to_sha},\n  source}.  calibration_agre"
+   },
+   "argparse": {
+    "imported": true,
+    "parser_descriptions": [],
+    "add_argument": [
+     {
+      "flags": [
+       "--repo"
+      ],
+      "kwargs": {
+       "default": null,
+       "help": "repository root (default: the tree this file lives in)"
+      }
+     },
+     {
+      "flags": [
+       "--measure"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "derive fresh readings from the source accounts"
+      }
+     },
+     {
+      "flags": [
+       "--json"
+      ],
+      "kwargs": {
+       "nargs": "?",
+       "const": true,
+       "default": null,
+       "dest": "json_out",
+       "help": "with --measure: bare, print the single snapshot JSON object on stdout; with a PATH argument, write that object to the caller-named path"
+      }
+     },
+     {
+      "flags": [
+       "--gate"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "judge fresh readings against --baseline (below=rc1, flat/above=rc0)"
+      }
+     },
+     {
+      "flags": [
+       "--baseline"
+      ],
+      "kwargs": {
+       "default": null,
+       "help": "baseline snapshot file (a capability-ratchet ledger line is a valid baseline)"
+      }
+     },
+     {
+      "flags": [
+       "--compare"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "LEDGER",
+       "help": "validate the whole ledger chain and require fresh values equal to the head line (with --measure the readings print first; the compare verdict decides the exit code)"
+      }
+     },
+     {
+      "flags": [
+       "--append"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "LEDGER",
+       "help": "append exactly one chain-linked snapshot line (the append face stays CLI-side)"
+      }
+     },
+     {
+      "flags": [
+       "--allow-dirty-anchor"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "dest": "allow_dirty_anchor",
+       "help": "append: let the line be recorded on a working tree that differs from HEAD under the source paths (the line is stamped provisional)"
+      }
+     },
+     {
+      "flags": [
+       "--from-sha"
+      ],
+      "kwargs": {
+       "default": null,
+       "dest": "from_sha",
+       "help": "window start sha (default: with a ledger head present, its to_sha; otherwise HEAD)"
+      }
+     },
+     {
+      "flags": [
+       "--selftest"
+      ],
+      "kwargs": {
+       "action": "store_true",
+       "help": "run the frozen vector group (offline, repository-write-free)"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--allow-dirty-anchor",
+     "--append",
+     "--baseline",
+     "--compare",
+     "--from-sha",
+     "--gate",
+     "--json",
+     "--measure",
+     "--repo",
+     "--selftest"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [
+     "argparse",
+     "contextlib",
+     "datetime",
+     "hashlib",
+     "importlib",
+     "io",
+     "json",
+     "os",
+     "re",
+     "subprocess",
+     "sys",
+     "tempfile"
+    ],
+    "third_party": [],
+    "local": [],
+    "guarded_conditional": []
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": true,
+    "zero_network": false,
+    "git_subprocess_network_face": {
+     "present": true,
+     "tokens": [
+      "git",
+      "git status"
+     ]
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "coq_rocq",
+      "count": 1,
+      "samples": [
+       "rocqwash"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": true,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "python tools/capability_ratchet.py [--repo] [--measure] [--json] [--gate] [--baseline] [--compare] [--append] [--allow-dirty-anchor] [--from-sha] [--selftest]",
+    "basis": "argparse-reconstructed"
+   }
   },
   {
    "name": "census_rescan.py",
