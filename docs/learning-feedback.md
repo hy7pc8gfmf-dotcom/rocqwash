@@ -146,10 +146,13 @@ reads the plan document (schema rocqwash.scheduler-lite.plan/1), maps
 `schedulingInput` fields onto the three trace keys, and refuses a
 corrupt or absent plan with exit 9 (observed by auto_round --selftest
 vector V19). The cron face (tools/selfevolve_round.py) runs the
-scheduler_lite plan face before every jargon round and passes the plan
-document to the commit, so the first steered round after this face
-lands carries the trace. Until a steered round is traced on the
-standing ledger, the honest standing grade is `partial`.
+scheduler_lite plan face before every jargon round and enforces its
+verdict gate: quiet or blocked skips the round as a loud data pass,
+due fires the round and passes the plan document to the commit, and a
+plan-face failure proceeds unenforced with no trace (observed by the
+selfevolve_round --selftest verdict-gate vectors). Until a steered
+round is traced on the standing ledger, the honest standing grade is
+`partial`.
 
 ## Honest boundary
 

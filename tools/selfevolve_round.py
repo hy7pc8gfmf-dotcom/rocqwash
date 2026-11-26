@@ -1,33 +1,33 @@
 #!/usr/bin/env python3
 """selfevolve_round.py - one deterministic mechanical round (cron face).
-Purpose.  One mechanical round: census -> apply -> verify (py_compile /
-  bash -n gates, norm_lint / doc_lint advisory) -> auto_round commit ->
-  push -> route the CI judge (R13 sub-face 4).  Frozen faces stay
-  excluded by jargon_apply; zero fixes = no-op pass; residue != 0 =
-  fail-loud red.  --pin-repair (A-batch leg, before census, never
-  fatal) plans the seed pins (tools/pin_repair.py --plan): no drift =
-  clean skip; absent pins = hosted structural blind (one ledger row,
-  no commit); drift = --apply + an independent auto_round commit (class
-  R15-repair, rides the round push); refusal = loud; --dry-run plans
-  only.  The cadence report line maps docs/scheduling-feedback.json
-  onto the finite in-code tier table (see read_cadence_hint); escalated
-  >= 3 also appends one cadence-alert ledger row (loud).
+Purpose.  The scheduler_lite plan face decides the verdict gate (quiet
+  or blocked = a loud data skip, exit 0; due = the round fires and the
+  plan rides the commit as the scheduling_input trace; a plan-face
+  failure = loud fail-open, unenforced, no trace), then census ->
+  apply -> verify (py_compile / bash -n gates, norm_lint / doc_lint
+  advisory) -> auto_round commit -> push -> route the CI judge (R13
+  sub-face 4).  Frozen faces stay excluded by jargon_apply; zero fixes
+  = no-op pass; residue != 0 = fail-loud red.  --pin-repair (before
+  census, never fatal): no drift = clean skip; absent pins = hosted
+  blind (one ledger row, no commit); drift = --apply + an independent
+  R15-repair commit riding the round push; refusal = loud; --dry-run
+  plans only.  The cadence report line maps docs/scheduling-feedback
+  .json onto the in-code tier table (read_cadence_hint); escalated >= 3
+  appends one cadence-alert row (loud).
 Interface.  python3 tools/selfevolve_round.py [--dry-run] [--pin-repair
   [--seed P]] | --selftest (frozen offline vectors, exits).
-Dependencies.  Standard library only; no network face added (judge
-  routing reuses gh_dispatch); subprocess faces: jargon_apply.py,
-  pin_repair.py (-I), auto_round.py, py_compile / bash -n, the lints;
-  the ledger path reads env ROCQWASH_REPAIR_PLAN_LEDGER (default
+Dependencies.  Stdlib only; subprocess faces: scheduler_lite.py (plan face,
+  read-only), jargon_apply.py, pin_repair.py (-I), auto_round.py,
+  py_compile / bash -n, the lints; no network face added (judge routing
+  reuses gh_dispatch); ledger env ROCQWASH_REPAIR_PLAN_LEDGER (default
   docs/repair-plan-ledger.jsonl).
-Evidence.  Vectors: zero-drift skip; hosted-blind ledger row; refusal
-  fail-loud; cadence tier fixtures.  Selftest vectors are offline: a
-  private temp cwd with stub executors, zero network, the default docs/
-  ledger resolving inside the temp volume, the real cron faces never
-  launched.
-Exit-codes.  0 green / clean no-op; 2 fail-loud red (apply residue,
-  admission refusal, push refusal); 3 census report unreadable; 1
-  selftest red; the pin-repair leg and the cadence report never change
-  the exit code.
+Evidence.  Vectors: zero-drift skip; hosted-blind row; refusal
+  fail-loud; cadence fixtures; verdict-gate fixtures (quiet skip,
+  blocked skip, due pass-through, fail-open).  Offline selftest: a
+  private temp cwd with stub executors (a plan-face stub included),
+  zero network, the default docs/ ledger inside the temp volume.
+Exit-codes.  0 green / clean no-op / verdict skip; 2 fail-loud red; 3 census
+  unreadable; 1 selftest red; pin-repair and cadence never change the exit code.
 """
 import argparse
 import json
@@ -338,6 +338,25 @@ PLAN_ABSENT = {"action": "plan", "ok": False,
                "absent": ["seeds/pin-a"], "drifted": []}
 PLAN_DRIFT = {"action": "plan", "ok": False, "absent": [],
               "drifted": ["seeds/pin-a"]}
+
+# Scheduler plan-face fixtures (schema rocqwash.scheduler-lite.plan/1;
+# the verdict gate routes on verdict and reasons; schedulingInput rides
+# the trace on a due round).
+PLAN_INFLUENCE = {"approvalRateAuto": 0.5, "feedbackPresent": True,
+                  "source": "docs/scheduling-feedback.json",
+                  "action": "cadence-current",
+                  "basis": "approval_rate_auto 0.5 >= 0.5: cadence stays "
+                           "measured"}
+SCHED_PLAN_DUE = {"schema": "rocqwash.scheduler-lite.plan/1",
+                  "verdict": "due", "reasons": [], "fireReady": True,
+                  "schedulingInput": PLAN_INFLUENCE}
+SCHED_PLAN_QUIET = {"schema": "rocqwash.scheduler-lite.plan/1",
+                    "verdict": "quiet", "reasons": [], "fireReady": False,
+                    "schedulingInput": PLAN_INFLUENCE}
+SCHED_PLAN_BLOCKED = {"schema": "rocqwash.scheduler-lite.plan/1",
+                      "verdict": "blocked", "reasons": ["ef-gate-closed"],
+                      "fireReady": False,
+                      "schedulingInput": PLAN_INFLUENCE}
 PLAN_NONE_LINE = json.dumps(PLAN_NONE)
 PLAN_ABSENT_LINE = json.dumps(PLAN_ABSENT)
 PLAN_DRIFT_LINE = json.dumps(PLAN_DRIFT)
@@ -418,6 +437,36 @@ sys.exit(5)
 ''' % {"docs": {"zero": CENSUS_ZERO, "two": CENSUS_TWO,
                 "count": CENSUS_COUNT, "broken": None}}
 
+STUB_SCHEDULER_LITE = '''\
+import json
+import sys
+
+def read_mode(default):
+    try:
+        with open("plan-mode.txt", "r", encoding="utf-8") as fh:
+            got = fh.read().strip()
+    except OSError:
+        got = ""
+    return got or default
+
+mode = read_mode("due")
+if mode == "fail":
+    sys.stderr.write("stub plan failure\\n")
+    sys.exit(3)
+docs = %(docs)r
+doc = docs.get(mode, docs["due"])
+out = None
+if "--out" in sys.argv[1:]:
+    out = sys.argv[sys.argv.index("--out") + 1]
+if out:
+    with open(out, "w", encoding="utf-8") as fh:
+        json.dump(doc, fh)
+else:
+    print(json.dumps(doc))
+sys.exit(0)
+''' % {"docs": {"due": SCHED_PLAN_DUE, "quiet": SCHED_PLAN_QUIET,
+                "blocked": SCHED_PLAN_BLOCKED}}
+
 
 def selftest():
     """Frozen offline vectors over the judgment faces (executor report
@@ -443,7 +492,8 @@ def selftest():
     os.makedirs(tools_dir)
     os.makedirs(docs_dir)
     for name, source in (("pin_repair.py", STUB_PIN_REPAIR),
-                         ("jargon_apply.py", STUB_JARGON_APPLY)):
+                         ("jargon_apply.py", STUB_JARGON_APPLY),
+                         ("scheduler_lite.py", STUB_SCHEDULER_LITE)):
         with open(os.path.join(tools_dir, name), "w",
                   encoding="utf-8", newline="\n") as fh:
             fh.write(source)
@@ -578,6 +628,42 @@ def selftest():
         vec("census-unreadable-rc3",
             rc == 3 and "census report unreadable" in out,
             "rc=%s an unreadable plan report reads rc 3" % rc)
+
+        # scheduler verdict gate (plan-face stub decides before any
+        # census or apply face launches)
+        clear()
+        set_mode("census-mode.txt", "two")
+        set_mode("plan-mode.txt", "quiet")
+        rc, out = spawn(["--dry-run"])
+        vec("verdict-quiet-skips-round",
+            rc == 0 and "scheduler verdict quiet" in out
+            and "would apply" not in out
+            and not os.path.exists(apply_ran),
+            "rc=%s the quiet gate skips before the census face" % rc)
+        clear()
+        set_mode("census-mode.txt", "two")
+        set_mode("plan-mode.txt", "blocked")
+        rc, out = spawn(["--dry-run"])
+        vec("verdict-blocked-skips-round",
+            rc == 0 and "scheduler verdict blocked" in out
+            and "ef-gate-closed" in out
+            and not os.path.exists(apply_ran),
+            "rc=%s the blocked gate names its reasons" % rc)
+        clear()
+        set_mode("census-mode.txt", "two")
+        set_mode("plan-mode.txt", "due")
+        rc, out = spawn(["--dry-run"])
+        vec("verdict-due-round-proceeds",
+            rc == 0 and "dry-run: 2 fixes would apply" in out,
+            "rc=%s the due gate passes through to the round" % rc)
+        clear()
+        set_mode("census-mode.txt", "two")
+        set_mode("plan-mode.txt", "fail")
+        rc, out = spawn(["--dry-run"])
+        vec("verdict-fail-open-proceeds-loud",
+            rc == 0 and "scheduler plan face rc=3" in out
+            and "dry-run: 2 fixes would apply" in out,
+            "rc=%s fail-open keeps the round unenforced, no trace" % rc)
         clear()
         set_mode("census-mode.txt", "zero")
         set_mode("pin-mode.txt", "none")
@@ -645,12 +731,57 @@ def main(argv=None):
     except Exception as err:
         print("FAIL-LOUD: cadence report raised (%r) - round continues"
               % (err,))
+
+    # The scheduler plan face (tools/scheduler_lite.py) is read-only and
+    # plan-only by construction, and it decides the verdict gate BEFORE
+    # any apply: quiet or blocked = a loud data skip (exit 0, the round
+    # never starts), due = the round fires and the plan document rides
+    # the commit as the scheduling_input trace (the contract in
+    # tools/learning_feedback.py).  A plan-face failure or an unreadable
+    # or unknown-verdict plan is loud fail-open: the round proceeds
+    # unenforced with no trace rather than guessing a verdict.
+    trace_arg = []
+    plan_fd, plan_path = tempfile.mkstemp(prefix="rocqwash-plan-",
+                                          suffix=".json")
+    os.close(plan_fd)
+
+    def discard_plan():
+        if plan_path and os.path.isfile(plan_path):
+            os.unlink(plan_path)
+
+    res = run([PY, "tools/scheduler_lite.py", "plan", "--json",
+               "--out", plan_path], timeout=120)
+    verdict, reasons = "", []
+    if res.returncode != 0:
+        print("scheduler plan face rc=%s; the round proceeds unenforced "
+              "and carries no scheduling trace" % res.returncode)
+    else:
+        try:
+            with open(plan_path, "r", encoding="utf-8") as fh:
+                plan_doc = json.load(fh)
+            verdict = plan_doc.get("verdict", "")
+            reasons = plan_doc.get("reasons") or []
+            if verdict not in ("quiet", "due", "blocked"):
+                raise ValueError("unknown verdict %r" % (verdict,))
+            trace_arg = ["--scheduler-plan", plan_path]
+        except Exception as err:
+            print("scheduler plan unreadable (%r); the round proceeds "
+                  "unenforced and carries no scheduling trace" % (err,))
+            verdict = ""
+    if verdict in ("quiet", "blocked"):
+        print("scheduler verdict %s: no jargon round fires (%s)"
+              % (verdict, "; ".join(str(r) for r in reasons)
+                  or "cadence or gate state holds the round"))
+        discard_plan()
+        return 0
+
     plan = run([PY, "tools/jargon_apply.py", "--tree", ".", "--plan",
                 "--json", "round-plan.json"])
     try:
         report = json.load(open("round-plan.json", encoding="utf-8"))
     except Exception as err:
         print("census report unreadable: %r" % err)
+        discard_plan()
         return 3
     fixes = (report.get("would_fix")
              or report.get("fixes")
@@ -660,9 +791,11 @@ def main(argv=None):
     print("census: would_fix=%s" % n)
     if n == 0:
         print("no qualifying mechanical fixes this round - clean no-op pass")
+        discard_plan()
         return 0
     if dry:
         print("dry-run: %d fixes would apply (no writes)" % n)
+        discard_plan()
         return 0
 
     res = run([PY, "tools/jargon_apply.py", "--tree", ".", "--apply",
@@ -671,11 +804,13 @@ def main(argv=None):
                               (res.stderr or res.stdout).strip()[-300:]))
     if res.returncode != 0:
         print("FAIL-LOUD: apply residue gate refused the round")
+        discard_plan()
         return 2
 
     changed = run(["git", "diff", "--name-only"]).stdout.split()
     if not changed:
         print("apply produced no diff - no-op pass")
+        discard_plan()
         return 0
     print("changed faces (%d): %s" % (len(changed), ", ".join(changed[:20])))
 
@@ -684,42 +819,25 @@ def main(argv=None):
             rc = run([PY, "-m", "py_compile", f])
             if rc.returncode != 0:
                 print("FAIL-LOUD: py_compile %s red" % f)
+                discard_plan()
                 return 2
         elif f.endswith(".sh"):
             rc = run(["bash", "-n", f])
             if rc.returncode != 0:
                 print("FAIL-LOUD: bash -n %s red" % f)
+                discard_plan()
                 return 2
     for face, args in (("norm_lint", ["--tree", "."]),
                        ("doc_lint", [])):
         rc = run([PY, "tools/%s.py" % face] + args, timeout=600)
         print("advisory %s rc=%s" % (face, rc.returncode))
 
-    # The scheduler plan face (tools/scheduler_lite.py) is read-only and
-    # plan-only by construction; its schedulingInput influence rides the
-    # round ledger row as the scheduling_input trace (the contract in
-    # tools/learning_feedback.py).  A plan-face failure is advisory: the
-    # round proceeds and carries no trace rather than guessing one.
-    trace_arg = []
-    plan_fd, plan_path = tempfile.mkstemp(prefix="rocqwash-plan-",
-                                          suffix=".json")
-    os.close(plan_fd)
-    res = run([PY, "tools/scheduler_lite.py", "plan", "--json",
-               "--out", plan_path], timeout=120)
-    if res.returncode == 0:
-        trace_arg = ["--scheduler-plan", plan_path]
-    else:
-        print("scheduler plan face rc=%s; the round carries no "
-              "scheduling trace" % res.returncode)
-        os.unlink(plan_path)
-
     files_arg = ",".join(changed)
     res = run([PY, "tools/auto_round.py", "commit", "--repo-root", ".",
                "--classes", "jargon", "--class-confidence", "jargon=1.0",
                "--message", "selfevolve cron round: mechanical jargon sweep",
                "--files", files_arg] + trace_arg, timeout=600)
-    if trace_arg and os.path.isfile(plan_path):
-        os.unlink(plan_path)
+    discard_plan()
     print("auto_round commit rc=%s %s" % (
         res.returncode,
         ((res.stdout or "") + (res.stderr or "")).strip()[-300:]))
