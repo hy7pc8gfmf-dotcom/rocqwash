@@ -27,7 +27,7 @@
 
 - `python -I tools/qed_cost_lint.py --file F.v [--threshold N] [--json OUT] | --selftest | --tree DIR`
 - 候选 = Proof..Qed 块行数 ≥ threshold（默认 40）且收尾战术不在 fast 集 {vm_compute, compute, native_compute, decide, now, easy, reflexivity}
-- 输出 report-only（`rocqwash-qed-cost-lint/1`：{file, blocks:[{qed_line, proof_lines, closure, verdict:"candidate|fast-closure"}], summary}）——**默认零 rc 红**（report-only·与 norm_lint .v 道同款）；`--gate` 才 rc 语义（1=有 candidate·留给接线票）
+- 输出 report-only（`rocqwash-qed-cost-lint/1`：{file, blocks:[{qed_line, proof_lines, closure, verdict:"candidate|fast-closure"}], summary}）——**默认零 rc failing**（report-only·与 norm_lint .v 道同款）；`--gate` 才 rc 语义（1=有 candidate·留给接线票）
 - 双跑字节恒同；零网络；零工具链
 
 ## 四、后继票（登记不执行）
@@ -35,7 +35,7 @@
 - 日志面判定器（读 coqc -time 日志·真信号）
 - `.glob` span 面
 - CI 接线票（report-only 先行·gate 后议）
-- 阈值校准票（拿 Main 仓 63 万行实测分布定价）
+- 阈值校准票（拿 Main repository 63 万行实测分布定价）
 
 ## 五、误报对照（本仓判例族）
 
