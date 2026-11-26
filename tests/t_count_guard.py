@@ -11,7 +11,7 @@ Purpose.  One case of the tests/run_tests.sh suite (20261126 roster hookup,
   tools/repair_scope.py carry that face.
 Interface.  python -B tests/t_count_guard.py.  Two checks:
   C1 the tool's --selftest exits 0 with the frozen word face
-     COUNT-GUARD-SELFTEST PASS and six [PASS] vector lines, no [FAIL];
+     COUNT-GUARD-SELFTEST PASS and seven [PASS] vector lines, no [FAIL];
   C2 the tool's --help usage face exits 0 and names the six groups.
 Dependencies.  Python 3 stdlib only; spawns the inspected tool with the
   same interpreter in -I mode; zero network, zero files written.
@@ -28,7 +28,7 @@ import sys
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOL = os.path.join(REPO, "tools", "count_guard.py")
 SELFTEST_FACE = "COUNT-GUARD-SELFTEST PASS"
-VECTOR_COUNT = 6
+VECTOR_COUNT = 7
 GROUPS = ("R1", "R2", "R3", "R4", "R5", "R6")
 
 failures = []

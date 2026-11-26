@@ -24,8 +24,8 @@ Dependencies.  Python 3 stdlib only; routes and registry come from
   doc_lint.parse_cw_sh and repair_scope.doc_count_derive (robust
   candidate search); an unresolvable source is a missing-face.
 
-Evidence.  --selftest V1..V6; integration-time dogfood - red on the
-  merge commit iff the merge's own count-face sync was forgotten.
+Evidence.  --selftest V1..V7 (V7 pins the docs/mcp.md tokens); dogfood -
+  red on the merge commit iff the merge's own count-face sync was forgotten.
 
 Exit-codes.  0 all six green (declared-lag rc-neutral); 1 drift; 2
   missing-face (outranks drift when both fire).
@@ -67,9 +67,15 @@ README_ZH_CAP_RX = re.compile(r"(\d+) \u80fd\u529b\u540d\u518c")
 README_ZH_ECHO_RX = re.compile(r"`EXPECTED_TOOLS = (\d+)`")
 CW_TITLE_RX = re.compile(r"(\d+) routes over (\d+) tools")
 CW_TARGETS_RX = re.compile(r"(\d+) routes onto (\d+) target scripts")
+# docs/mcp.md current-state tokens (the manual sweep face the November 26
+# and 27 cure records name; R3 pins the two structural sentences so the
+# sweep can no longer silently lag a roster advance)
+MCPMD_TITLE_RX = re.compile(r"the (\d+)-capability schema table")
+MCPMD_SEC_RX = re.compile(r"apply to all (\d+) capabilities equally")
 
 CAP_INDEX_REL = os.path.join("docs", "CAPABILITY-INDEX.md")
 CENSUS_REL = os.path.join("docs", "census-tools.json")
+MCPMD_REL = os.path.join("docs", "mcp.md")
 
 _UNIVERSE_WHAT = ("the N " + _NONU_PREFIXED
                   + " `tools/*.py` (M files minus K `_` helpers)")
@@ -254,6 +260,13 @@ def _check_r3(ctx):
     zh_e_no, zem = _find(zh_lines, README_ZH_ECHO_RX, "README.zh.md",
                          "the `EXPECTED_TOOLS = N` echo token")
     zh_echo = int(zem.group(1))
+    md_lines = _read_lines(repo, MCPMD_REL)
+    md_no, mm = _find(md_lines, MCPMD_TITLE_RX, MCPMD_REL,
+                      "the `N-capability schema table` token")
+    md_cap = int(mm.group(1))
+    md_s_no, msm = _find(md_lines, MCPMD_SEC_RX, MCPMD_REL,
+                         "the `apply to all N capabilities equally` token")
+    md_sec = int(msm.group(1))
     faces = [
         ("AST len(TOOL_SPECS)", "tools/mcp_server.py:%d" % spec_ln, nspec),
         ("AST len(EXPECTED_TOOLS)", "tests/t_mcp_face.py:%d" % exp_ln, nexp),
@@ -264,6 +277,10 @@ def _check_r3(ctx):
          "README.zh.md:%d" % zh_no, zh_cap),
         ("EXPECTED_TOOLS echo (zh mirror)",
          "README.zh.md:%d" % zh_e_no, zh_echo),
+        ("capability-table token (title)",
+         "%s:%d" % (MCPMD_REL, md_no), md_cap),
+        ("capability-table token (security-face sentence)",
+         "%s:%d" % (MCPMD_REL, md_s_no), md_sec),
     ]
     red = []
     for what, face, v in faces:
@@ -273,9 +290,11 @@ def _check_r3(ctx):
                        % (face, what, v, const, const_ln))
     line = ("R3 mcp-roster: SELFTEST_ROSTER_COUNT=%d (tools/mcp_server.py:"
             "%d) == AST TOOL_SPECS=%d == AST EXPECTED_TOOLS=%d == CAP row=%d"
-            " == README.md:%d=%d == README.zh.md:%d=%d -> %s"
+            " == README.md:%d=%d == README.zh.md:%d=%d == mcp.md:%d=%d"
+            " == mcp.md:%d=%d -> %s"
             % (const, const_ln, nspec, nexp, cap_row, en_no, en_cap,
-               zh_no, zh_cap, "RED x%d" % len(red) if red else "ok"))
+               zh_no, zh_cap, md_no, md_cap, md_s_no, md_sec,
+               "RED x%d" % len(red) if red else "ok"))
     return _row("R3", "mcp-roster", "red" if red else "ok", line, red)
 
 
@@ -477,6 +496,13 @@ def _fixture(root, nu=3, nh=2, roster=1, const=None, cen=None, routes=2,
        "ls tools/*.py = %d |\n"
        "| MCP roster | %d | `abc1234` | November 25, 2026 | "
        "TOOL_SPECS = %d |\n" % (total, total, roster, roster))
+    _w(root, "docs/mcp.md",
+       "> Purpose.  Usage and contract document for the rocqwash MCP "
+       "stdio server (`tools/mcp_server.py`): the protocol face, the "
+       "%d-capability schema table, startup, the security face, and the "
+       "design SKIP face.\n\n"
+       "5. Expansion batch adds no gated face.  The enum enforcement "
+       "apply to all %d capabilities equally.\n" % (roster, roster))
     specs = "".join(
         '    {"name": "t%02d", "desc": "fixture", "input_schema": {}},\n'
         % i for i in range(roster))
@@ -576,6 +602,25 @@ def selftest():
                     and "=2" in r and "=1" in r for r in rep["red"])
         ok = rc == 1 and named
         results.append((ok, "V5 roster break", rc, rep))
+
+        # V7 mcp.md token drift: the title and security-face sentence
+        # tokens stale while every other face agrees - the manual sweep
+        # lag the November 26/27 cure records name, now machine-caught.
+        fx = os.path.join(base, "v7")
+        os.makedirs(fx)
+        _fixture(fx, roster=1, const=1)
+        _w(fx, "docs/mcp.md",
+           "> Purpose.  Usage and contract document for the rocqwash MCP "
+           "stdio server (`tools/mcp_server.py`): the protocol face, the "
+           "2-capability schema table, startup, the security face, and the "
+           "design SKIP face.\n\n"
+           "5. Expansion batch adds no gated face.  The enum enforcement "
+           "apply to all 2 capabilities equally.\n")
+        rep, rc = _vector(fx)
+        named = any("docs/mcp.md:" in r and "=2" in r and "=1" in r
+                    for r in rep["red"])
+        ok = rc == 1 and named and len(rep["red"]) == 2
+        results.append((ok, "V7 mcp.md token drift", rc, rep))
     finally:
         shutil.rmtree(base, ignore_errors=True)
     elapsed = time.time() - t0
