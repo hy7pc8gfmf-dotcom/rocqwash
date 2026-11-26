@@ -36,11 +36,21 @@
 
 ## Observed candidate (outside this integration's import list)
 
-`attn/_vacgenv2_20261113/exp-entries-draft.json` exists on disk: 8 entries,
-English field names (id/date/tool/category/points/evidencePointer/
-erratumBlock/rescanCondition). It is a ready import candidate for the next
+Historical registration (2026-11-13): `attn/_vacgenv2_20261113/
+exp-entries-draft.json` existed on disk at the original scan (8 entries,
+English field names id/date/tool/category/points/evidencePointer/
+erratumBlock/rescanCondition), a ready import candidate for the next
 exp-bus work stream; it was not imported by this integration because this
 integration's import list names the periscope 5 entries only.
+
+Re-scan (2026-11-27): the draft and its parent directory are absent
+(`attn/_vacgenv2_20261113` not present; a name-level find for
+`*exp-entries*` and `*exp-draft*` over the attn work area at
+2026-11-27T05:41+08:00 returns nothing). The candidate line is closed as
+expired-before-import: an 8-entry draft was never imported and its bytes
+are gone, so that import can no longer happen. If the same experience is
+re-derived elsewhere, it re-enters through this file's registration
+contract as a new row, never by resurrecting this one.
 
 ## Scan boundary
 
