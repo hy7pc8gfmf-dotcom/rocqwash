@@ -695,11 +695,31 @@ def main(argv=None):
         rc = run([PY, "tools/%s.py" % face] + args, timeout=600)
         print("advisory %s rc=%s" % (face, rc.returncode))
 
+    # The scheduler plan face (tools/scheduler_lite.py) is read-only and
+    # plan-only by construction; its schedulingInput influence rides the
+    # round ledger row as the scheduling_input trace (the contract in
+    # tools/learning_feedback.py).  A plan-face failure is advisory: the
+    # round proceeds and carries no trace rather than guessing one.
+    trace_arg = []
+    plan_fd, plan_path = tempfile.mkstemp(prefix="rocqwash-plan-",
+                                          suffix=".json")
+    os.close(plan_fd)
+    res = run([PY, "tools/scheduler_lite.py", "plan", "--json",
+               "--out", plan_path], timeout=120)
+    if res.returncode == 0:
+        trace_arg = ["--scheduler-plan", plan_path]
+    else:
+        print("scheduler plan face rc=%s; the round carries no "
+              "scheduling trace" % res.returncode)
+        os.unlink(plan_path)
+
     files_arg = ",".join(changed)
     res = run([PY, "tools/auto_round.py", "commit", "--repo-root", ".",
                "--classes", "jargon", "--class-confidence", "jargon=1.0",
                "--message", "selfevolve cron round: mechanical jargon sweep",
-               "--files", files_arg], timeout=600)
+               "--files", files_arg] + trace_arg, timeout=600)
+    if trace_arg and os.path.isfile(plan_path):
+        os.unlink(plan_path)
     print("auto_round commit rc=%s %s" % (
         res.returncode,
         ((res.stdout or "") + (res.stderr or "")).strip()[-300:]))

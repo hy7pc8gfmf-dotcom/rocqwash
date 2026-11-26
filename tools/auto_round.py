@@ -36,12 +36,14 @@ Exit-codes.  0 = the face completed or answered (a nothing-to-do skip is
 # Commands and flags
 #   commit --classes C1,C2 --files F1,F2 [--hits H.json]
 #     [--class-confidence NAME=VALUE ...] [--message TEXT] [--continue]
-#     [--dry-run]
+#     [--dry-run] [--scheduler-plan P]
 #       wrap the working-tree changes of the listed files into one verified
 #       round: admission per the gear, soft stop check, verify gate, one
 #       commit, one lightweight ref, one ledger row.  A round whose listed
 #       files carry no pending change is a loud nothing-to-do (exit 0, no
-#       write), so re-running a landed round is safe.
+#       write), so re-running a landed round is safe.  With
+#       --scheduler-plan, the plan document's schedulingInput influence
+#       rides the ledger row as the scheduling_input trace key.
 #   approve --class NAME [--confidence X] [--note TEXT]
 #       record a human admission; the class then rides as existing in both
 #       gears.
@@ -159,6 +161,13 @@ ROW_KEYS = ("round_id", "mode", "base_sha", "head_sha", "classes_applied",
 # rows written before the verify-swap face carry exactly these ten keys
 # and stay valid forever (additive key; old rows are never rewritten)
 ROW_KEYS_LEGACY = ROW_KEYS[:-1]
+# rows steered by the scheduler plan face carry the additive
+# scheduling_input trace key (the round-row trace contract stated in
+# tools/learning_feedback.py); rows without it stay valid forever
+ROW_KEYS_TRACE = ROW_KEYS + ("scheduling_input",)
+# the plan document schema a committed trace is read from
+# (tools/scheduler_lite.py, the plan face)
+SCHEDULER_PLAN_SCHEMA = "rocqwash.scheduler-lite.plan/1"
 STATE_KEYS = ("schema", "anchor", "admitted_classes", "line_hits")
 ANCHOR_KEYS = ("sha", "round_id")
 ADMIT_KEYS = ("class", "confidence", "basis", "coq_comment_safe",
@@ -387,14 +396,20 @@ def save_state(path, state):
 
 # ---------------------------------------------------------------- ledger --
 def validate_row(row, path, lineno):
-    """Strict ten-key row check; any deviation fails loud as corruption."""
+    """Strict row check; any deviation fails loud as corruption."""
     where = "round ledger %s line %s" % (path, lineno)
     if not isinstance(row, dict):
         raise FailLoud(9, "%s is not a JSON object" % where)
-    if set(row) not in (set(ROW_KEYS), set(ROW_KEYS_LEGACY)):
-        raise FailLoud(9, "%s keys must be the ten contract keys, or the "
-                          "ten plus the additive verify_kind key, got %s"
-                          % (where, sorted(row)))
+    if set(row) not in (set(ROW_KEYS), set(ROW_KEYS_LEGACY),
+                        set(ROW_KEYS_TRACE)):
+        raise FailLoud(9, "%s keys must be the contract keys, the legacy "
+                          "set without verify_kind, or the contract set "
+                          "plus the additive scheduling_input trace key, "
+                          "got %s" % (where, sorted(row)))
+    if "scheduling_input" in row \
+            and not isinstance(row["scheduling_input"], dict):
+        raise FailLoud(9, "%s scheduling_input must be an object when "
+                          "present" % where)
     rid = row["round_id"]
     if isinstance(rid, bool) or not isinstance(rid, int) or rid < 1:
         raise FailLoud(9, "%s round_id must be an int >= 1" % where)
@@ -463,10 +478,13 @@ def append_row(path, row):
 
 
 def build_row(number, mode, base_sha, head_sha, classes, admissions, files,
-              verify_rc, oscillation_count, stamp, verify_cmd=None):
+              verify_rc, oscillation_count, stamp, verify_cmd=None,
+              scheduling_input=None):
     """Round row in contract key order; verify_kind rides the additive
-    key and names the gate that produced verify_rc."""
-    return {
+    key and names the gate that produced verify_rc.  scheduling_input
+    rides the additive trace key only for a round steered by the
+    scheduler plan face."""
+    row = {
         "round_id": number,
         "mode": mode,
         "base_sha": base_sha,
@@ -479,6 +497,50 @@ def build_row(number, mode, base_sha, head_sha, classes, admissions, files,
         "timestamp_utc": stamp,
         "verify_kind": verify_kind_of(verify_cmd),
     }
+    if scheduling_input is not None:
+        row["scheduling_input"] = dict(scheduling_input)
+    return row
+
+
+def load_scheduler_trace(plan_path):
+    """Read one scheduler plan document into the round-row trace.
+
+    The trace contract (tools/learning_feedback.py, the extended
+    contract) is {"approval_rate_auto": <num|null>, "action": <str>,
+    "basis": <str>}; the plan face carries the same influence as
+    schedulingInput.{approvalRateAuto, action, basis}.  A plan without a
+    readable rate still yields a trace with a null rate: the scan counts
+    only non-null traces, so the row records what ran.
+    """
+    if not os.path.isfile(plan_path):
+        raise FailLoud(9, "scheduler plan absent: %s" % plan_path)
+    try:
+        with open(plan_path, "r", encoding="utf-8") as handle:
+            plan = json.load(handle)
+    except (OSError, ValueError) as exc:
+        raise FailLoud(9, "scheduler plan unreadable: %s (%s)"
+                       % (plan_path, exc))
+    if not isinstance(plan, dict) or plan.get("schema") != SCHEDULER_PLAN_SCHEMA:
+        raise FailLoud(9, "scheduler plan schema must be %s: %s"
+                       % (SCHEDULER_PLAN_SCHEMA, plan_path))
+    influence = plan.get("schedulingInput")
+    if not isinstance(influence, dict):
+        raise FailLoud(9, "scheduler plan carries no schedulingInput "
+                          "object: %s" % plan_path)
+    rate = influence.get("approvalRateAuto")
+    if rate is not None and (isinstance(rate, bool)
+                             or not isinstance(rate, (int, float))):
+        raise FailLoud(9, "scheduler plan approvalRateAuto is not null "
+                          "or a number: %s" % plan_path)
+    action = influence.get("action")
+    if not isinstance(action, str) or not action:
+        raise FailLoud(9, "scheduler plan action is not a non-empty "
+                          "string: %s" % plan_path)
+    basis = influence.get("basis")
+    if not isinstance(basis, str) or not basis:
+        raise FailLoud(9, "scheduler plan basis is not a non-empty "
+                          "string: %s" % plan_path)
+    return {"approval_rate_auto": rate, "action": action, "basis": basis}
 
 
 # ------------------------------------------------------------------- git --
@@ -766,6 +828,8 @@ def cmd_commit(args):
     """Wrap the listed working-tree changes into one verified round."""
     repo, cfg, ledger, state_path, rows, state = load_all(args)
     ensure_git(repo)
+    trace = (load_scheduler_trace(args.scheduler_plan)
+             if args.scheduler_plan else None)
     classes = split_list_arg(args.classes, "--classes")
     files = [normalize_rel(p) for p in split_list_arg(args.files, "--files")]
     for rel in files:
@@ -839,7 +903,8 @@ def cmd_commit(args):
     save_state(state_path, state)
     append_row(ledger, build_row(number, cfg["mode"], base, head, classes,
                                  admissions, changed, verify_rc, osc_count,
-                                 stamp, verify_cmd=cfg["verify_cmd"]))
+                                 stamp, verify_cmd=cfg["verify_cmd"],
+                                 scheduling_input=trace))
     sys.stdout.write("round=%d mode=%s head=%s files=%d classes=%s\n"
                      % (number, cfg["mode"], head[:12], len(changed),
                         ",".join(classes)))
@@ -1562,7 +1627,7 @@ def selftest():
         for line in fails:
             sys.stderr.write("SELFTEST FAIL %s\n" % line)
         return 1
-    sys.stdout.write("%s (18 vectors)\n" % SELFTEST_MARK)
+    sys.stdout.write("%s (19 vectors)\n" % SELFTEST_MARK)
     return 0
 
 
@@ -1839,6 +1904,55 @@ def selftest_repo_vectors(tmp, check):
         check("V15 usage %s" % " ".join(argv), proc.returncode == want,
               "rc=%d" % proc.returncode)
 
+    # V19 scheduler plan trace: a plan-steered commit carries the
+    # scheduling_input trace (the contract shape learning_feedback.py
+    # scans), a plain commit stays on the contract keys, a corrupt or
+    # absent plan refuses as missing-or-corrupt input (exit 9), and the
+    # traced ledger loads back through validate_row.
+    root = _mkrepo(tmp, "v19", _base_cfg())
+    plan_path = os.path.join(tmp, "v19-plan.json")
+    plan_basis = ("approval_rate_auto 0.25 < 0.5: round cadence "
+                  "downshifted, the interval doubles (20 s)")
+    _write_json(plan_path, {
+        "schema": SCHEDULER_PLAN_SCHEMA,
+        "verdict": "due",
+        "schedulingInput": {
+            "approvalRateAuto": 0.25,
+            "feedbackPresent": True,
+            "source": "docs/scheduling-feedback.json",
+            "action": "cadence-interval-x2",
+            "basis": plan_basis,
+        },
+    })
+    write(root, "probe.py", "value = 19\n")
+    rc, out, _ = _commit_ok(root, "date-strip", "probe.py",
+                            extra=("--scheduler-plan", plan_path))
+    rows = rows_of(root)
+    check("V19 traced rc", rc == 0 and len(rows) == 1, "%d %s" % (rc, out))
+    check("V19 trace keys", rows and set(rows[0]) == set(ROW_KEYS_TRACE),
+          str(sorted(rows[0]) if rows else "no row"))
+    check("V19 trace fields", rows and rows[0].get("scheduling_input")
+          == {"approval_rate_auto": 0.25, "action": "cadence-interval-x2",
+              "basis": plan_basis},
+          str(rows[0].get("scheduling_input") if rows else None))
+    write(root, "probe.py", "value = 20\n")
+    rc, out, _ = _commit_ok(root, "date-strip", "probe.py")
+    rows = rows_of(root)
+    check("V19 plain keys", rc == 0 and len(rows) == 2
+          and set(rows[1]) == set(ROW_KEYS), "%d %s" % (rc, out))
+    bad_path = os.path.join(tmp, "v19-bad.json")
+    _write_json(bad_path, {"schema": "rocqwash.other/1"})
+    write(root, "probe.py", "value = 21\n")
+    rc, _, err = _commit_ok(root, "date-strip", "probe.py",
+                            extra=("--scheduler-plan", bad_path))
+    check("V19 corrupt plan", rc == 9 and "schema" in err,
+          "%d %s" % (rc, err))
+    rc, _, err = _commit_ok(root, "date-strip", "probe.py",
+                            extra=("--scheduler-plan",
+                                   os.path.join(tmp, "v19-absent.json")))
+    check("V19 absent plan", rc == 9 and "absent" in err,
+          "%d %s" % (rc, err))
+
 
 def _load_package(path, check):
     """Read the emitted offer package back for the vector assertions."""
@@ -1905,6 +2019,12 @@ def build_parser():
                         help="commit: comma-separated repo-relative files")
     parser.add_argument("--hits", default="",
                         help="commit: JSON file of {file, line} touch sites")
+    parser.add_argument("--scheduler-plan", default="",
+                        dest="scheduler_plan",
+                        help="commit: scheduler plan document (schema "
+                             "rocqwash.scheduler-lite.plan/1) whose "
+                             "schedulingInput influence rides the ledger "
+                             "row as the scheduling_input trace")
     parser.add_argument("--class-confidence", action="append", default=[],
                         dest="class_confidence", metavar="NAME=VALUE",
                         help="commit: confidence grade for a new class")

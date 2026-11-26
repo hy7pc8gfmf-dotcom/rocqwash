@@ -109,8 +109,8 @@
 #               cw.sh ai-flavor --file <p> [--json out] | --tree DIR | --selftest
 #   ai-flavor-apply AI-wording advisory apply face (writes only through the rewrite provider; handoff leg default zero-network; http leg default-deny; zh ban faces never machine-written) -> tools/ai_flavor_apply.py
 #               cw.sh ai-flavor-apply --file <p> [--json out] [--emit-handoff out.jsonl | --apply-handoff in.jsonl --state p] [--provider handoff|http]
-#   auto-round  round-ledger admission/rollback/salvage body (auto/gated gear per autonomy.json; append-only ledger; rollback = drift archive then one revert; no reset no force no push) -> tools/auto_round.py
-#               cw.sh auto-round <command> [--repo-root P] [--autonomy P] [--state P] [--ledger P] [--continue] [--selftest]
+#   auto-round  round-ledger admission/rollback/salvage body (auto/gated gear per autonomy.json; append-only ledger; rollback = drift archive then one revert; no reset no force no push; commit --scheduler-plan P records the plan face's schedulingInput influence as the row's scheduling_input trace) -> tools/auto_round.py
+#               cw.sh auto-round <command> [--repo-root P] [--autonomy P] [--state P] [--ledger P] [--continue] [--scheduler-plan P] [--selftest]
 #   i18n-pipeline zh-en four-linkage i18n pipeline orchestration (P0 policy pre-check / P1 segmenter / P3 four-linkage apply / P6 ledger closure; refusal is a legal exit-0 ledgered outcome) -> tools/i18n_pipeline.py
 #               cw.sh i18n-pipeline --manifest run.json --stage p0|p1|p3|p6 [--json out] [--selftest]
 #   i18n-translate model-site layer P2 of the i18n pipeline (handoff emit/ingest default zero-network; http leg optional default-deny; NETRED ledger line per call) -> tools/i18n_translate.py
@@ -161,7 +161,7 @@
 
 #               cw.sh axiom-audit census --repo DIR [--json OUT] | --selftest
 
-#   vacgen-coq Coq-side statement ingestion and probe-cast planner (Rocq vernacular extraction, premise/conclusion split, data-driven taxonomy rows, Coq-L3 coverage metric; ticket 14 wave 1; zero network zero compile) -> tools/vacgen_coq.py
+#   vacgen-coq Coq-side statement ingestion and probe-cast planner (Rocq vernacular extraction, premise/conclusion split, data-driven taxonomy rows, Coq-L3 coverage metric; ticket 14 work stream 1; zero network zero compile) -> tools/vacgen_coq.py
 
 #               cw.sh vacgen-coq --from-v FILE|DIR [--taxonomy FILE] [--out DIR] [--limit N] | --selftest
 
@@ -179,7 +179,7 @@
 #               cw.sh jargon-map-sync [--md P] [--map P] [--json P] | --apply | --selftest
 #   repair-weekly  repair-outcome ledger weekly distribution face, repair class E6 (aggregates docs/repair-ledger.jsonl into the ISO-week per-red outcome census plus the class/ticket distributions; read-only over the ledger, --out/--json are the only write faces; --record appends one per-red rocqwash-repair-ledger/2 row under the enforced vocabulary, --apply required) -> tools/repair_weekly.py
 #               cw.sh repair-weekly [--ledger P] [--date YYYY-MM-DD] [--out FILE] [--json P] | --record --class CLASS --target T --repair-outcome VALUE [--ticket K] [--evidence-file J] [--reason S] [--apply] | --selftest
-#   selfevolve-round  one deterministic mechanical round, cron face (census jargon_apply --plan, then apply, then verify py_compile/bash -n hard gates plus norm_lint/doc_lint advisory, then auto_round commit, then push, then route the CI judge; frozen faces excluded by jargon_apply; zero qualifying fixes = clean no-op pass; apply residue nonzero = fail-loud, no commit) -> tools/selfevolve_round.py
+#   selfevolve-round  one deterministic mechanical round, cron face (census jargon_apply --plan, then apply, then verify py_compile/bash -n hard gates plus norm_lint/doc_lint advisory, then the scheduler_lite plan face, then auto_round commit carrying the plan's scheduling_input trace, then push, then route the CI judge; frozen faces excluded by jargon_apply; zero qualifying fixes = clean no-op pass; apply residue nonzero = fail-loud, no commit) -> tools/selfevolve_round.py
 #               cw.sh selfevolve-round [--dry-run]
 #   pin-repair  provenance-pin drift repair for the jargon seed map, triage row R15 auto-repair executor (re-signs drifted provenance.sources md5 pins behind the sync tool's zero-write plan IN-SYNC verdict; --plan writes nothing, --apply touches only md5 values and re-runs the seeds suite, red verify rolls back to the pre-apply bytes; not-IN-SYNC exits without touching the seed) -> tools/pin_repair.py
 #               cw.sh pin-repair --selftest | --plan | --apply [--seed P]
@@ -369,7 +369,7 @@ Tools:
               cw.sh axiom-guard --repo DIR [--out DIR] [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC] [--keep] [--strict] | --selftest
   axiom-audit Coq-side axiom audit (fixture-corpus census per coqc engine; declared axioms with file/line/form, reverse map to introducing files, platform grades classical/funext/stdlib; live engine required, unconfigured skips honestly) -> tools/axiom_audit.py
               cw.sh axiom-audit census --repo DIR [--json OUT] | --selftest
-  vacgen-coq Coq-side statement ingestion and probe-cast planner (Rocq vernacular extraction, premise/conclusion split, data-driven taxonomy rows, Coq-L3 coverage metric; ticket 14 wave 1; zero network zero compile) -> tools/vacgen_coq.py
+  vacgen-coq Coq-side statement ingestion and probe-cast planner (Rocq vernacular extraction, premise/conclusion split, data-driven taxonomy rows, Coq-L3 coverage metric; ticket 14 work stream 1; zero network zero compile) -> tools/vacgen_coq.py
               cw.sh vacgen-coq --from-v FILE|DIR [--taxonomy FILE] [--out DIR] [--limit N] | --selftest
   source-fetch audit fetch face (dual-source cross-pin, sha256 pin from caller or CI-source file, HTML-trap sniff, NETRED backoff; honest-unverified and net-gated states are data) -> tools/source_fetch.py
   cw.sh source-fetch --url URL [--sha256 HEX] [--sha256-source URL] [--mirror URL] [--trap-sniff] [--out DIR] [--timeout SEC] [--retries N] | --selftest
