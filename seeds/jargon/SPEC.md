@@ -49,8 +49,10 @@ Exit-codes.  `test_snippet.py`: 0 no FAIL; 1 at least one FAIL (listed, fail-lou
   (exit 1); a file with no active rows is rejected (exit 1); a missing file
   exits 9.  Loading and matching details: CJK faces match under a
   whole-word adjacency rule; backtick spans are masked on the jargon and CJK
-  faces alike; the loaded table itself is exempt from its own check
-  (`tools/norm_lint.py:413-414`).
+  faces alike; markdown link destinations are likewise masked on the jargon
+  and forbidden faces (a cited path is an identifier position, reading rule
+  1 of the mapping table); the loaded table itself is exempt from its own
+  check (`tools/norm_lint.py:617-618`).
 - Projection rule (deterministic, defined here, exercised by the tests):
   one data row per entry: face cell = `face`; standard cell = `standard`
   when `disposition` is `replace`, otherwise the fixed suggestion string
