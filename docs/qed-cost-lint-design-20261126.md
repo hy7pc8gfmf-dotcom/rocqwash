@@ -1,5 +1,11 @@
 # Qed 成本 lint 设计卷（T7·20261126·rocqwash tools/ 候选）
 
+Purpose.  Design volume for a Qed-cost lint candidate tool: the judgment signals, thresholds, and cure shapes for forallb and vm_compute Qed-time risks in the tools/ tree.
+Interface.  None (design document; no executable face).
+Dependencies.  None to read; the evidence sources are cited inline.
+Evidence.  Three signal sources, cited in the block below: the external-evaluation continuation analysis 3 gap row; the EXP ledger row family on the folded-pin Qed cost (276.5 CPU-s against 0.000s after rewrite); the kernel slow-path precedent row.
+Exit-codes.  Not applicable to a data face.
+
 > 来源：外部评估续分析3 真缺口③「forallb/Qed 性能 lint：全仓 forallb 零命中；vm_compute 仅被当证书词面计数」＋账本实证「folded pin 致 Qed 276.5 CPU-s、改写后 0.000s」（EXP-20261124 系）＋内核慢路磨点判例（pose proof+unfold+apply 拆解链把 vm_compute 33 秒的计算型谓词磨成内核层 500+ CPU 秒）。
 
 ## 一、判定信号（三源）

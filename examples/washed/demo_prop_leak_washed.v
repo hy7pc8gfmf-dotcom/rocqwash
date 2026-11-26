@@ -6,6 +6,17 @@
  * Premise-position Prop forms may stay (lawful keep, scanner EXEMPT).
  * The statement-name list is unchanged: N=N with the original
  * (asserted by: mac_stmt_names.py demo_prop_leak.v --compare ...).
+
+Purpose.  Full-chain demo specimen: one self-contained Coq file with five statement faces.
+Interface.  `make demo` in this directory; no arguments.
+Mission.  Demonstrate the full scan -> names -> wash -> verify chain on one specimen; every stage reports its own real verdict.
+Dependencies.  The repo's Python 3 tool faces; rocq/coqc optional (printed SKIP when absent, never a pass).
+References.  examples/README.md (the demo chain) and the repository docs.
+Evidence.  Each stage prints its own RUN/SKIP verdict; the wash stage asserts byte-identity against the washed reference (cmp).
+Exit-codes.  Not applicable to a data face; `make demo` fails loud on any FAIL marker.
+Constructivity.  The canonical wash targets are Set-carried (Id, NatLe); red conclusions in the pre-wash original are demonstration material, scanned read-only.
+Build.  `make verify` runs the compile step (on the washed reference) under tools/cpu_guard.sh when rocq/coqc exists; absent, printed SKIP, never a pass.
+
  *
  * NOTE: compile-ability of this specimen has NOT been verified
  * (no rocq/coqc on the authoring machine). `make verify` runs the
