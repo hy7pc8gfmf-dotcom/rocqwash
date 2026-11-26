@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """qed_cost_lint.py - candidate Qed-cost lint over source blocks (rocqwash tools/).
 Purpose.  The v1 candidate face of the Qed-cost design volume
-  (docs/qed-cost-lint-design-20261126.md): every Proof..Qed block is
+  (`docs/qed-cost-lint-design-20261126.md`): every Proof..Qed block is
   measured (line count, closing tactic, fast-closure classification) and
   long non-fast blocks surface as "candidate" rows - the source face of
   the three-source design (source candidates + glob span + coqc -time
@@ -14,14 +14,17 @@ Purpose.  The v1 candidate face of the Qed-cost design volume
   later wiring ticket).  Zero network, zero toolchain, zero writes beyond
   the caller-named --json.
 Interface.  python -I tools/qed_cost_lint.py --file F.v [--threshold N]
-  [--json OUT] | --tree DIR [same flags] | --selftest.  Exit-codes.
-  0 report-only run (candidates are data, not red); 1 --gate with at
-  least one candidate (or selftest red); 2 usage; 9 --file/--tree
-  path missing.  Deterministic: sorted rows, double-run byte-identical.
+  [--json OUT] | --tree DIR [same flags] | --selftest.
+Dependencies.  Python 3 standard library only; zero network, zero
+  toolchain.
 Evidence.  --selftest: canned-block vectors (fast closure demotion,
   candidate nomination, non-Qed tails, threshold face, determinism,
   tree face); the design volume's 276.5-CPU-s / 0.000-s precedents are
   the vector archetypes.
+Exit-codes.  0 report-only run (candidates are data, not red); 1 --gate
+  with at least one candidate (or selftest red); 2 usage; 9
+  --file/--tree path missing.  Deterministic: sorted rows, double-run
+  byte-identical.
 """
 import argparse
 import io
