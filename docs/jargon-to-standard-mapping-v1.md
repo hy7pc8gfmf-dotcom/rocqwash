@@ -41,7 +41,7 @@
 | 收编 | absorb | In the 65-face consolidated base (gate4_comment_guard.py:72). Merge-into sense: absorb. 1 file. |
 | 让位 | yield | 0 repository hits; precedence/concurrency context: yield (to a higher-priority run). |
 | 扒皮 | strip | 0 repository hits; stripping process narration from comments: strip. |
-| born-clean | axiom-free born | Classification face in wash/probe_engine.py:17-21 (BORN-CLEAN verdict line) — the verdict token stays as identifier; prose says axiom-free born. 6 files. |
+| born-clean | axiom-free born | Classification face in wash/probe_engine.py:17-21 (BORN-CLEAN verdict line) — the verdict token stays as identifier; prose says axiom-free born. 6 files. | `washable\s*/\s*born-clean` |
 | 金标 | gold-standard | Evidence-required discipline: 「无据不铸」 → "evidence required before issuance" (Table C); gold-standard evidence reference. 7 files (e.g. tools/wash_shape.py:578,602,630). |
 | 活账 / 死账 | live ledger / stale ledger | 0 repository hits; ledger-freshness context: live vs stale ledger. |
 | 仓 | repository | 仓根/仓内 → repository root / in the repository. 102 files. |
@@ -171,13 +171,13 @@
 
 | 黑话 (jargon face) | 标准 (standard expression) | 语境注记 (context note) |
 |---|---|---|
-| wave（组织义） | work stream | 七工具波 → seven-tool release; the release sense stays on ledger surfaces. |
+| wave（组织义） | work stream | 七工具波 → seven-tool release; the release sense stays on ledger surfaces; ticket-lineage citations are identifiers of record and stay. | `ticket\s+\d+\s+wave\s+\d+` |
 | seat | agent | M-wave campaign-organization family; seat numbers never enter prose; the one-worker-per-seat topology wording (seat-worker) stays on ledger and identifier surfaces. |
 | seat-worker | agent | Compound residue of the earlier agent / seat-worker hybrid; prose uses agent. |
 | campaign | effort / work stream | M-wave campaign-organization family; preset name `campaign_set_diamond` (tests/fixtures/header_map_v1.json) is data and stays. |
-| dispatch（叙述义） | route | `red_dispatch.py` identifier stays. | ^#?\s*dispatch\s+red-event router |
+| dispatch（叙述义） | route | `red_dispatch.py` identifier stays; the route-table citation and the verb citation beside a backticked flag face stay. | ^#?\s*dispatch\s+red-event router;dispatch arms;tools dispatch |
 | handover | — (delete the narration) | Process narration; state facts instead. |
-| landing | integration | M-wave campaign-organization family. |
+| landing | integration | M-wave campaign-organization family: the campaign and operation narration sense only. The landing-of-a-reviewed-change sense is the charter's own standard vocabulary (the recursive-improvement charter, section 5: land the change through the single landing path) and stays; its recurring line shapes ride the exempt cell. | `landing increment`;`landing commit`;`reviewed landing`;`tool landing`;`landing tool`;`landing ticket`;`landing line`;`registration landing`;`the landing is confirmed`;`the [A-Za-z0-9._-]+ landing\b` |
 | retrofit | adaptation | M-wave campaign-organization family. |
 | trivial（夸饰义） | — (delete, or state the actual fact) | Hyperbole ban, M-wave §四. |
 | obvious（夸饰义） | — (delete) | Hyperbole ban. |
