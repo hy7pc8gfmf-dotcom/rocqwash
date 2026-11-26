@@ -7,7 +7,7 @@
 
 # cw.sh — 统一入口速查（正式名 rocqos·链接名 rocqwash·64 路由 / 62 工具）/ Unified entry quick reference
 
-`cw.sh` 是 rocqwash v29-v32 七工具＋20261111 五工具＋v37 三器＋v38 一器＋v39 三器（doc-lint/netname-normalize/select-audit）＋v40 一器＋v45 一器＋v46 两器（dispatch/audit）＋v47 一器（registry-fix）＋norm-lint 一器（批注面规范化 linter·共二十五个）的**一键调用入口**（repo 根；此枚举为 25 器，其中 22 器载于主表、netname-normalize／select-audit／render-events 三器载于下方第二表；入口现势合计 64 路由 / 62 工具）：
+`cw.sh` 是 rocqwash v29-v32 七工具＋20261111 五工具＋v37 三器＋v38 一器＋v39 三器（doc-lint/netname-normalize/select-audit）＋v40 一器＋v45 一器＋v46 两器（route/audit）＋v47 一器（registry-fix）＋norm-lint 一器（批注面规范化 linter·共二十五个）的**一键调用入口**（repo 根；此枚举为 25 器，其中 22 器载于主表、netname-normalize／select-audit／render-events 三器载于下方第二表；入口现势合计 64 路由 / 62 工具）：
 
 ```
 bash cw.sh <tool> [args...]
@@ -30,35 +30,35 @@ bash cw.sh <tool> [args...]
 | 工具 | 目标脚本 | 用途 | 一行示例 |
 |------|----------|------|----------|
 | `scan4` | `scan/scan_v4_token.py` | token 级限定名普查（限定名/遮蔽源/追踪 id） | `bash cw.sh scan4 --file demo.v --json report.json --text` |
-| `cure` | `wash/cure_applier.py` | 消费位治愈正典包（**缺省干跑**，`--apply` 才写盘） | `bash cw.sh cure --file demo.v --apply` |
+| `cure` | `wash/cure_applier.py` | 消费位治愈正典包（**dry run by default**，`--apply` 才写盘） | `bash cw.sh cure --file demo.v --apply` |
 | `probe` | `wash/probe_engine.py` | 批量闭包相容探针（候选清单×世界目录→rc 分流台账） | `bash cw.sh probe --candidates list.tsv --src src/ --world world/ --out ledger.json` |
 | `chain` | `tools/chain_graph.py` | 多份 probe 台账合并→链根图＋TOP 榜 | `bash cw.sh chain l1.json l2.json --md top.md --top 25` |
 | `sync-ledger` | `tools/ledger_sync.py` | probe 台账×状态台账 TSV 合并同步 | `bash cw.sh sync-ledger --probe ledger.json --ledger status.tsv --out new.tsv --report sync.json` |
 | `erasure` | `verify/erasure_classifier.py` | 提取擦除位分类顾问（.mli 逐位归类） | `bash cw.sh erasure --mli out.mli --md-out ledger.md` |
 | `dual-scan` | `scan/dual_scan.py` | 双器对拍（scan_v4_token×mac_stmt_scan 逐件差异） | `bash cw.sh dual-scan --dir src/ --out report.json` |
 | `doctor` | `tools/toolchain_dyld_doctor.py` | dyld 工具链断链诊断（批量 EXIT=134 面·只诊断＋restore 建议·**禁代执行**） | `bash cw.sh doctor --worker PATH --donor DIR --json dyld.json` |
-| `net-probe` | `tools/net_probe.py` | 网络窗探针（双探稳窗·单探禁发射·HTTPError 即可达） | `bash cw.sh net-probe --rounds 2 --interval 60 --stable-window` |
-| `triage` | `tools/ci_triage.py` | CI 红炉分诊（五族+绿炉判类谱·红是数据非器红） | `bash cw.sh triage --repo ORG/REPO --run ID --logs` |
-| `union` | `tools/registry_union.py` | 注册册 union 手术（main 为底＋对 merge-base 真独有尾插·**缺省干跑**） | `bash cw.sh union --base b --main m --branch x --kind order --json r.json` |
-| `pushci` | `tools/pushci.py` | 修复后推送 CI 一键流水线（五段管线 preflight 发射闸→push→watch→heal→verdict±merge·v35 四器 subprocess 编排零新引擎·verdict 七态 `success\|fix-content\|toolchain\|unstable\|heal-exhausted\|gate4-block\|dry-run` 对应退出码 0/1/2/9） | `bash cw.sh pushci --repo-path . --branch feature/x --json report.json` |
+| `net-probe` | `tools/net_probe.py` | 网络窗探针（双探稳窗·a single-probe round must not initiate·HTTPError 即可达） | `bash cw.sh net-probe --rounds 2 --interval 60 --stable-window` |
+| `triage` | `tools/ci_triage.py` | CI failing-build triage（五族+绿炉判类谱·a failing result is data, not a tool failure） | `bash cw.sh triage --repo ORG/REPO --run ID --logs` |
+| `union` | `tools/registry_union.py` | 注册册 union operation（main 为底＋对 merge-base 真独有尾插·**dry run by default**） | `bash cw.sh union --base b --main m --branch x --kind order --json r.json` |
+| `pushci` | `tools/pushci.py` | 修复后推送 CI single-command pipeline（五段管线 preflight 发射闸→push→watch→heal→verdict±merge·v35 四器 subprocess 编排零新引擎·verdict 七态 `success\|fix-content\|toolchain\|unstable\|heal-exhausted\|gate4-block\|dry-run` 对应退出码 0/1/2/9） | `bash cw.sh pushci --repo-path . --branch feature/x --json report.json` |
 | `sentinel` | `tools/cw_sentinel.py` | 实时动态哨（三路信号源 CI runs/台账链根/buildlog 词面→JSONL 事件流·once/loop 双模·判类全权在 ci_triage·**零动作是缺省**·`--on-red-preset` 五预设可重复链式按序一败续行——unclog/pushci/wash-shape/triage/cw-doctor·各承缺省干跑铁律·与 `--on-red` 互斥·旁路动作必伴 `--emit` 双路同守卫 rc=2） | `bash cw.sh sentinel --once --watch-ledgers ledgers/ --on-red-preset unclog --on-red-arg src=src/ --emit events.jsonl --json r.json` |
-| `wash-shape` | `tools/wash_shape.py` | 洗形器·正典形五洗流水（词面/token/头注/行尾/锚·plan 缺省零写盘·`--apply` 落刀后复跑五洗复核·③头注模板源三路探测：`--header-map` 逐件数据 > `--header-map-preset` 钦名模板库 `tests/fixtures/header_map_v1.json`（战役正典蒸馏·金标引据在册·schema `rocqwash-header-map/1`）> env·同槽显传互斥 rc=2） | `bash cw.sh wash-shape --file demo.v --header-map-preset campaign_set_diamond --json plan.json` |
-| `unclog` | `tools/unclog.py` | 疏通堵塞闭环引擎（probe 归集→chain_graph 挑根→cure_applier 落刀→复核→verdict `unclogged\|wall\|rounds-exhausted\|audit`·缺省干跑·frozen 在册红拒·`--audit` 只读堵账基线零写盘自证·与 `--apply`/`--loop` 互斥·`--probe-parallel K` 探针并行度透传 probe_engine `--jobs`·timing 段 jobs 维度入账同候选面异 K 前后跑可比） | `bash cw.sh unclog --src src/ --world world/ --audit --probe-parallel 2 --json r.json` |
-| `cw-doctor` | `tools/cw_doctor.py` | 综合体检器·四域聚合（环境 dyld／网络 net_probe／注册册锚正典形审计／堵账 probe_engine＋chain_graph 逐域 subprocess 编排既有一器→综合健康分 0-100＋verdict `healthy\|degraded`＋advice 处置清单·**只诊断禁代执行**·红是数据非器红·schema `rocqwash-cwdoctor/1`·`--injector` 离线可测） | `bash cw.sh cw-doctor --json r.json --registry order.txt` |
-| `doc-lint` | `tools/doc_lint.py` | 文档←→实现一致性三查器（①cw.sh 头注/usage/hint/case 四处工具表互检＋tools/ 通用入口对账 ②CASES vs tests/README.md vs README.md 计数三处对账 ③doc 引用旗标 vs 各器 `--help` 实出逐枚对照·verdict `consistent\|drift`·红是数据非器红·schema `rocqwash-doclint/1`·`--repo` 被审仓根缺省本仓） | `bash cw.sh doc-lint --repo . --json doclint.json` |
-| `baseline-diff` | `tools/baseline_diff.py` | 堵账基线对比器（两份 unclog `--audit` 基线 argv 序=旧→新→`new_blocks`/`resolved_blocks`/`persistent` 三清单＋`score_delta`·verdict 四态 `improved\|degraded\|stable\|incomparable`·账面自洽预检拒手编·timing 不入对比·红是数据非器红·schema `rocqwash-baseline-diff/1`·入仓规程见 [examples/baselines/README.md](examples/baselines/README.md)） | `bash cw.sh baseline-diff audit-wash-20261101.json audit-wash-20261111.json --md diff.md` |
+| `wash-shape` | `tools/wash_shape.py` | shape-normalizing tool·正典形五洗流水（词面/token/头注/行尾/锚·plan 缺省零写盘·`--apply` 落刀后复跑五洗复核·③头注模板源三路探测：`--header-map` 逐件数据 > `--header-map-preset` 钦名模板库 `tests/fixtures/header_map_v1.json`（战役正典蒸馏·金标引据在册·schema `rocqwash-header-map/1`）> env·同槽显传互斥 rc=2） | `bash cw.sh wash-shape --file demo.v --header-map-preset campaign_set_diamond --json plan.json` |
+| `unclog` | `tools/unclog.py` | 疏通堵塞闭环引擎（probe 归集→chain_graph 挑根→cure_applier apply→复核→verdict `unclogged\|wall\|rounds-exhausted\|audit`·dry run by default·frozen 在册红拒·`--audit` 只读堵账基线零写盘自证·与 `--apply`/`--loop` 互斥·`--probe-parallel K` 探针并行度透传 probe_engine `--jobs`·timing 段 jobs 维度入账同候选面异 K 前后跑可比） | `bash cw.sh unclog --src src/ --world world/ --audit --probe-parallel 2 --json r.json` |
+| `cw-doctor` | `tools/cw_doctor.py` | 综合体检器·四域聚合（环境 dyld／网络 net_probe／注册册锚正典形审计／堵账 probe_engine＋chain_graph 逐域 subprocess 编排既有一器→综合健康分 0-100＋verdict `healthy\|degraded`＋advice 处置清单·**只诊断禁代执行**·a failing result is data, not a tool failure·schema `rocqwash-cwdoctor/1`·`--injector` 离线可测） | `bash cw.sh cw-doctor --json r.json --registry order.txt` |
+| `doc-lint` | `tools/doc_lint.py` | 文档←→实现一致性三查器（①cw.sh 头注/usage/hint/case 四处工具表互检＋tools/ 通用入口对账 ②CASES vs tests/README.md vs README.md 计数三处对账 ③doc 引用旗标 vs 各器 `--help` 实出逐枚对照·verdict `consistent\|drift`·a failing result is data, not a tool failure·schema `rocqwash-doclint/1`·`--repo` 被审仓根缺省本仓） | `bash cw.sh doc-lint --repo . --json doclint.json` |
+| `baseline-diff` | `tools/baseline_diff.py` | 堵账基线对比器（两份 unclog `--audit` 基线 argv 序=旧→新→`new_blocks`/`resolved_blocks`/`persistent` 三清单＋`score_delta`·verdict 四态 `improved\|degraded\|stable\|incomparable`·账面自洽预检拒手编·timing 不入对比·a failing result is data, not a tool failure·schema `rocqwash-baseline-diff/1`·入仓规程见 [examples/baselines/README.md](examples/baselines/README.md)） | `bash cw.sh baseline-diff audit-wash-20261101.json audit-wash-20261111.json --md diff.md` |
 | `dispatch` | `tools/red_dispatch.py` | 红事件路由器（哨红事件→动作预设·三档 preset `report-only\|suggest\|auto`·**缺省 report-only 零执行**·suggest 出可复制命令块·auto 显式才代跑 60s 帽 rc≠0 入账不改退出码·防重 state＋cooldown·路由全挂既有 cw.sh 路由零新引擎·A 族内容红禁代修出 fix 清单·schema `rocqwash-red-dispatch/1`） | `bash cw.sh dispatch --event-file events.jsonl --preset suggest --json route.json` |
 | `audit` | `tools/registry_audit.py` | 注册册卫生审计器（order.txt/_CoqProject 双册**只读**四账出账：重复行/锚撞文本/顺序号形/形怪/缺锚/孤儿/live 拓扑引用＋`--fix-plan` 确定性处方零写盘·**`--apply` 不存在**·键式/锚正典直用 registry_union 零重造·病灶是数据恒 exit 0·schema `rocqwash-registry-audit/1`·真仓活跑前置注记（v40 基线规程同律 [examples/baselines/README.md](examples/baselines/README.md)：真树活跑归主会话·席面只证器 selftest/夹具级）） | `bash cw.sh audit --order order.txt --project _CoqProject --live-src src/ --fix-plan --json audit.json` |
-| `registry-fix` | `tools/registry_fix.py` | 注册册处方执行器（`audit --fix-plan` 处方逐条落刀·三类处方 DEDUP 保首/锚刷/ORPHAN-ADD skip·**缺省干跑**·`--apply` 落刀后断言三判（dup 零残留/锚撞零增/孤儿不增）炸即回滚·staging 全内存零写盘·同参纪律 audit↔执行器逐字咬合·schema `rocqwash-registry-fix/1`） | `bash cw.sh registry-fix --audit-json audit.json --order order.txt --project _CoqProject --anchor-src src/ --json fix.json` |
+| `registry-fix` | `tools/registry_fix.py` | 注册册处方执行器（`audit --fix-plan` 处方逐条落刀·三类处方 DEDUP 保首/锚刷/ORPHAN-ADD skip·**dry run by default**·`--apply` 落刀后断言三判（dup 零残留/锚撞零增/孤儿不增）炸即回滚·staging 全内存零写盘·同参纪律 audit↔执行器逐字咬合·schema `rocqwash-registry-fix/1`） | `bash cw.sh registry-fix --audit-json audit.json --order order.txt --project _CoqProject --anchor-src src/ --json fix.json` |
 | `norm-lint` | `tools/norm_lint.py` | 批注面规范化 linter·report-only 首形（机检 `.py`/`.sh`/`.md` 散文面：头注横幅＋五字段块 `Purpose.`/`Interface.`/`Dependencies.`/`Evidence.`/`Exit-codes.` 逐字；jargon 映射表面词边界·反引号引文豁免；逐文件 CJK 残留 warn；禁类 warn；头注预算 30 行；`*.zh.md` 与 `docs/zh/` 留档跳过；findings 是数据——退出码不因其升格·schema `rocqwash-norm-lint/1`） | `bash cw.sh norm-lint --tree .` |
 | `help` | — | 总帮助；`help <tool>` 看该工具一行提示 | `bash cw.sh help probe` |
 
 典型流水线（发现→治愈→复核）：
 
 ```
-bash cw.sh scan4 --file demo.v --json census.json      # 1 普查
+bash cw.sh scan4 --file demo.v --json census.json      # 1 survey
 bash cw.sh cure   --file demo.v                        # 2 干跑看方案
-bash cw.sh cure   --file demo.v --apply               # 3 落刀（写盘）
+bash cw.sh cure   --file demo.v --apply               # 3 apply（写盘）
 bash cw.sh scan4  --file demo.v --json after.json      # 4 复扫应为零
 ```
 
@@ -66,14 +66,14 @@ CI 红炉修复链（doctor→net-probe→pushci(含 watch+heal)→triage）：
 
 ```
 bash cw.sh doctor --json dyld.json                              # 1 dyld 断链诊断（批量 EXIT=134 面·restore 建议只打印禁代执行）
-bash cw.sh net-probe --rounds 2 --interval 60 --stable-window   # 2 双探稳窗（连续两轮全端点可达才准发射·单探禁发射）
-bash cw.sh pushci --repo-path . --branch feature/x --json report.json   # 3 一键流水线（preflight 内复跑 doctor＋net-probe 双闸→push→watch CI→heal 自愈 rerun→verdict±--merge·verdict 七态见上表）
-bash cw.sh triage --repo ORG/REPO --run ID --logs               # 4 verdict≠success 时红炉分诊（红是数据非器红·按族给 action）
+bash cw.sh net-probe --rounds 2 --interval 60 --stable-window   # 2 双探稳窗（连续两轮全端点可达才准发射·a single-probe round must not initiate）
+bash cw.sh pushci --repo-path . --branch feature/x --json report.json   # 3 single-command pipeline（preflight 内复跑 doctor＋net-probe 双闸→push→watch CI→heal automatic recovery rerun→verdict±--merge·verdict 七态见上表）
+bash cw.sh triage --repo ORG/REPO --run ID --logs               # 4 verdict≠success 时红炉分诊（a failing result is data, not a tool failure·按族给 action）
 ```
 
 > 手动老链仍在册可单独用：`python3 certify/push_gate.py window ...` 推窗四判据
 > ＋裸 `git push`。pushci 的 preflight 发射闸只复跑 doctor＋net-probe 两闸（可选
-> `--pre-scan-gate4` 头注预扫）——套件绿/behind=0 等推窗四判据不在此册，过闸
+> `--pre-scan-gate4` 头注预扫）——套件绿/behind=0 等推窗四判据不在此册，pass the acceptance check
 > 纪律仍归 `certify/push_gate.py`。
 
 注册册卫生闭环（audit→fix·两器两态·干跑先行·v47）：
@@ -81,7 +81,7 @@ bash cw.sh triage --repo ORG/REPO --run ID --logs               # 4 verdict≠su
 ```
 bash cw.sh audit        --order order.txt --project _CoqProject --live-src src/ --fix-plan --json audit.json   # 1 只读审计出四账＋确定性 fix-plan 处方（零写盘）
 bash cw.sh registry-fix --audit-json audit.json --order order.txt --project _CoqProject --anchor-src src/ --json plan.json   # 2 干跑预演（逐条 md5 账＋skip 清单·零写盘·断言 NOT-RUN）
-bash cw.sh registry-fix --audit-json audit.json --order order.txt --project _CoqProject --anchor-src src/ --apply --json fixed.json   # 3 落刀（断言三判：dup 零残留/锚撞零增/孤儿不增·炸即回滚）
+bash cw.sh registry-fix --audit-json audit.json --order order.txt --project _CoqProject --anchor-src src/ --apply --json fixed.json   # 3 apply（断言三判：dup 零残留/锚撞零增/孤儿不增·炸即回滚）
 bash cw.sh audit        --order order.txt --project _CoqProject --live-src src/ --json after.json   # 4 复审对账（duplicates 应清零）
 ```
 
@@ -99,7 +99,7 @@ bash cw.sh audit        --order order.txt --project _CoqProject --live-src src/ 
 > feedback/b-gate/tree-audit）为该 tag 之后现势工作树新增。两表（上表＋本表）
 > 合计覆盖现势全部 64 路由（62 工具：64−2 别名 ci-triage→triage·
 > baseline-diff-facade→baseline-diff）。tag 后新增的 22 行多为
-> 递归代面（auto-round 轮次＋代理波＋自愈 watch 成为常态变更生产者之后）的
+> 递归代面（auto-round 轮次＋代理波＋automatic recovery watch 成为常态变更生产者之后）的
 > 产出与守卫器——失败分类/分诊接口/修复手册见
 > [docs/ci-whitepaper-recursive-era-v1-20261116.md](docs/ci-whitepaper-recursive-era-v1-20261116.md)
 > （zh 存档同目录 `.zh.md`·配套机读表 [docs/ci-triage-table.json](docs/ci-triage-table.json)）。
@@ -135,19 +135,19 @@ bash cw.sh audit        --order order.txt --project _CoqProject --live-src src/ 
 | `uplink` | `tools/uplink.py` | 外部回传包 intake 闸（verify/intake/pr-prep·md5 不符或缺声明成员 fail-loud·intake 登记行与调用方钦名草稿为仅有的写面·设计零网络） | `bash cw.sh uplink verify --package <value>` |
 | `evolution-dashboard` | `tools/evolution_dashboard.py` | 三常备账自演化仪表盘（经验台账＋轮次台账＋vacgen v2 TODO-SEAT 报告→覆盖率曲线＋轮次转化＋逐轮 gap 温度计·JSON/markdown 双面·常备路径缺失是数据） | `bash cw.sh evolution-dashboard --selftest` |
 | `bus-feeder` | `tools/bus_feeder.py` | symbiosis swap 包的 gap 台账投喂器（`rocqwash-symbio/1` 入·TODO-SEAT gap 行出·按 id 与指纹幂等·gap 投喂台账为唯一写面·设计零网络） | `bash cw.sh bus-feeder --selftest` |
-| `axiom-guard` | `tools/axiom_guard.py` | 全仓公理卫兵（每个 .v 编译三分类：compile-ok／compile-broken 欠账登记／skip-no-toolchain；compile-ok 件两级检测：逐定理 Print Assumptions 普查＋权威 `coqchk -o` 内核复检；Closed 零公理·白名单缺省空·env 门控 rc 111 诚实跳过·零仓写） | `bash cw.sh axiom-guard --repo <value>` |
-| `flaky-guard` | `tools/flaky_guard.py` | flaky 隔离卫兵·修复类 E2-3（隔离探针判类：套红单绿=顺序依赖·两境皆红=内容红保持可见；`--move` 隔离入 `tests/advisory_roster.txt` 缺省套件响亮 ADVISORY-OUT 放行·CI flaky-watch 持续观察；对 `tools/repair_scope.py` 范围核查·每类每分支预算帽 2；缺省干跑·`--restore` 需绿轮证据） | `bash cw.sh flaky-guard --selftest` |
+| `axiom-guard` | `tools/axiom_guard.py` | 全仓公理卫兵（每个 .v 编译三分类：compile-ok／compile-broken 欠账登记／skip-no-toolchain；compile-ok 件两级检测：逐定理 Print Assumptions survey＋权威 `coqchk -o` 内核复检；Closed 零公理·白名单缺省空·env 门控 rc 111 诚实跳过·零仓写） | `bash cw.sh axiom-guard --repo <value>` |
+| `flaky-guard` | `tools/flaky_guard.py` | flaky 隔离卫兵·修复类 E2-3（隔离探针判类：套红单绿=顺序依赖·两境皆红=内容红保持可见；`--move` 隔离入 `tests/advisory_roster.txt` 缺省套件响亮 ADVISORY-OUT 放行·CI flaky-watch 持续观察；对 `tools/repair_scope.py` 范围核查·每类每分支预算帽 2；dry run by default·`--restore` 需绿轮证据） | `bash cw.sh flaky-guard --selftest` |
 | `repair-scope` | `tools/repair_scope.py` | E2 卫兵族共享修复范围排除表（frozen LEDGER8/CHECKERS 行运行时读自 `certify/frozen8.py`＋append-only 台账文档＋冻结目录族；逐类可写面＋预算登记；全体修复卫兵导入的单一源） | `bash cw.sh repair-scope --classes` |
-| `roster-resync` | `tools/roster_resync.py` | 名册计数漂移卫兵·修复类 E2-2（run_tests.sh CASES 名册为唯一计数权威；tests/README.md＋README.md 的 doc_lint 计数行自其单向重导并原位同步漂移数字；名册文件永不写；缺省干跑） | `bash cw.sh roster-resync --selftest` |
+| `roster-resync` | `tools/roster_resync.py` | 名册计数漂移卫兵·修复类 E2-2（run_tests.sh CASES 名册为唯一计数权威；tests/README.md＋README.md 的 doc_lint 计数行自其单向重导并原位同步漂移数字；名册文件永不写；dry run by default） | `bash cw.sh roster-resync --selftest` |
 | `scheduler-lite` | `tools/scheduler_lite.py` | jargon tier-B 自动档 TODO-SEAT 阈值触发规划器（gap 投喂台账＋vacgen 报告经 `tools/gap_cluster.py`＋`docs/round-ledger.jsonl` 轮次节律→verdict `quiet\|due\|blocked`；点火以 EF 全绿标记为闸；设计干跑：零 apply 零 commit 零网络） | `bash cw.sh scheduler-lite --selftest` |
-| `auto-merge` | `tools/auto_merge.py` | X5 自动合并闸判官＋安全轨（六值 mergeability 枚举 `merge-ok\|hold-red\|hold-conflict\|already-landed\|superseded-landed-elsewhere\|escalate-unknown`；五样本校准集 S-1..S-5 钉死；轨=supply/* 头分支白名单＋日预算帽 3＋append-only 合并台账＋合并后红 revert 弧；零网络·缺省干跑） | `bash cw.sh auto-merge --selftest` |
+| `auto-merge` | `tools/auto_merge.py` | X5 自动合并闸判官＋安全轨（六值 mergeability 枚举 `merge-ok\|hold-red\|hold-conflict\|already-landed\|superseded-landed-elsewhere\|escalate-unknown`；五样本校准集 S-1..S-5 钉死；轨=supply/* 头分支白名单＋日预算帽 3＋append-only 合并台账＋合并后红 revert 弧；零网络·dry run by default） | `bash cw.sh auto-merge --selftest` |
 | `jargon-map-sync` | `tools/jargon_map_sync.py` | jargon 映射同步·md 表→seed JSON（检测器表策展超集吸收进施加表；单形准入：括注剥离、em-dash 单元格落 rewrite_or_delete、斜杠交替与六个注记守卫标记拒收；既有条目 id/exempts/cross_track_note 保留；精确计数标签；plan 零写缺省·`--apply` 写表） | `bash cw.sh jargon-map-sync --selftest` |
 | `repair-weekly` | `tools/repair_weekly.py` | 修复结局台账周分布面·修复类 E6（`docs/repair-ledger.jsonl` 聚合为 ISO 周逐红结局普查＋类/票分布；台账只读·`--out`/`--json` 为仅有的写面；`--record` 在受约词表内追加一行 `rocqwash-repair-ledger/2`·`--apply` 必需） | `bash cw.sh repair-weekly --selftest` |
-| `selfevolve-round` | `tools/selfevolve_round.py` | 一次确定性机械轮·cron 面（普查 jargon_apply `--plan`→apply→verify py_compile/bash -n 硬闸＋norm_lint/doc_lint 顾问→auto_round commit→push→CI 判官路由；jargon_apply 冻结面排除；零合资格修复=干净空转；apply 残留非零=fail-loud 不 commit） | `bash cw.sh selfevolve-round --dry-run` |
-| `pin-repair` | `tools/pin_repair.py` | jargon seed 映射出处 pin 漂移修复·分诊行 R15 自动修复执行器（在同步器零写计划 IN-SYNC 判定后重签漂移 provenance.sources md5 pin；`--plan` 零写·`--apply` 只触 md5 值并复跑 seeds 套件·红 verify 回滚到 apply 前字节） | `bash cw.sh pin-repair --selftest` |
+| `selfevolve-round` | `tools/selfevolve_round.py` | 一次确定性机械轮·cron 面（survey jargon_apply `--plan`→apply→verify py_compile/bash -n 硬闸＋norm_lint/doc_lint 顾问→auto_round commit→push→CI 判官路由；jargon_apply 冻结面排除；零合资格修复=干净空转；apply 残留非零=fail-loud 不 commit） | `bash cw.sh selfevolve-round --dry-run` |
+| `pin-repair` | `tools/pin_repair.py` | jargon seed 映射出处 pin 漂移修复·分诊行 R15 自动修复执行器（在同步器零写计划 IN-SYNC 判定后重签漂移 provenance.sources md5 pin；`--plan` 零写·`--apply` 只触 md5 值并复跑 seeds 套件·failing verify 回滚到 apply 前字节） | `bash cw.sh pin-repair --selftest` |
 | `learning-feedback` | `tools/learning_feedback.py` | 三常备台账排程反馈面（轮次台账/轮次状态/经验台账只读→`docs/scheduling-feedback.json`：自动对人批轮次拆分＋批准率＋逐类分布＋四态修复结局计数；缺失或损坏输入入 errors 字段绝不猜测） | `bash cw.sh learning-feedback --selftest` |
 | `b-gate` | `tools/b_gate_audit.py` | 轮次记录 B 级泛化阈值审计（3 实例且每个由至少 1 个已执行轮支撑；逐类实例与轮次计数＋逐类就绪判定＋显式缺口清单→`docs/b-gate-audit.json`·schema `rocqwash.b-gate-audit/1`；计数自记录实测绝不虚增） | `bash cw.sh b-gate --selftest` |
-| `tree-audit` | `tools/tree_audit.py` | `.lean`/`.v` 源树只读树健康审计（单行 JSON 普查：总量/声明/不健全特性扫/头注面/逐目录与最大文件表/import 根；字节字面计数经普查 oracle 校准；零子进程零网络零树写） | `bash cw.sh tree-audit --selftest` |
+| `tree-audit` | `tools/tree_audit.py` | `.lean`/`.v` 源树只读树健康审计（单行 JSON survey：总量/声明/不健全特性扫/头注面/逐目录与最大文件表/import 根；字节字面计数经普查 oracle 校准；零子进程零网络零树写） | `bash cw.sh tree-audit --selftest` |
 
 ### 退出码
 
@@ -156,9 +156,9 @@ bash cw.sh audit        --order order.txt --project _CoqProject --live-src src/ 
 | 0 | 通过 |
 | 2 | 未知工具（`cw.sh bogus`）；或工具自身 argparse 用法错/断言失败（透传） |
 | 9 | 目标脚本缺失（`cw.sh xxx: missing <path>`）；或工具自身目标文件缺失（透传） |
-| 其余 | 各工具自身口径 1:1 透传（如 sync-ledger `1`=同步完成带发现·net-probe `1`=不稳窗·doctor `1`=missing-libs·pushci verdict 封册 success/dry-run=0·heal-exhausted/unstable/toolchain=1·fix-content/gate4-block=2·9=目标缺失·cw-doctor `1`=degraded 综合健康分<90 红是数据非器红·doc-lint `1`=drift 文档漂移红是数据非器红） |
+| 其余 | 各工具自身口径 1:1 透传（如 sync-ledger `1`=同步完成带发现·net-probe `1`=不稳窗·doctor `1`=missing-libs·pushci verdict 封册 success/dry-run=0·heal-exhausted/unstable/toolchain=1·fix-content/gate4-block=2·9=目标缺失·cw-doctor `1`=degraded 综合健康分<90 a failing result is data, not a tool failure·doc-lint `1`=drift 文档漂移红是数据非器红） |
 
-## 工作流配合接口（v37 三器共同·配合工作流实时动态提供清洗、洗形、排障、疏通堵塞）
+## 工作流配合接口（v37 三器共同·配合工作流实时动态提供清洗、shape normalization、排障、疏通堵塞）
 
 v37 三器（`sentinel`/`wash-shape`/`unclog`）共同接口纪律五条——工作流（dynamic
 workflow 子代理/后台 bash 任务）按此嵌入，不必懂各器内部：
@@ -170,9 +170,9 @@ wash-shape 缺省即 once（plan 段零写盘），`--loop` 显式开哨态且�
 并用逐轮落刀。`--sleep-scale F` 全睡乘 F（selftest 用 0=零真睡）。
 
 **② JSON-in/JSON-out＋JSONL 事件流**：`--json OUT` 出确定性报告（sort_keys·
-schema 钦名 `rocqwash-sentinel/1`·`rocqwash-shape/1`·`rocqwash-unclog/1`·同输入
+schema designated `rocqwash-sentinel/1`·`rocqwash-shape/1`·`rocqwash-unclog/1`·同输入
 重跑字节恒同）；loop 态事件逐行 append `--events FILE`（JSONL·逐行 flush·行
-schema `rocqwash-sentinel-event/1`，sentinel 事件键含 `seq` 事件流内单调——消费
+schema `rocqwash-sentinel-event/1`，sentinel 事件键含 `seq` 事件流内单调——使用
 方按 seq 排序即恢复全局序）。
 
 **③ --injector 离线可测**：子进程调用层罐装（sentinel= canned GitHub API 表
@@ -181,16 +181,16 @@ wash-shape= 引擎 `{rc,stdout,report}` 罐装；unclog= probe/resprobe canned �
 scenario.json）＋`--sleep-scale 0`——零真网络零真编译于 selftest，工作流演练/CI
 全离线。
 
-**④ 退出码 0/1/2/9 口径（红是数据非器红·响亮 stdout）**：
+**④ 退出码 0/1/2/9 口径（a failing result is data, not a tool failure·响亮 stdout）**：
 
 | 码 | sentinel | wash-shape | unclog |
 |----|----------|------------|--------|
-| 0 | 巡检完成（CI 红/堵塞是事件数据） | clean/shaped | unclogged |
+| 0 | 巡检完成（CI failing/堵塞是事件数据） | clean/shaped | unclogged |
 | 1 | —（红走事件流） | partial/plan-miss（洗未尽·响亮出账） | wall/rounds-exhausted（诚实墙·禁硬凑） |
 | 2 | 用法错（缺模式/三源全缺/repo 形坏） | 用法错/冻结件红拒/引擎形外退出 | 用法错/注入场景形错 |
 | 9 | 信号源不可达（HTTP 4xx·injector 未覆盖·子进程 rc≠0） | 路径缺失 | fail-loud（路径缺失/器红/frozen 不可得） |
 
-**⑤ 典型后台哨命令行**（工作流后台任务逐条照抄·事件流供主流程 tail 消费）：
+**⑤ 典型后台哨命令行**（工作流后台任务逐条照抄·事件流供主流程 tail 使用）：
 
 ```
 # 哨态：台账链根＋buildlog 双源巡检·JSONL 事件流·seen 幂等（loop 须给 --state-file）
@@ -199,7 +199,7 @@ nohup bash cw.sh sentinel --loop --interval 60 \
   --state-file .sentinel-state.json --emit events.jsonl \
   --json sentinel-report.json >/dev/null 2>&1 &
 
-# 洗形哨态：逐轮 plan→apply 落刀→复跑五洗复核（--max-rounds 界定）
+# 洗形哨态：逐轮 plan→apply apply→复跑五洗复核（--max-rounds 界定）
 nohup bash cw.sh wash-shape --dir src/ --loop --interval 300 --max-rounds 8 \
   --apply --events shape-events.jsonl --json shape-report.json >/dev/null 2>&1 &
 
@@ -221,7 +221,7 @@ case $? in 0) echo unclogged ;; 1) echo "wall/rounds-exhausted：读 unclog.json
 
 # wash-shape 嵌段（正典形五洗·plan 零写盘先行·人审后再 --apply 两段全施）
 bash cw.sh wash-shape --file demo.v --json plan.json      # plan 段（rc 0/1 均有账）
-bash cw.sh wash-shape --file demo.v --apply --json shaped.json   # 落刀＋复跑复核
+bash cw.sh wash-shape --file demo.v --apply --json shaped.json   # apply＋复跑复核
 ```
 
 > 三器编排而非重造：sentinel 判类全权在 `ci_triage`（subprocess 直调）、链根全权
@@ -251,7 +251,7 @@ bash cw.sh wash-shape --file demo.v --apply --json shaped.json   # 落刀＋复�
   →出基线报告·`final.verdict=audit` exit 0 红是基线数据非器红·cures 恒 0＝
   零落刀零复核）；**零写盘硬保证**＝`--src` 全文件 md5 清单跑前跑后自证恒同
   （违同 fail-loud 9·染污基线不出账）；与 `--apply`/`--loop` 互斥 rc=2；
-  timing 段实测墙钟为报告唯一非确定段——v41 增 `--probe-parallel K` 探针
+  timing 段实测墙钟为报告唯一非确定段——v41 增 `--probe-parallel K` 检验
   并行度透传 probe_engine `--jobs`（timing 段 jobs 维度入账·同候选面异 K
   前后跑可比·--guard 同给建议 K≤2 温控自裁）。
 - **韧性层**：CI GET 403/429/5xx 指数退避重试抽公共件 `tools/_http_backoff.py`
@@ -270,11 +270,11 @@ bash cw.sh wash-shape --file demo.v --apply --json shaped.json   # 落刀＋复�
 - 嵌段②单步推 CI：[examples/workflows/step-pushci.md](examples/workflows/step-pushci.md)
   （⑥ pushci 嵌段展开·`--dry-run` 先行→真发→verdict 七态分流表＋离线演练形）
 - 嵌段③堵账疏通：[examples/workflows/loop-unclog.md](examples/workflows/loop-unclog.md)
-  （⑥ unclog 嵌段展开·干跑→人审→`--apply`→复核四判＋诚实墙因分派表）
+  （⑥ unclog 嵌段展开·dry run→人审→`--apply`→复核四判＋诚实墙因分派表）
 - 集成白皮书：[docs/workflow-integration-whitepaper-v1.0-20261111.md](docs/workflow-integration-whitepaper-v1.0-20261111.md)
   （主会话让路模式／后台任务拓扑／双门并立——推窗四判据×发射闸）
 - 实时动态服务运行手册：[docs/ops-realtime-service-v1.0-20261111.md](docs/ops-realtime-service-v1.0-20261111.md)
-  （后台哨标准命令与 JSONL 消费／preset 接驳 unclog 全链三判 e2e＝
+  （后台哨标准命令与 JSONL 使用／preset 接驳 unclog 全链三判 e2e＝
   `tests/test_relay_e2e.py`·tmp 注入演练实跑原文在册·与器 `--help` 冲突时以器为准）
 - 服务层总览（v40）：[docs/service-layer-overview-v1.0-20261111.md](docs/service-layer-overview-v1.0-20261111.md)
   （三链一图全景＋器面索引·docs 席铸）
@@ -291,10 +291,10 @@ bash cw.sh sentinel --once --watch-ledgers ledgers/ --emit events.jsonl \
   --on-red 'python3 tools/red_dispatch.py --event-file <json> --preset suggest'
 
 # 单步直调（不经哨·对既有事件流补一轮路由账·report-only 缺省零执行）
-bash cw.sh dispatch --event-file events.jsonl --preset suggest --json route.json
+bash cw.sh route --event-file events.jsonl --preset suggest --json route.json
 ```
 
-> dispatch 是路由而非引擎：五路由（B/E 族→pushci 重派·A 族→manual-fix-note
+> route 是路由而非引擎：五路由（B/E 族→pushci 重派·A 族→manual-fix-note
 > 禁代修出 fix 清单·C 族→doctor·blocking→unclog·build-signal→wash-shape）
 > 全挂既有 cw.sh 路由零新引擎；三档 preset 缺省 report-only 零执行（红是
 > 数据），auto 显式才代跑（60s 帽·rc≠0 响亮入账不改退出码·防重 state＋
@@ -307,7 +307,7 @@ bash cw.sh dispatch --event-file events.jsonl --preset suggest --json route.json
 rocqwash v29-v32 waves plus the five tools added on 20261111 plus the three
 v37 tools plus the v38 aggregate doctor plus the v39 trio (doc-lint plus
 netname-normalize/select-audit) plus the v40 baseline-diff plus the v45
-render-events plus the v46 dispatch/audit pair plus the v47 registry-fix
+render-events plus the v46 route/audit pair plus the v47 registry-fix
 prescription applier plus the annotation-face normalization linter norm-lint
 (twenty-five in total — 22 housed in the main table, with the
 netname-normalize / select-audit / render-events trio in the second table
