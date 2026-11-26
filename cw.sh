@@ -211,6 +211,8 @@
 #                 cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest
 #   census-rescan  AST word-face census re-scan generator (the in-repo reproduction face of the census lane: the standing docs/census-tools.json was produced by a lane-side one-off absent from the repository, so this tool re-produces records under its own documented v1 rules - file facts, main guard, docstring head truncation at 600, argparse capture, import buckets incl. guarded conditionals, network classification with the git-bridge subset, skip-face token vocabulary, selftest flag vs token face, invocation reconstruction - and --merge appends the missing tools to the standing census with the old rows preserved verbatim and meta.rescan_generation recording the split: mixed-generation lineage is data, never passed off as one method; deterministic sorted rows, double-run byte-identical; zero network, zero subprocess on the scan face) -> tools/census_rescan.py
 #                 cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest
+#   capability-ratchet  the nine-metric capability ratchet (append-only capability readings that only roll forward: four capability-carrier metrics (triage classes, regression vectors, taxonomy rows, cure patterns) plus five mechanism metrics (MCP roster, selftest vectors, repair action rate, B-gate ready classes, calibration agreement rate) are re-derived from their source accounts at every run, never hand-filled; unmeasured is null, never 0; --measure derives fresh readings, --gate judges against a --baseline (below rc 1), --compare validates the whole ledger chain against fresh readings, --append lands exactly one chain-linked snapshot line and is the only write face; --selftest is an offline vector group, repository-write-free; zero network) -> tools/capability_ratchet.py
+#                 cw.sh capability-ratchet [--repo DIR] [--measure [--json [PATH]]] [--gate --baseline FILE] [--compare FILE] [--append FILE [--allow-dirty-anchor]] [--from-sha SHA] | --selftest
 #   help        this help (help <tool> = the tool's one-line usage hint)
 #
 # Routing contract:
@@ -439,6 +441,8 @@ Tools:
 
   census-rescan  AST word-face census re-scan generator (the in-repo reproduction face of the census lane: the standing docs/census-tools.json was produced by a lane-side one-off absent from the repository, so this tool re-produces records under its own documented v1 rules - file facts, main guard, docstring head truncation at 600, argparse capture, import buckets incl. guarded conditionals, network classification with the git-bridge subset, skip-face token vocabulary, selftest flag vs token face, invocation reconstruction - and --merge appends the missing tools to the standing census with the old rows preserved verbatim and meta.rescan_generation recording the split: mixed-generation lineage is data, never passed off as one method; deterministic sorted rows, double-run byte-identical; zero network, zero subprocess on the scan face) -> tools/census_rescan.py
                 cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest
+  capability-ratchet  the nine-metric capability ratchet (append-only capability readings that only roll forward: four capability-carrier metrics (triage classes, regression vectors, taxonomy rows, cure patterns) plus five mechanism metrics (MCP roster, selftest vectors, repair action rate, B-gate ready classes, calibration agreement rate) are re-derived from their source accounts at every run, never hand-filled; unmeasured is null, never 0; --measure derives fresh readings, --gate judges against a --baseline (below rc 1), --compare validates the whole ledger chain against fresh readings, --append lands exactly one chain-linked snapshot line and is the only write face; --selftest is an offline vector group, repository-write-free; zero network) -> tools/capability_ratchet.py
+                cw.sh capability-ratchet [--repo DIR] [--measure [--json [PATH]]] [--gate --baseline FILE] [--compare FILE] [--append FILE [--allow-dirty-anchor]] [--from-sha SHA] | --selftest
 
   help        this help (help <tool> = the tool's one-line usage hint)
 
@@ -538,6 +542,7 @@ hint_for() {  # $1=tool
     require-rewire) echo "cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest   # module-retirement rewiring orchestrator (plan -> wash_engine patch ledger -> standalone verify closure face; survivors fail loud rc 1; zero network, zero toolchain) -> tools/require_rewire.py" ;;
     independence-screener) echo "cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest   # name-level independence screening (anchor manifest x mutant library; underscore-part collisions listed fail-loud rc 1; no-name rows recorded; screening is not proof; zero network) -> tools/independence_screener.py" ;;
     census-rescan) echo "cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest   # census lane reproduction (AST word-face rows v1; --merge appends missing tools verbatim-preserving; meta generation split; zero network) -> tools/census_rescan.py" ;;
+    capability-ratchet) echo "cw.sh capability-ratchet [--repo DIR] [--measure [--json [PATH]]] [--gate --baseline FILE] [--compare FILE] [--append FILE [--allow-dirty-anchor]] [--from-sha SHA] | --selftest   # nine-metric capability ratchet (append-only readings re-derived from source accounts, never hand-filled; unmeasured is null, never 0; --append is the only write face; zero network) -> tools/capability_ratchet.py" ;;
     *) return 1 ;;
   esac
 }
@@ -643,6 +648,7 @@ case "${1:-}" in
   independence-screener) shift; run_tool independence-screener "tools/independence_screener.py" "$@" ;;
   census-rescan) shift; run_tool census-rescan "tools/census_rescan.py" "$@" ;;
   lean-parity-crosswalk) shift; run_tool lean-parity-crosswalk "tools/lean_parity_crosswalk.py" "$@" ;;
+  capability-ratchet) shift; run_tool capability-ratchet "tools/capability_ratchet.py" "$@" ;;
   help|-h|--help)
     if [ "$#" -ge 2 ]; then
       if hint_for "$2"; then
