@@ -32,8 +32,12 @@ that proposal differ, the proposal governs.
 
 Work is prepared and checked through the repository's own instruments.
 
-- The tool entry point is the unified command interface and the standard
-  shell entry. Use the documented invocation for each instrument.
+- The rocqwash tool interface is the preferred way to reach the toolchain and
+  the audit chain from an external participant. Use it first for any check it
+  exposes, with the exact name registered in that interface.
+- Two checks have no registered interface at this revision: count
+  reconciliation and contribution intake. Run those through the standard shell
+  entry and record that reason in the work item.
 - The audit chain consists of the conformance checks, the document consistency
   check, the count reconciliation, the contribution intake check, and the
   continuous-integration gate. Run the checks relevant to a change before
