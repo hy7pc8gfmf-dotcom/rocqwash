@@ -11,7 +11,10 @@ Purpose.  The in-repo reproduction face of the census lane: the standing
   tools the standing census lacks, and merges into the standing file with
   the old rows preserved VERBATIM and the meta carrying an explicit
   generation split - the mixed-generation lineage is data, never passed
-  off as one method.  Deterministic: sorted rows, double-run
+  off as one method.  A repeated --merge rolls the standing census's
+  previous generation batch verbatim into rescan_generation.history
+  before recording the new batch: lineage accumulates, it never
+  collapses.  Deterministic: sorted rows, double-run
   byte-identical.  Zero network, zero subprocess, stdlib only; the only
   write face is the caller-named --out.
 v1 record rules (this tool's own documented method; the 2026-11-22 rows
@@ -56,7 +59,9 @@ Interface.  python -I tools/census_rescan.py --repo DIR [--tools DIR]
   --merge --out FILE the standing census at --stand (default
   docs/census-tools.json under --repo) is read, the missing tools are
   appended sorted by name, standing rows are preserved verbatim, and the
-  meta gains the rescan_generation split with a real UTC timestamp.
+  meta gains the rescan_generation split with a real UTC timestamp; a
+  standing rescan_generation with a recorded batch rolls that batch into
+  rescan_generation.history first.
   Exit-codes.  0 clean; 2 usage; 9 --repo/--tools/--stand path missing.
 Evidence.  --selftest: canned fixture files per face (file facts, main
   guard, docstring head truncation, argparse capture, import buckets,
@@ -352,6 +357,13 @@ def merge(stand_path, rows, now_utc):
                     key=lambda r: r.get("name") or "")
     meta = dict(stand.get("meta") or {})
     gen = dict(meta.get("rescan_generation") or {})
+    prior = gen.get("added_this_generation")
+    if prior:
+        history = list(gen.get("history") or [])
+        history.append({"added_this_generation": list(prior),
+                        "generator": gen.get("generator"),
+                        "method_note": gen.get("method_note")})
+        gen["history"] = history
     gen["added_this_generation"] = [r["name"] for r in added]
     gen["generator"] = "tools/census_rescan.py v1"
     gen["method_note"] = ("rows above the generation split keep their "
@@ -589,6 +601,33 @@ def selftest():
         else:
             vec("merge-verbatim-sorted-deterministic", False,
                 "rc=%d/%d" % (p1.returncode, p2.returncode))
+        # merge face 2: a repeated merge rolls the prior generation batch
+        # into history verbatim - lineage accumulates, never collapses
+        m3 = os.path.join(tmp, "m3.json")
+        p3 = subprocess.run(
+            [sys.executable, "-I", "-B",
+             os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "census_rescan.py"),
+             "--repo", tmp, "--merge", "--stand", m1,
+             "--out", m3],
+            capture_output=True, text=True, encoding="utf-8",
+            errors="replace", timeout=60)
+        if p3.returncode == 0:
+            with io.open(m3, encoding="utf-8") as fh:
+                j3 = json.load(fh)
+            g3 = j3["meta"].get("rescan_generation", {})
+            h3 = g3.get("history") or []
+            vec("merge-history-rolls-prior-batch",
+                g3.get("added_this_generation") == []
+                and len(h3) == 1
+                and h3[0].get("added_this_generation") == ["_beta.py"]
+                and h3[0].get("generator") == "tools/census_rescan.py v1"
+                and [r["name"] for r in j3["files"]]
+                == sorted(r["name"] for r in j3["files"]),
+                "history=%s" % json.dumps(h3)[:140])
+        else:
+            vec("merge-history-rolls-prior-batch", False,
+                "rc=%d" % p3.returncode)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print("CENSUS-RESCAN-SELFTEST: %d vector(s), %d FAIL"
