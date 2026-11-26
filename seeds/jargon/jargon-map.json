@@ -26,7 +26,7 @@
         "role": "tool-repository track: standard cells for faces absent from the annotation-track mapping table",
         "pin": {
           "kind": "git-blob-sha",
-          "value": "83effa3f1ade70953ed89815bb6c38588a6e7ea3"
+          "value": "bc07148e664d64a143948d5a6f50e344d7387851"
         }
       },
       {
@@ -987,9 +987,11 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 39,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "washable\\s*/\\s*born-clean"
+      ],
       "cross_track_note": null,
-      "note": "Classification face in wash/probe_engine.py:17-21 (BORN-CLEAN verdict line) — the verdict token stays as identifier; prose says axiom-free born. 6 files."
+      "note": "Classification face in wash/probe_engine.py:17-21 (BORN-CLEAN verdict line) - the verdict token stays as identifier; prose says axiom-free born; the class-list citation (washable / born-clean / red-cause) stays."
     },
     {
       "id": "J076",
@@ -1863,9 +1865,11 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 169,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "ticket\\s+\\d+\\s+wave\\s+\\d+"
+      ],
       "cross_track_note": null,
-      "note": "七工具波 → seven-tool release; the release sense stays on ledger surfaces."
+      "note": "seven-tool release; the release sense stays on ledger surfaces; ticket-lineage citations are identifiers of record and stay."
     },
     {
       "id": "J146",
@@ -1900,10 +1904,12 @@
       "source_line": 173,
       "disposition": "replace",
       "exempts": [
-        "^#?\\s*dispatch\\s+red-event router"
+        "^#?\\s*dispatch\\s+red-event router",
+        "dispatch arms",
+        "tools dispatch"
       ],
       "cross_track_note": null,
-      "note": "`red_dispatch.py` identifier stays."
+      "note": "the red_dispatch.py identifier stays; the route-table citation and the verb citation beside a backticked flag face stay."
     },
     {
       "id": "J149",
@@ -1925,9 +1931,20 @@
       "standard_source": "rocqwash docs/jargon-to-standard-mapping-v1.md (in-repo-md-v1)",
       "source_line": 175,
       "disposition": "replace",
-      "exempts": [],
+      "exempts": [
+        "landing increment",
+        "landing commit",
+        "reviewed landing",
+        "tool landing",
+        "landing tool",
+        "landing ticket",
+        "landing line",
+        "registration landing",
+        "the landing is confirmed",
+        "the [A-Za-z0-9._-]+ landing\\b"
+      ],
       "cross_track_note": null,
-      "note": "M-wave campaign-organization family."
+      "note": "M-wave campaign-organization family: the campaign and operation narration sense only; the landing-of-a-reviewed-change sense is the charter standard and stays."
     },
     {
       "id": "J151",
