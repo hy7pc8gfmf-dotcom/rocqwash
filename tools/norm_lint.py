@@ -24,8 +24,8 @@ Interface.  --tree DIR | --file PATH [--jargon-map P] [--cjk-threshold F]
 Dependencies.  Python 3 standard library only; the mapping table and the
   optional CJK whitelist are path-parameterized data faces.
 
-Evidence.  --selftest covers seven vectors on temporary fixtures (jargon hit,
-  fields missing, substring and technical-usage exemption, whitelist
+Evidence.  --selftest covers eight vectors on temporary fixtures (jargon hit,
+  fields missing, substring and technical-usage exemption, link-destination exemption, whitelist
   exemption, compliant English triple, Coq comment face; byte-identical reruns).
 
 Exit-codes.  0 accounted (findings are data); 1 instrument failure; 2 usage; 9 missing input.
@@ -61,7 +61,7 @@ Exit-codes.  0 accounted (findings are data); 1 instrument failure; 2 usage; 9 m
 #                    file is exempt from the wording battery only (it carries
 #                    the faces by design); the em-dash count is exempt nowhere.
 # --json P / --md P  report targets, schema rocqwash-norm-lint/1.
-# --selftest         seven vectors on temporary fixtures; runs standalone.
+# --selftest         eight vectors on temporary fixtures; runs standalone.
 # --gate / --strict  reserved for the future gated form; passing either
 #                    today is a usage error (exit 2).  Grading follows the
 #                    annotation standard card: header and jargon findings are
@@ -247,6 +247,20 @@ def mask_backticks(text):
     # identifier citations in backticks are exempt (mapping table register);
     # spans are blanked with NUL, keeping positions and lengths intact
     return RE_BACKTICK.sub(lambda m: "`" + "\x00" * (len(m.group(0)) - 2) + "`", text)
+
+
+NULCH = chr(0)
+
+RE_MD_LINK_DEST = re.compile(r"\]\(([^)\n]*)\)")
+
+
+def mask_md_links(text):
+    # markdown link destinations are identifier citations (real file and
+    # directory names); blank them with the position-preserving mask the
+    # same way backtick citations are blanked, so a cited path's own
+    # vocabulary is never read as prose on the jargon and forbidden faces
+    return RE_MD_LINK_DEST.sub(
+        lambda m: "](" + NULCH * len(m.group(1)) + ")", text)
 
 
 def py_docface(text):
@@ -437,7 +451,7 @@ def header_findings(kind, header_text, start_line):
 def jargon_findings(segs, terms):
     findings = []
     for ln, txt in segs:
-        work = mask_backticks(txt)
+        work = mask_md_links(mask_backticks(txt))
         taken = []
         seen = set()
         for t in terms:  # longest face first, so phrases win over their substrings
@@ -466,7 +480,7 @@ def forbidden_findings(segs):
         # names carry cast dates); blank them with the position-preserving
         # mask so a cited path is never read as a prose date stamp, while a
         # bare prose date outside backticks stays flagged
-        txt = mask_backticks(txt)
+        txt = mask_md_links(mask_backticks(txt))
         seen = set()
         for rx, suggest in FORBIDDEN:
             for m in rx.finditer(txt):
@@ -843,6 +857,12 @@ Exit-codes.  0.
 # but the suite went red today
 '''
 
+V3B = '''# v3b_links: link-destination exemption vector (markdown face).
+
+see the [release note](docs/seven-tool-wave.md) and the wave report.
+dated path [guide](docs/upgrade-20261111.md) versus a bare 2026-11-11 prose date.
+'''
+
 V4 = '''"""v4_whitelist: cjk-exemption vector.
 
 Purpose.  Fixture carrying one Chinese comment line.
@@ -977,6 +997,19 @@ def run_selftest():
         check("substring-exemption",
               len(j3) == 1 and j3[0]["term"] == "red" and j3[0]["line"] == want_line,
               "jargon findings: " + json.dumps(j3, ensure_ascii=False))
+
+        # vector 3b: markdown link-destination exemption (jargon + forbidden)
+        p3b = os.path.join(tmp, "v3b_links.md")
+        write_text(p3b, V3B)
+        r3b = scan_file("v3b_links.md", p3b, "md", terms, 0.0, set(), map_path)
+        j3b = [f for f in r3b["findings"] if f["kind"] == "jargon"]
+        f3b = [f for f in r3b["findings"] if f["kind"] == "forbidden"]
+        check("link-destination-exemption",
+              len(j3b) == 1 and j3b[0]["term"] == "wave"
+              and j3b[0]["line"] == 3
+              and len(f3b) == 1 and f3b[0]["line"] == 4,
+              "jargon findings: " + json.dumps(j3b, ensure_ascii=False)
+              + "; forbidden: " + json.dumps(f3b, ensure_ascii=False))
 
         # vector 4: whitelist exemption of the CJK check
         p4 = os.path.join(tmp, "v4_whitelist.py")
