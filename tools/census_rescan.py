@@ -2,73 +2,73 @@
 # -*- coding: utf-8 -*-
 """census_rescan.py - AST word-face census re-scan generator (rocqwash tools/).
 Purpose.  The in-repo reproduction face of the census lane: the standing
-  docs/census-tools.json (70 records, meta method "python -I AST word-face
-  parse; no listed tool executed; stdlib only", generated 2026-11-22) was
-  produced by a lane-side one-off that is not in the repository, so the
-  files that landed after it could not be censused and count_guard's R6
-  face reads a permanent declared-lag.  This tool re-produces the record
-  set under its own documented v1 rules (below), appends the rows for
-  tools the standing census lacks, and merges into the standing file with
-  the old rows preserved VERBATIM and the meta carrying an explicit
-  generation split - the mixed-generation lineage is data, never passed
-  off as one method.  A repeated --merge rolls the standing census's
-  previous generation batch verbatim into rescan_generation.history
-  before recording the new batch: lineage accumulates, it never
-  collapses.  Deterministic: sorted rows, double-run
-  byte-identical.  Zero network, zero subprocess, stdlib only; the only
+  docs/census-tools.json was cast by a lane-side one-off absent from the
+  repository (its cast-time facts live in the census meta, not in prose),
+  so files added after the cast went uncensused and count_guard's R6 face
+  read a permanent declared-lag.  This tool re-produces the record set
+  under its own v1 rules (the extended contract comment below), appends
+  rows for tools the standing census lacks, and merges into the standing
+  file with old rows preserved VERBATIM and the meta carrying an explicit
+  generation split - mixed-generation lineage is data, never passed off
+  as one method; a repeated --merge rolls the previous generation batch
+  verbatim into rescan_generation.history first: lineage accumulates, it
+  never collapses.  Deterministic: sorted rows, double-run
+  byte-identical; zero network, zero subprocess, stdlib only; the only
   write face is the caller-named --out.
-v1 record rules (this tool's own documented method; the 2026-11-22 rows
-  keep their original generator's semantics untouched):
-  - name/bytes/sha256/lines: file facts (lines = len(text.splitlines())).
-  - underscore_prefix / has_main_guard: module-level AST facts (the guard
-    = an `if __name__ == "__main__":` test at module top level).
-  - docstring: {present, lines, head} of the module docstring (head = the
-    first 600 characters).
-  - argparse: {imported, parser_descriptions (ArgumentParser description
-    constants, first 200 characters each), add_argument (per call:
-    declared flags and the constant-only kwargs), positionals, optionals,
-    subcommands (add_parser constants), has_subparsers, set_defaults_func}.
-  - usage_face: python-invocation lines from the docstring when argparse
-    is absent (the axiom_guard shape); [] otherwise.
-  - imports: {modules (top-level stdlib module roots), third_party (roots
-    outside sys.stdlib_module_names and not in-repo), local (in-repo: the
-    tools package or a sibling tools/ module), guarded_conditional
-    (import roots nested inside try/if/with/def at any depth)}.
-  - network: {transport_imports (the transport module roots),
-    adjacent_imports (local siblings whose own text carries a transport
-    token), literal_face (https?:// literals in the source text),
-    subprocess_bridge_suspect (subprocess imported plus a string constant
-    whose first token is a network-capable CLI), zero_network (none of
-    the above), git_subprocess_network_face {present, tokens} (the git
-    subset of the bridge commands)}.
-  - skip_face: {markers: [{kind, count, samples}]} over the v1 token
-    vocabulary env_rocwash / ocaml_opam / coq_rocq / thermal_wrapper /
-    selfhosted_runner / lean_lake_mathlib / windows_guard /
-    macos_tooling (count = matching tokens, samples = first three
-    unique).
-  - selftest_flag: --selftest is a DECLARED argparse flag;
-    selftest_token_face: the --selftest literal appears anywhere in the
-    source (the docstring-verified shape).
-  - invocation: {form, basis}; argparse-imported tools reconstruct
-    "python tools/<name> [--flag]..." from the declared long optionals
-    (basis "argparse-reconstructed"), argparse-absent tools take the
-    docstring Interface line (basis "docstring-interface"), else "none".
 Interface.  python -I tools/census_rescan.py --repo DIR [--tools DIR]
   [--only NAME[,NAME]] [--stand FILE] [--merge] [--out FILE] | --selftest.
-  Without --merge the scan reports rows only (stdout or --out); with
-  --merge --out FILE the standing census at --stand (default
-  docs/census-tools.json under --repo) is read, the missing tools are
-  appended sorted by name, standing rows are preserved verbatim, and the
-  meta gains the rescan_generation split with a real UTC timestamp; a
-  standing rescan_generation with a recorded batch rolls that batch into
-  rescan_generation.history first.
-  Exit-codes.  0 clean; 2 usage; 9 --repo/--tools/--stand path missing.
-Evidence.  --selftest: canned fixture files per face (file facts, main
-  guard, docstring head truncation, argparse capture, import buckets,
-  network classification incl. the git bridge subset, skip kinds,
-  invocation reconstruction, selftest flag vs token face, merge
-  verbatim-preservation + sorted union + determinism).
+  Without --merge: scan rows only (stdout or --out).  With --merge --out
+  FILE: the standing census at --stand (default docs/census-tools.json
+  under --repo) is read, missing tools appended sorted, standing rows
+  preserved verbatim, meta gains the rescan_generation split (real UTC
+  timestamp); a standing recorded batch rolls into history first.
+Dependencies.  Python 3 standard library only; zero network, zero
+  subprocess on the scan face (the selftest subprocess = detached temp copies).
+Evidence.  --selftest: canned fixtures per face (file facts, main guard,
+  docstring head truncation, argparse capture, import buckets, network
+  classification incl. the git bridge subset, skip kinds, invocation
+  reconstruction, merge verbatim + sorted union + determinism, history).
+Exit-codes.  0 clean; 2 usage; 9 --repo/--tools/--stand path missing.
 """
+# Extended contract (kept outside the five-field block per the annotation
+# standard 30-line header budget).
+#
+# v1 record rules (this tool's own documented method; the cast-time rows
+#   keep their original generator's semantics untouched):
+#   - name/bytes/sha256/lines: file facts (lines = len(text.splitlines())).
+#   - underscore_prefix / has_main_guard: module-level AST facts (the guard
+#     = an `if __name__ == "__main__":` test at module top level).
+#   - docstring: {present, lines, head} of the module docstring (head = the
+#     first 600 characters).
+#   - argparse: {imported, parser_descriptions (ArgumentParser description
+#     constants, first 200 characters each), add_argument (per call:
+#     declared flags and the constant-only kwargs), positionals, optionals,
+#     subcommands (add_parser constants), has_subparsers, set_defaults_func}.
+#   - usage_face: python-invocation lines from the docstring when argparse
+#     is absent (the axiom_guard shape); [] otherwise.
+#   - imports: {modules (top-level stdlib module roots), third_party (roots
+#     outside sys.stdlib_module_names and not in-repo), local (in-repo: the
+#     tools package or a sibling tools/ module), guarded_conditional
+#     (import roots nested inside try/if/with/def at any depth)}.
+#   - network: {transport_imports (the transport module roots),
+#     adjacent_imports (local siblings whose own text carries a transport
+#     token), literal_face (https?:// literals in the source text),
+#     subprocess_bridge_suspect (subprocess imported plus a string constant
+#     whose first token is a network-capable CLI), zero_network (none of
+#     the above), git_subprocess_network_face {present, tokens} (the git
+#     subset of the bridge commands)}.
+#   - skip_face: {markers: [{kind, count, samples}]} over the v1 token
+#     vocabulary env_rocwash / ocaml_opam / coq_rocq / thermal_wrapper /
+#     selfhosted_runner / lean_lake_mathlib / windows_guard /
+#     macos_tooling (count = matching tokens, samples = first three
+#     unique).
+#   - selftest_flag: --selftest is a DECLARED argparse flag;
+#     selftest_token_face: the --selftest literal appears anywhere in the
+#     source (the docstring-verified shape).
+#   - invocation: {form, basis}; argparse-imported tools reconstruct
+#     "python tools/<name> [--flag]..." from the declared long optionals
+#     (basis "argparse-reconstructed"), argparse-absent tools take the
+#     docstring Interface line (basis "docstring-interface"), else "none".
 import argparse
 import ast
 import datetime
