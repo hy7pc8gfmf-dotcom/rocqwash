@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """test_verify_fresh.py — verify/verify_vo.py --require-fresh fresh-compile 防线自测
+Purpose.  Self-test for the verify/verify_vo.py --require-fresh fresh-compile defense line: the toolified defense against the stale-vo spurious-pass precedent (the divmod_gen case).
+Interface.  Direct run (python tests/test_verify_fresh.py); eight sections over temporary fixtures, zero real-repository touch, zero compile.
+Dependencies.  Python 3 standard library only; the sibling verify/verify_vo.py.
+Evidence.  Each section asserts its verdict and prints it; the runner reports the pass/fail count and exits nonzero on any red.
+Exit-codes.  0 all sections pass; 1 at least one section red.
+
 （tests/·本轮实战判例工具化②·20261101）
 
 divmod_gen 陈旧 vo 假绿判例的工具化防线直测（--require-fresh <v> <vo>）：

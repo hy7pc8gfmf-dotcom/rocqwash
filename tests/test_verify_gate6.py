@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """test_verify_gate6.py — verify/verify_gate6.py 自测（tests/·五课反馈轮·agent rqsupport·
+Purpose.  Self-test for verify/verify_gate6.py: the bare-Prop quantifier census gate on the EntropyUnsatMark case (five-lesson fixture arc, gate6 ch1).
+Interface.  Direct run (python tests/test_verify_gate6.py); the before/after case-report pair plus the fixture-tree census face over the sample fixture.
+Dependencies.  Python 3 standard library only; the sibling verify/verify_gate6.py and its report faces.
+Evidence.  Each check asserts its verdict and prints it; the runner exits nonzero on the first failed check.
+Exit-codes.  0 all checks pass; 1 at least one check failed.
+
 20261101）
 
 五课夹具④【gate6 ch1】：语句面裸 Prop 量词 census（EntropyUnsatMark 判例）。
