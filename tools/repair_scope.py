@@ -7,16 +7,16 @@ Purpose.  One source of truth for the faces a repair class never
   from certify/frozen8.py), the append-only ledger document, and the
   frozen directory families.  The E2 repair classes and the
   jargon_apply frozen-exclusion face import these providers; each class
-  appends its own provider below the append-zone marker with a
-  read-merge-write edit, never a whole-file rewrite, so sibling classes
-  are never lost and a repeated append stays a no-op.
+  appends below the append-zone marker with a read-merge-write edit,
+  never a whole-file rewrite, so sibling classes are never lost and a
+  repeated append stays a no-op.
 
 Interface.  frozen8_ledger(repo_root), frozen8_checkers(repo_root),
   ledger_doc(repo_root), exclusion_roster(repo_root),
-  full_frozen_files(repo_root); constants SNAPSHOT_LEDGER8,
-  SNAPSHOT_CHECKERS, FALLBACK_LEDGER_DOC, FROZEN_DIR_FAMILIES,
-  LEGAL_DATA_DIR_FAMILIES.  Consumers load this module by path
-  (importlib), the same way jargon_apply loads norm_lint.
+  full_frozen_files(repo_root), dir_family_exclusion(rel_path);
+  constants SNAPSHOT_LEDGER8, SNAPSHOT_CHECKERS, FALLBACK_LEDGER_DOC,
+  FROZEN_DIR_FAMILIES (nested entries allowed), LEGAL_DATA_DIR_FAMILIES.
+  Consumers load this module by path (importlib).
 
 Dependencies.  Python 3 standard library only.  certify/frozen8.py is
   parsed as an AST literal (the module body never executes); an absent
@@ -76,12 +76,33 @@ SNAPSHOT_LEDGER8 = (
 SNAPSHOT_CHECKERS = ("certify/frozen8.py", "certify/push_gate.py")
 FALLBACK_LEDGER_DOC = "更新账.md"
 
-# frozen directory families (E-series new-face guard list)
+# frozen directory families (E-series new-face guard list).  A family
+# entry may be nested: a slash-free entry matches by top-level directory,
+# a nested entry by path prefix (dir_family_exclusion).  tests/fixtures
+# carries the mechanical-test fixtures: their bytes are test inputs (the
+# gate4 dirty sample keeps its banned faces by design; the cure/probe
+# fixtures pin guarded negatives that must survive every application
+# verbatim), so the rewrite faces never target the subtree while the
+# sibling tests/ repairable faces stay writable.
 FROZEN_DIR_FAMILIES = ("certify", "scan", "verify", "wrapper", "names",
-                       "seam", "seeds", "CLA")
+                       "seam", "seeds", "CLA", "tests/fixtures")
 # legal/data faces a repair class never rewrites; the zh doc face rides the
 # norm_lint archive rule instead of this roster
 LEGAL_DATA_DIR_FAMILIES = ("CLA", "seeds", "docs")
+
+
+def dir_family_exclusion(rel_path):
+    """The directory-family exclusion reason for a repo-relative path, or
+    None.  A slash-free family matches by top-level directory; a nested
+    family (containing a slash) matches by path prefix."""
+    top = rel_path.split("/", 1)[0]
+    if top in FROZEN_DIR_FAMILIES:
+        return "directory family exclusion (%s/)" % top
+    for fam in FROZEN_DIR_FAMILIES:
+        if "/" in fam and (rel_path == fam
+                           or rel_path.startswith(fam + "/")):
+            return "directory family exclusion (%s/)" % fam
+    return None
 
 
 def _read_constant(repo_root, wanted):
@@ -239,9 +260,9 @@ class LaneExtractScope(object):
             return "outside the repository tree"
         if p in full_frozen_files(repo_root):
             return "frozen or append-only face (shared full view)"
-        top = p.split("/", 1)[0]
-        if top in FROZEN_DIR_FAMILIES:
-            return "directory family exclusion (%s/)" % top
+        hit = dir_family_exclusion(p)
+        if hit is not None:
+            return hit
         if p == "docs/zh" or p.startswith("docs/zh/"):
             return "data subtree exclusion (docs/zh)"
         return None
@@ -583,9 +604,10 @@ class RosterResyncScope(object):
             return "outside the repository tree"
         if p in full_frozen_files(repo_root):
             return "frozen or append-only face (shared full view)"
+        hit = dir_family_exclusion(p)
+        if hit is not None:
+            return hit
         top = p.split("/", 1)[0]
-        if top in FROZEN_DIR_FAMILIES:
-            return "directory family exclusion (%s/)" % top
         if top in LEGAL_DATA_DIR_FAMILIES and p != cls.LEDGER_FACE:
             return "legal or data face exclusion (%s/)" % top
         if p == "docs/zh" or p.startswith("docs/zh/"):
@@ -685,9 +707,9 @@ class FlakyQuarantineScope(object):
             return "outside the repository tree"
         if p in full_frozen_files(repo_root):
             return "frozen or append-only face (shared full view)"
-        top = p.split("/", 1)[0]
-        if top in FROZEN_DIR_FAMILIES:
-            return "directory family exclusion (%s/)" % top
+        hit = dir_family_exclusion(p)
+        if hit is not None:
+            return hit
         if p == "docs/zh" or p.startswith("docs/zh/"):
             return "data subtree exclusion (docs/zh)"
         return None
@@ -751,9 +773,9 @@ class DocCountScope(object):
             return "outside the repository tree"
         if p in full_frozen_files(repo_root):
             return "frozen or append-only face (shared full view)"
-        top = p.split("/", 1)[0]
-        if top in FROZEN_DIR_FAMILIES:
-            return "directory family exclusion (%s/)" % top
+        hit = dir_family_exclusion(p)
+        if hit is not None:
+            return hit
         if p == "docs/zh" or p.startswith("docs/zh/"):
             return "data subtree exclusion (docs/zh)"
         if p.endswith(cls.ARCHIVE_SUFFIXES):
@@ -1431,6 +1453,14 @@ def run_doc_count_selftest():
         vec("excl-family-certify",
             DocCountScope.refusal_reason(
                 "certify/frozen8.py", repo1) is not None, "")
+        vec("excl-family-nested-fixtures",
+            DocCountScope.refusal_reason(
+                "tests/fixtures/gate4_dirty_sample.v", repo1) is not None,
+            "the nested family entry matches by path prefix")
+        vec("allow-tests-face-outside-fixtures",
+            DocCountScope.refusal_reason(
+                "tests/t_probe_engine.py", repo1) is None,
+            "the nested family freezes only the fixtures subtree")
         vec("excl-frozen-runtime-row",
             DocCountScope.refusal_reason(
                 "wash/wash_engine.py", repo1) is not None, "")
@@ -1530,7 +1560,7 @@ def run_selftest(args):
                if not os.path.isdir(os.path.join(REPO_ROOT, d))]
     ok = ok and not missing
     vec("faces-and-families-exist", ok,
-        "append-only doc on disk; all 8 family dirs present"
+        "append-only doc on disk; all 9 family dirs present"
         if ok else "doc on disk=%s; missing families: %s" % (ok, missing))
 
     # vector 5: the full view carries the ten-row roster plus the doc

@@ -100,7 +100,7 @@ class MissingFace(Exception):
 # ---- derivation-source loading (repair_scope._dc_doc_lint form) ----
 
 def _robust_load(modname, filename):
-    """The repair_scope robust candidate search (repair_scope.py:815-845),
+    """The repair_scope robust candidate search (repair_scope.py:844-872),
     reused for both derivation sources so temp fixtures and CI runners
     resolve the same single sources; loud ModuleNotFoundError when no
     candidate carries the module - never a silent re-parse."""
