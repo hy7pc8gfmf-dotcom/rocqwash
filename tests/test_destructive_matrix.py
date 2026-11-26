@@ -216,21 +216,22 @@ Exit-codes.  0 = all 43 refuse-to-write criteria pass; 1 = at least one
 #      RS1 the --check query face writes nothing and the exclusion
 #         conclusions bite: shared full_frozen_files (read from the running
 #         LEDGER8 AST, a missing file degrades to a loud snapshot) +
-#         FROZEN_DIR_FAMILIES + LEGAL_DATA_DIR_FAMILIES + docs/zh + .zh.md
+#         FROZEN_DIR_FAMILIES (first-component and nested entries) +
+#         LEGAL_DATA_DIR_FAMILIES + docs/zh + .zh.md
 #         archive mirrors all EXCLUDED; the three class-2 repairable faces
 #         (tests/README.md, README.md, the ledger) REPAIRABLE; the query
 #         writes nothing
-#         anchor tools/repair_scope.py:140-160
-#         (exclusion_roster/full_frozen_files) + :556-576
-#         (RosterResyncScope.refusal_reason) + :590-620 (check_faces)
+#         anchor tools/repair_scope.py:182-201
+#         (exclusion_roster/full_frozen_files) + :599-621
+#         (RosterResyncScope.refusal_reason) + :633-663 (check_faces)
 #      E2A class-1 lane-extract (--lane-detect/--lane-apply): default
 #         zero-write zero-record; an excluded ledger face (the seeds/
 #         family) rc=2 refusal with zero creation; the budget cap (2 prior
 #         records) rc=2 write refusal, suite bytes constant, only an
 #         escalated(budget-cap) ledger row lands
-#         anchor tools/repair_scope.py:477-482 (excluded-face refusal) +
-#         :400-411 (_lane_ledger_gate, the ledger face under the same gate)
-#         + :487-493 (the budget cap)
+#         anchor tools/repair_scope.py:519-524 (excluded-face refusal) +
+#         :442-453 (_lane_ledger_gate, the ledger face under the same gate)
+#         + :529-537 (the budget cap)
 #      E2B class-2 roster-resync (tools/roster_resync.py): default zero-write
 #         zero-record; --apply is a one-way derivation (roster bytes
 #         constant, count faces repaired to the roster value, one repair one
@@ -238,7 +239,7 @@ Exit-codes.  0 = all 43 refuse-to-write criteria pass; 1 = at least one
 #         only an escalated row lands
 #         anchor tools/roster_resync.py:246-248 (the default zero-write
 #         gate) + :256-265 (the budget cap) + :327-334 (a frozen face is
-#         escalated, never applied) + tools/repair_scope.py:556-576
+#         escalated, never applied) + tools/repair_scope.py:599-621
 #      E2C class-3 flaky-quarantine (tools/flaky_guard.py --move): a frozen
 #         target (a seeds/-family roster) rc=1 refusal with zero writes and
 #         zero records (the scope check precedes the probe); budget cap rc=1
@@ -251,8 +252,8 @@ Exit-codes.  0 = all 43 refuse-to-write criteria pass; 1 = at least one
 #         idempotent (a second pass moves zero bytes); budget cap rc=2 write
 #         refusal, target-face bytes constant, only an escalated(budget-cap)
 #         row lands
-#         anchor tools/repair_scope.py:917-926 (the apply write-face
-#         precheck) + :975-994 (the budget cap) + :997-1009 (the
+#         anchor tools/repair_scope.py:1016-1022 (the apply write-face
+#         precheck) + :1079-1090 (the budget cap) + :1095-1112 (the
 #         post-assertion refusal)
 #   ⑩ .github/scripts/selfheal_heartbeat.py (heartbeat tick writer; write face
 #      = the caller-named --file JSONL volume, strictly append-only)
@@ -1476,15 +1477,17 @@ def row_rs1(tmp):
     """repair_scope --check query face writes nothing and the exclusion
     conclusions bite: in the snapshot-degraded setting (a sandbox without
     frozen8.py, the fallback is loud) the append-only ledger faces, frozen
-    rows, family directories, legal-data faces and zh archives all come
-    back EXCLUDED, the three class-2 repairable faces come back
-    REPAIRABLE, and the query writes nothing."""
+    rows, family directories (first-component and nested: the nested
+    tests/fixtures family matches by path prefix), legal-data faces and
+    zh archives all come back EXCLUDED, the three class-2 repairable faces
+    come back REPAIRABLE, and the query writes nothing."""
     d = os.path.join(tmp, "rs1")
     os.makedirs(d)
     before = tree_manifest(d)
     rc, out = sh(REPAIR_SCOPE,
                  ["--repo", d, "--check", "更新账.md", "wash/wash_engine.py",
-                  "certify/x.py", "README-cw.zh.md", "docs/mcp.md",
+                  "certify/x.py", "tests/fixtures/gate4_dirty_sample.v",
+                  "README-cw.zh.md", "docs/mcp.md",
                   "tests/README.md", "README.md", "docs/repair-ledger.jsonl"])
     assert rc == 1, "a query with excluded faces should exit 1 (the conclusion is data), got %d\n%s" \
         % (rc, out[-400:])
@@ -1493,6 +1496,7 @@ def row_rs1(tmp):
     repairable = {ln.split()[1] for ln in out.splitlines()
                   if ln.startswith("REPAIRABLE ")}
     assert excluded == {"更新账.md", "wash/wash_engine.py", "certify/x.py",
+                        "tests/fixtures/gate4_dirty_sample.v",
                         "README-cw.zh.md", "docs/mcp.md"}, excluded
     assert repairable == {"tests/README.md", "README.md",
                           "docs/repair-ledger.jsonl"}, repairable
@@ -2208,15 +2212,15 @@ ROWS = [
     ("AM3", "auto_merge", "daily budget cap plus duplicate refusal (exactly 3 authorize rows, the 4th/same-PR refused, the ledger does not grow)",
      "tools/auto_merge.py:229-233,234-239", row_am3),
     ("RS1", "repair_scope", "--check query face zero-write (shared-roster conclusions bite, snapshot degradation is loud)",
-     "tools/repair_scope.py:140-160,556-576,590-620", row_rs1),
+     "tools/repair_scope.py:182-201,599-621,633-663", row_rs1),
     ("E2A", "repair_scope", "class-1 lane-extract: default zero-write zero-record / excluded ledger face rc=2 zero creation / budget cap refuses the write, only the escalated row lands",
-     "tools/repair_scope.py:477-482,400-411,487-493", row_e2a),
+     "tools/repair_scope.py:519-524,442-453,529-537", row_e2a),
     ("E2B", "roster_resync", "class-2 roster-resync: default zero-write zero-record / roster one-way plus one repair one row / budget cap refuses the write, only the escalated row lands",
      "tools/roster_resync.py:246-248,256-265,327-334", row_e2b),
     ("E2C", "flaky_guard", "class-3 flaky-quarantine: frozen target rc=1 zero-write zero-record (the scope check precedes the probe) / budget cap refuses the write, only the escalated row lands",
      "tools/flaky_guard.py:390-396,514-523", row_e2c),
     ("E2D", "repair_scope", "class-4 doc-count: dry run zero-write zero-record / apply repairs to face=source idempotently, second pass zero bytes / budget cap refuses the write rc=2",
-     "tools/repair_scope.py:917-926,975-994,997-1009", row_e2d),
+     "tools/repair_scope.py:1016-1022,1079-1090,1095-1112", row_e2d),
     ("H1", "selfheal_heartbeat", "default dry run zero-write; --apply appends exactly one tick line, prior ledger bytes byte-identical (content pins, never mtimes)",
      ".github/scripts/selfheal_heartbeat.py:run gate, append_records", row_h1),
     ("H2", "selfheal_heartbeat", "loss-of-contact rule: gap strictly > 90min appends an ALERT line ahead of the tick; exactly 90min silent; ALERT never a tick source",
