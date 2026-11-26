@@ -15,10 +15,13 @@ Purpose.  One deterministic bridge from the frozen mutation library
 Interface.  python -I tools/mutant_manifest.py --library FILE --module NAME.v
   [--families ID[,ID...]] [--out FILE] [--selftest].  --families selects
   library rows by exact id (default: every row); an unknown id is fail-loud
-  rc 2.  Exit-codes.  0 skeleton written (or stdout when --out absent);
+  rc 2.
+Exit-codes.  0 skeleton written (or stdout when --out absent);
   1 selftest red; 2 usage (bad JSON, unknown schema, unknown family,
   module not a .v name); 9 --library/--out path unwritable or missing;
   111 honest skip is not used (the generator needs no toolchain).
+Dependencies.  Python 3 standard library only; zero network, zero
+  toolchain (the generator needs no binary).
 Evidence.  Deterministic: sorted keys, no wall clock; the same library
   bytes and flags give the byte-identical skeleton on a double run.
   --selftest runs the embedded vectors on temp fixtures, never the real

@@ -28,7 +28,11 @@ Purpose.  The mechanical first-pass face of the independence requirement
   verbatim (the anchor_guard precedent) and says so loudly.
   Zero network, zero toolchain, zero writes beyond the caller-named --out.
 Interface.  python -I tools/independence_screener.py --manifest FILE
-  --library FILE [--out F] | --selftest.  Exit-codes.  0 clean (no
+  --library FILE [--out F] | --selftest.
+Dependencies.  Python 3 standard library only; the selftest's
+  subprocess face is a detached temp copy of this module only; zero
+  network.
+Exit-codes.  0 clean (no
   collisions); 1 collisions listed (data, fail-loud); 2 usage (bad
   schema, bad manifest shape, empty independent_derivation = the V7
   mirror, M == degenerate shapes); 9 --manifest/--library path missing.
