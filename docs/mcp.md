@@ -349,3 +349,15 @@ the section security-face sentence).  The 56-generation cure record
 above and the per-increment generation notes (48 / 51 / 55 tools/list
 lines) stay as written: historical narration pinned to their own
 increments, not current counts.
+
+Machine-check addendum (November 27, 2026, at the R3 mcp.md-face
+extension): count_guard's R3 mcp-roster face now reads the two
+structural tokens of this document - the `N-capability schema table`
+title token and the `apply to all N capabilities equally` security-face
+sentence - as equal faces of the roster count.  The manual sweep this
+section records twice is no longer the only coherence face: the next
+roster advance that skips this document's sweep now fails
+tools/count_guard.py red on the exact tokens, with both file:line faces
+and both values named.  Selftest vector V7 pins the drift shape
+(the pre-extension tree read 56 here while every code face read 57, and
+the extended guard reproduces that historical red on a fixture).
