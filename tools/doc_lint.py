@@ -1,56 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """doc_lint.py — the docs-vs-implementation consistency three-check tool (docs <-> tools reconciliation; guards against documentation drift; rocqwash tools/).
-
-Purpose.  Runs the three checks (all purely local, zero network, zero
-  compiles, Python 3 stdlib only, orchestrating zero new engines — every
-  parsing rule is anchored to the current on-disk lines, no invented
-  shapes) and reports whether the documentation and the implementation
-  agree.  Read-only by construction: nothing is ever written into the
-  audited repository.
-
+Purpose.  Runs the three checks (purely local, zero network, zero
+  compiles, stdlib only, zero new engines — every parsing rule anchored
+  to the current on-disk lines) and reports whether the documentation
+  and the implementation agree.  Read-only by construction: nothing is
+  ever written into the audited repository.
 Interface.  python3 tools/doc_lint.py [--repo DIR] [--json OUT]
-  [--help-cap N] | --selftest.  Report schema rocqwash-doclint/1 (checks
-  [{kind,target,status,detail}], verdict consistent|drift, counts,
-  out_of_scope, registry, args; sort_keys on write; no wall-clock field;
-  every path repo-relative — same-input reruns are byte-identical).  The
-  --help-cap default is derived at run time (the measured registry size
-  plus the HELP_CAP_MARGIN margin constant; an explicit value wins), so a
-  new tool registration raises the cap with zero manual steps.  The
-  checks list rows with kind in {tool_table,count,flag}, status in
-  {ok,drift}, and a single-line detail (clipped at 300 chars).  The full
-  three-check contract lives in the extended contract block below.
-
+  [--help-cap N] | --selftest.  Report schema rocqwash-doclint/1;
+  sort_keys on write, no wall-clock field, repo-relative paths — reruns
+  byte-identical.  The --help-cap default is derived at run time
+  (measured registry size + the margin constant; an explicit value
+  wins).  The checks-row shape, the vector enumeration, and the
+  exit-code detail live in the extended contract block below.
 Dependencies.  Python 3 standard library only; the only subprocesses are
-  local real --help runs (milliseconds; zero network, zero compiles, zero
-  sleeps — --injector/--sleep-scale do not apply); every path
-  parameterized, zero hardcoded paths; offline-testable by nature (the
-  --selftest uses all-tmp mini-repo fixtures).
-
-Evidence.  --selftest vectors (tmp mini-repo fixtures; the consistency
-  verdict plus CLI codes plus the idempotence check): V1 a consistent mini
-  repo (2 routes, all four places present; count 2 agreeing in all three
-  spots; every cited flag proven) -> rc 0, verdict consistent, zero drift
-  checks; V2 a missing tool-table row (the hint_for b line dropped) -> rc
-  1, tool_table drift pointing at cw.sh:hint; V3 a count drift
-  (tests/README.md coverage changed to 3) -> rc 1, count drift, value 3
-  vs 2; V4 a phantom flag citation (docs/note.md gains a --bogus-flag
-  reference) -> rc 1, flag drift; V5 CLI codes (--help 0; --bogus 2;
-  missing --repo 9) plus --help-cap 0 -> 2; V6 JSON idempotence (same
-  repo, two runs, different --json paths, byte-identical — the report
-  never embeds its own json path).  V7 the derived help cap (the default =
-  the measured registry size + the margin: the cap auto-follows a new
-  tools/ registration with zero manual steps; under an explicit smaller
-  cap the over-cap report face keeps its semantics: help not run,
-  citations unproven, rc 1).  Suite membership tests/test_doc_lint.py.
-
-Exit-codes.  0 = consistent (zero drift across the three checks); 1 =
-  drift (any row drifted; a failing result is data, not a tool failure;
-  reported loudly on stdout); 2 = usage error (argparse / --help-cap < 1);
-  9 = missing (--repo directory missing / an audited-repo required input
-  missing: cw.sh, README.md, README-cw.md, tests/run_tests.sh,
-  tests/README.md, docs/, examples/workflows/; the --json parent directory
-  missing; a tool --help failing or timing out; an undecodable doc file).
+  local real --help runs (zero network, zero compiles, zero sleeps);
+  every path parameterized; offline-testable by nature (the --selftest
+  uses all-tmp mini-repo fixtures).
+Evidence.  --selftest seven vectors (V1-V7: the consistent mini repo /
+  the three drift rows / the CLI codes / the JSON idempotence / the
+  derived help cap); the enumeration is in the extended contract.
+Exit-codes.  0 consistent; 1 drift (data, reported loudly); 2 usage
+  error; 9 missing; the per-case detail is in the extended contract.
 """
 import argparse
 import io
@@ -146,6 +117,33 @@ import tempfile
 # to phantom judgment (this check is one-way doc->help: extra flags harvested
 # from help prose only cause missed reports, never false ones — precision
 # traded for zero false positives).
+# Former-header detail (carried out of the header on the RIS-15 budget cure,
+# verbatim in substance):
+# Checks rows: kind in {tool_table,count,flag}, status in {ok,drift}, and a
+#   single-line detail (clipped at 300 chars).  Parsing rules invent no
+#   shapes.
+# Evidence (the V1-V7 enumeration): V1 a consistent mini repo (2 routes, all
+#   four places present; count 2 agreeing in all three spots; every cited
+#   flag proven) -> rc 0, verdict consistent, zero drift checks; V2 a
+#   missing tool-table row (the hint_for b line dropped) -> rc 1,
+#   tool_table drift pointing at cw.sh:hint; V3 a count drift
+#   (tests/README.md coverage changed to 3) -> rc 1, count drift, value 3
+#   vs 2; V4 a phantom flag citation (docs/note.md gains a --bogus-flag
+#   reference) -> rc 1, flag drift; V5 CLI codes (--help 0; --bogus 2;
+#   missing --repo 9) plus --help-cap 0 -> 2; V6 JSON idempotence (same
+#   repo, two runs, different --json paths, byte-identical — the report
+#   never embeds its own json path); V7 the derived help cap (the default
+#   = the measured registry size + the margin: the cap auto-follows a new
+#   tools/ registration with zero manual steps; under an explicit smaller
+#   cap the over-cap report face keeps its semantics: help not run,
+#   citations unproven, rc 1).  Suite membership tests/test_doc_lint.py.
+# Exit-code detail: 0 = consistent (zero drift across the three checks); 1 =
+#   drift (any row drifted; a failing result is data, not a tool failure;
+#   reported loudly on stdout); 2 = usage error (argparse / --help-cap < 1);
+#   9 = missing (--repo directory missing / an audited-repo required input
+#   missing: cw.sh, README.md, README-cw.md, tests/run_tests.sh,
+#   tests/README.md, docs/, examples/workflows/; the --json parent directory
+#   missing; a tool --help failing or timing out; an undecodable doc file).
 
 PROG = "doc_lint"
 SCHEMA = "rocqwash-doclint/1"

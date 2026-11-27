@@ -1,55 +1,70 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """capability_index.py - census-rendered tool capability index CLI (R-4).
-
-Purpose.  Renders the rocqwash tool capability index from the census masters
-  instead of returning one opaque document: the primary master is the census
-  output docs/census-tools.json (one record per tool), the secondary master is
-  the AST flag-shape table docs/flag-shape.json, and the MCP roster (face
-  counts per tool) is read AST-level from TOOL_SPECS in tools/mcp_server.py.
-  Three output faces share those same masters so a summary count and a full
-  record can never disagree: mode full (the default, unchanged by R-4) renders
-  the complete index, one full record per censused tool, sorted by tool name;
-  mode summary renders exactly one line per tool - name, one-phrase purpose,
-  MCP face count - and exists because the full index overran harness response
-  caps in two measured rounds (130KB of full index against a 50KB cap);
-  --tool NAME renders the single full record of one tool and is byte-equal to
-  that tool's block in full mode.
+Purpose.  Renders the rocqwash tool capability index from the census
+  masters instead of returning one opaque document: the primary master is
+  docs/census-tools.json, the secondary master is docs/flag-shape.json,
+  and the MCP roster is read AST-level from TOOL_SPECS in
+  tools/mcp_server.py.  Three output faces share those same masters so a
+  summary count and a full record can never disagree; the face semantics
+  and the carried master-drift note live in the extended contract below.
 Interface.  python3 tools/capability_index.py [--mode {full,summary}]
-  [--tool NAME] | --selftest.  --mode full (default) prints the full index
-  with a three-line deterministic header (no timestamps, byte-stable across
-  runs); --mode summary prints only the tool lines, so the stdout line count
-  equals the census tool count exactly; --tool accepts the base name with or
-  without the .py suffix (chain_graph or chain_graph.py) and may not be
-  combined with --mode summary.  --selftest runs the fixture vectors and the
-  real-master vectors (summary line-count face, --tool single-entry face,
-  full-mode byte-stability face) and prints one [PASS]/[FAIL] line per vector.
-Dependencies.  Python 3 standard library only (argparse, ast, json, os, re,
-  sys); zero subprocess, zero network, read-only over docs/ and the
-  tools/mcp_server.py text.  Known master drift, carried not hidden:
-  docs/flag-shape.json lags docs/census-tools.json by seven files (the
-  claim_watch, lean_axiom_sweep, numeric_probe, release_chain, source_fetch,
-  statement_identity, sweep_verdict entries), so their flag_shape lines render
-  as "-" instead of inventing a shape.
-Evidence.  --selftest asserts, on in-memory fixtures: the one-phrase
-  extractor pins (name.py / name.py v2: / em-dash / "(v2)" prefixes, the
-  parenthetical and sentence cuts, the no-docstring fallback, the length cap
-  with ellipsis), a two-tool summary face (line count == tool count, every
-  line non-empty and name-prefixed, singular/plural face counting), and the
-  --tool/full block equality; then on the real masters: the summary-mode
-  vector (stdout line count == census tool count, every line non-empty), the
-  --tool single-entry vector (exactly one entry header, and the record is
-  byte-equal to that tool's block in full mode), and the full-mode
-  byte-stability vector (two renders byte-identical, entry headers sorted by
-  tool name, entry count == census tool count).  All vectors were cast with
-  R-4 and are executed by the acceptance runner; this file's own selftest run
-  is the caller's gate, not a landed measurement.
-Exit-codes.  0 green (a render completed or the selftest is green); 1 red
-  (selftest failure, or a census master is missing or unparseable - the
-  message names the path and points at docs/census.md section 1); 2 usage
-  (bad --mode value, --selftest combined with render flags, --tool combined
-  with --mode summary, or --tool naming a tool absent from the census).
+  [--tool NAME] | --selftest.  --mode full (default) prints the full
+  index; --mode summary prints one line per tool; --tool NAME renders one
+  full record.  Determinism, name-acceptance, and selftest semantics are
+  in the extended contract.
+Dependencies.  Python 3 standard library only; zero subprocess, zero
+  network, read-only over docs/ and the tools/mcp_server.py text.
+Evidence.  --selftest asserts the fixture vectors (one-phrase extractor
+  pins, summary face, --tool/full block equality) and the real-master
+  vectors (summary line-count face, --tool single-entry face, full-mode
+  byte-stability face); the enumeration is in the extended contract.
+Exit-codes.  0 green (a render completed or the selftest is green); 1
+  red (selftest failure or a census master missing/unparseable); 2 usage
+  error; the per-case detail is in the extended contract.
 """
+
+# Extended contract (kept outside the five-field header so the header
+# stays within the 30-line budget of the annotation standard; the moved
+# facts are carried over from the former header verbatim in substance):
+#
+# Face semantics.  Mode full (the default, unchanged by R-4) renders the
+#   complete index, one full record per censused tool, sorted by tool
+#   name, with a three-line deterministic header (no timestamps,
+#   byte-stable across runs).  Mode summary renders exactly one line per
+#   tool - name, one-phrase purpose, MCP face count - and exists because
+#   the full index overran harness response caps in two measured rounds
+#   (130KB of full index against a 50KB cap); the stdout line count
+#   equals the census tool count exactly.  --tool NAME renders the single
+#   full record of one tool and is byte-equal to that tool's block in
+#   full mode; it accepts the base name with or without the .py suffix
+#   (chain_graph or chain_graph.py) and may not be combined with --mode
+#   summary.  --selftest runs the fixture vectors and the real-master
+#   vectors and prints one [PASS]/[FAIL] line per vector.
+# Known master drift, carried not hidden: docs/flag-shape.json lags
+#   docs/census-tools.json by seven files (the claim_watch,
+#   lean_axiom_sweep, numeric_probe, release_chain, source_fetch,
+#   statement_identity, sweep_verdict entries), so their flag_shape lines
+#   render as "-" instead of inventing a shape.
+# Evidence detail.  On in-memory fixtures: the one-phrase extractor pins
+#   (name.py / name.py v2: / em-dash / "(v2)" prefixes, the parenthetical
+#   and sentence cuts, the no-docstring fallback, the length cap with
+#   ellipsis), a two-tool summary face (line count == tool count, every
+#   line non-empty and name-prefixed, singular/plural face counting), and
+#   the --tool/full block equality; on the real masters: the summary-mode
+#   vector (stdout line count == census tool count, every line
+#   non-empty), the --tool single-entry vector (exactly one entry header,
+#   and the record is byte-equal to that tool's block in full mode), and
+#   the full-mode byte-stability vector (two renders byte-identical,
+#   entry headers sorted by tool name, entry count == census tool count).
+#   All vectors were cast with R-4 and are executed by the acceptance
+#   runner; this file's own selftest run is the caller's gate, not a
+#   landed measurement.
+# Exit-code detail: 1 red covers a selftest failure, or a census master
+#   missing or unparseable - the message names the path and points at
+#   docs/census.md section 1; 2 usage covers a bad --mode value,
+#   --selftest combined with render flags, --tool combined with --mode
+#   summary, or --tool naming a tool absent from the census.
 
 import argparse
 import ast
