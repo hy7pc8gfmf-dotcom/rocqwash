@@ -172,10 +172,10 @@
 | 黑话 (jargon face) | 标准 (standard expression) | 语境注记 (context note) |
 |---|---|---|
 | wave（组织义） | work stream | 七工具波 → seven-tool release; the release sense stays on ledger surfaces; ticket-lineage citations are identifiers of record and stay. | ticket\s+\d+\s+wave\s+\d+ |
-| seat | agent | M-wave campaign-organization family; seat numbers never enter prose; the one-worker-per-seat topology wording (seat-worker) stays on ledger and identifier surfaces. |
+| seat | agent | M-wave campaign-organization family; seat numbers never enter prose; the one-worker-per-seat topology wording (seat-worker) stays on ledger and identifier surfaces. | --source-seat |
 | seat-worker | agent | Compound residue of the earlier agent / seat-worker hybrid; prose uses agent. |
 | campaign | effort / work stream | M-wave campaign-organization family; preset name `campaign_set_diamond` (tests/fixtures/header_map_v1.json) is data and stays; the effort-total report path citations (docs/rocqwash-service-campaign-total-*.md) are identifier-citation senses and ride the exempt cell. | docs/rocqwash-service-campaign-total- |
-| dispatch（叙述义） | route | `red_dispatch.py` identifier stays; the route-table citation and the verb citation beside a backticked flag face stay. | ^#?\s*dispatch\s+red-event router;dispatch arms;tools dispatch |
+| dispatch（叙述义） | route | `red_dispatch.py` identifier stays; the route-table citation and the verb citation beside a backticked flag face stay. | ^#?\s*dispatch\s+red-event router;dispatch arms;tools dispatch;dispatch\);dispatch the CI judge;未知工具 |
 | handover | — (delete the narration) | Process narration; state facts instead. |
 | landing | integration | M-wave campaign-organization family: the campaign and operation narration sense only. The landing-of-a-reviewed-change sense is the charter's own standard vocabulary (the recursive-improvement charter, section 5: land the change through the single landing path) and stays; its recurring line shapes ride the exempt cell. | landing increment;landing commit;reviewed landing;tool landing;landing tool;landing ticket;landing line;registration landing;the landing is confirmed;the [A-Za-z0-9._-]+ landing\b |
 | retrofit | adaptation | M-wave campaign-organization family. |
