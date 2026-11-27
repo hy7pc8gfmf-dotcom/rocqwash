@@ -409,6 +409,70 @@ bash tools/cpu_guard.sh -Reg /tmp/my_reg -Front 0 -Mid 1 -- rocq c -native-compi
 # -Reg <dir> = a dedicated queue-registration lane; -Front/-Mid = ladder-queue tier cut-offs (FRONT tier runs nice 0, MID tier nice 10) — parameter reference: docs/en/architecture.md §6
 ```
 
+### Agent sessions
+
+An agent session (or any scripted consumer) does not need the tour above.
+Three copy-ready paths, each executed end to end before this section
+landed:
+
+**1. Clone the repository and wire the MCP stdio server.**
+
+```bash
+git clone --depth 1 https://github.com/hy7pc8gfmf-dotcom/rocqwash.git
+cd rocqwash
+python3 -I tools/mcp_server.py --selftest   # interface-shape vectors; exit 0 = green
+```
+
+Point an MCP client at the server with a stdio config (substitute the
+absolute path of the checkout for every `$ROCWASH_PATH`):
+
+```json
+{
+  "mcpServers": {
+    "rocqwash": {
+      "command": "python3",
+      "args": ["-I", "-X", "utf8", "$ROCWASH_PATH/tools/mcp_server.py"],
+      "env": {
+        "ROCWASH_HOME": "$ROCWASH_PATH",
+        "PYTHONUTF8": "1",
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}
+```
+
+Keep `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8` on Windows hosts: the
+JSON wire stays ASCII-safe on GBK-codepage consoles only with them set.
+The protocol face (three methods, the wire contract, the security
+posture) is `docs/mcp.md`; the capability roster is
+`docs/CAPABILITY-INDEX.md`. After a `git pull`, restart the server
+process: the registry and the schema table load once at startup.
+
+**2. Pull one tool without cloning (detached form).** A tool with zero
+sibling imports runs from one downloaded file; the repository sync
+offset reader is one such tool:
+
+```bash
+curl -L https://raw.githubusercontent.com/hy7pc8gfmf-dotcom/rocqwash/main/tools/repo_sync_status.py -o repo_sync_status.py
+python3 -I repo_sync_status.py --repo /path/to/a/local/rocqwash   # ahead/behind vs the last fetched origin/main
+python3 -I repo_sync_status.py --selftest                         # six fixture vectors; exit 0 = green
+```
+
+**3. Track latest or pin a release.**
+
+```bash
+git clone --depth 1 https://github.com/hy7pc8gfmf-dotcom/rocqwash.git                              # track main
+git clone --depth 1 --branch rw-v0.1.1-20261117 https://github.com/hy7pc8gfmf-dotcom/rocqwash.git  # pin the release tag
+# archived snapshot: DOI 10.5281/zenodo.24225678 (Zenodo record)
+```
+
+A pinned tree reports `up_to_date` only against its own fetched ref. The
+MCP server's `--require-fresh` flag is the opt-in guard that refuses to
+serve a tree sitting behind the last fetched remote ref (exit 1, the
+refusal names the refresh command); the `repo_sync_status` capability
+reports the same offset on demand.
+
 
 ## Platform Support
 

@@ -161,6 +161,38 @@ Measured environment: Python 3.13.2 (Windows 10, Git Bash); lower versions untes
 {"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"capability_index","arguments":{}}}
 ```
 
+**Client wiring** (the README "Agent sessions" face carries the same
+config with the walkthrough): a stdio client launches the server as a
+subprocess with the environment set; the generic JSON config form is:
+
+```json
+{
+  "mcpServers": {
+    "rocqwash": {
+      "command": "python3",
+      "args": ["-I", "-X", "utf8", "<ROCWASH_PATH>/tools/mcp_server.py"],
+      "env": {
+        "ROCWASH_HOME": "<ROCWASH_PATH>",
+        "PYTHONUTF8": "1",
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}
+```
+
+Substitute the absolute checkout path for `<ROCWASH_PATH>` (the JSON
+form does not expand `~`). `ROCWASH_HOME` is the one required variable
+(section 4 env table); `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8` keep
+the wire ASCII-safe on Windows consoles with a GBK codepage. The server
+answers one JSON-RPC 2.0 object per line on stdout; a client that
+speaks the MCP stdio handshake needs only `initialize`,
+`notifications/initialized`, then `tools/list` / `tools/call`. After
+the repository is updated by `git pull`, restart the server: the
+capability registry loads once at startup. The `initialize` response
+carries the `serverInfo.repository` version block, so a client can
+check which tree it is talking to before the first call.
+
 ## 5. Security face
 
 1. Default deny: `net_probe` / `ci_triage` / `pushci_status` (the three the integration ticket names) plus `sentinel_status` (a strengthening cast by this integration) return a failed tool result (`isError:true`) naming `ROCQWASH_MCP_ALLOW_NET=1`; a denial is an execution-level result, not a protocol error; only the explicit environment opt-in enables them.
