@@ -1,41 +1,46 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """roster_resync.py: roster count drift guard, one-way recount and sync (rocqwash tools/; E2 repair class 2).
-
 Purpose.  The suite roster (the CASES block of tests/run_tests.sh) is the
   only count authority.  This guard recounts the roster, then rewrites
   every drifted count line in tests/README.md and README.md to the roster
   value, using the four count-line shapes imported from doc_lint so the
   shapes can never diverge from the doc_lint oracle.  One-way: roster ->
   docs; the roster file is never written.  Dry-run by default; --apply is
-  the only write face; every repaired line appends one ledger row
-  (schema rocqwash-repair/1) and the shared exclusion table
-  (tools/repair_scope.py, class RosterResyncScope) gates every target
-  before any byte lands; the per-class per-branch repair budget is 2.
-
+  the only write face.  The ledger, exclusion-gate, and budget rules are
+  in the extended contract below.
 Interface.  python3 tools/roster_resync.py [--repo DIR] [--apply]
   [--ledger P] [--json OUT] | --selftest.  Exit 0 = clean or repaired to
   clean; 1 = drift found (dry-run) or an escalation landed (budget cap /
   refused face / missing count shape / post-repair assertion); 2 = usage
   error; 9 = missing input (no roster block, unreadable count file,
   corrupt ledger).
-
 Dependencies.  Python 3 standard library only; zero network; imports
   doc_lint (COUNT_PATTERNS + CASES_RE) and repair_scope from the same
   tools/ directory; the ledger row is one JSON object per line.
-
-Evidence.  --selftest on tmp fixture repos: a consistent repo stays clean
-  with byte-identical JSON reruns; the red fixture (count line +1) is
-  planned with zero writes and repaired by --apply until the real
-  doc_lint subprocess verdict flips to consistent; a four-shape drift
-  repairs in one pass against the doc_lint count check; the budget cap
-  escalates at two prior repaired rows without touching the target; the
-  exclusion-gate and CLI-code vectors; the roster file bytes never
-  change; the ledger stays untouched on dry-run.
-
+Evidence.  --selftest on tmp fixture repos: the clean/red/repair and
+  escalation vectors; the enumeration is in the extended contract.
 Exit-codes.  See Interface; every outcome is loud (a red is data, never a
   silent pass); the ledger is written only by --apply.
 """
+
+# Extended contract (kept outside the five-field header so the header
+# stays within the 30-line budget of the annotation standard; the moved
+# facts are carried over from the former header verbatim in substance):
+#
+# Write-face rules: every repaired line appends one ledger row (schema
+#   rocqwash-repair/1) and the shared exclusion table
+#   (tools/repair_scope.py, class RosterResyncScope) gates every target
+#   before any byte lands; the per-class per-branch repair budget is 2.
+# Evidence enumeration: a consistent repo stays clean with
+#   byte-identical JSON reruns; the red fixture (count line +1) is
+#   planned with zero writes and repaired by --apply until the real
+#   doc_lint subprocess verdict flips to consistent; a four-shape drift
+#   repairs in one pass against the doc_lint count check; the budget cap
+#   escalates at two prior repaired rows without touching the target;
+#   the exclusion-gate and CLI-code vectors; the roster file bytes never
+#   change; the ledger stays untouched on dry-run.
+
 
 import argparse
 import io

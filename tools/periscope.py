@@ -1,47 +1,49 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """periscope: six-source peripheral-intelligence sweep with sentinel companion.
-
     Purpose.  Sweep a configurable observation list of six sources (mathlib
       PR search, a single pull request, two arXiv legs, the coordination
       issue with its comments sub-face, and an upstream commit tip checked
       against a frozen prefix), write raw bodies plus a per-shot NETRED
-      ledger, keep a sentinel window log with zero silent gaps, and emit a
-      judgment draft skeleton (per-source digest, three-state collision
-      screening, C1 trigger verdict, mandatory four-element negative
-      findings, five-item window-scheduling advice).  Read-only GET only;
-      every finding, including a negative one, is data and never an error.
-
+      ledger, keep a sentinel window log with zero silent gaps, and emit
+      a judgment draft skeleton.  Read-only GET only; every finding,
+      including a negative one, is data and never an error.  The draft
+      skeleton contents and the burned-in behaviors are in the extended
+      contract below.
     Interface.  `periscope.py --config <six-source JSON> --out <dir>
-      [--rounds N] [--netrc <file>] [--dry-run] [--selftest]`.  A real run
-      requires --out (an implicit network sweep is refused); --dry-run
-      validates and prints the plan plus the draft skeleton with zero
-      network and zero writes; --selftest runs the offline vector group.
-      Config schema: rocqwash-periscope-config/1; draft: bilingual markdown
-      mirroring the round-1 adjudication ledger form (the cast date lives in
-      the ledger surface, not in prose).
-
-    Dependencies.  Python 3 standard library only; `curl` on PATH for real
-      runs (never invoked by --dry-run or --selftest); bearer credentials
-      come from a netrc file passed straight to `curl --netrc-file` and are
-      never read, logged, or written by this tool.
-
-    Evidence.  --selftest frozen vector group on temporary fixtures with a
-      canned transport and a virtual clock (zero network, zero writes):
-      CLI face, config-schema fail-loud matrix, the three burned-in
-      behaviors (arXiv -L from the first shot; sentinel SUSPEND beats with
-      contiguous indexes; default coordination endpoint pinned to the Main
-      issue with comments sub-face), cap/stop/retry machine, read-only
-      pledge over every built argument vector, draft-template invariants,
-      dry-run zero-write.  Ground-truth round-1 ledger:
+      [--rounds N] [--netrc <file>] [--dry-run] [--selftest]`.  A real
+      run requires --out; --dry-run validates and prints the plan plus
+      the draft skeleton with zero network and zero writes; --selftest
+      runs the offline vector group.  Config schema:
+      rocqwash-periscope-config/1.
+    Dependencies.  Python 3 standard library only; `curl` on PATH for
+      real runs (never invoked by --dry-run or --selftest); bearer
+      credentials come from a netrc file passed straight to
+      `curl --netrc-file` and are never read, logged, or written by this
+      tool.
+    Evidence.  --selftest frozen vector group on temporary fixtures with
+      a canned transport and a virtual clock; the enumeration is in the
+      extended contract.  Ground-truth round-1 ledger:
       `attn/_periscope_20261113/intel-ledger-20261113.md`.
-
-    Exit-codes.  0 = run/dry-run/selftest green (negative findings and a C1
-      trigger are data, reported loudly, never an error); 1 = selftest red
-      or a draft invariant red; 2 = usage or config-schema error; 9 =
+    Exit-codes.  0 = run/dry-run/selftest green (negative findings and a
+      C1 trigger are data, reported loudly, never an error); 1 = selftest
+      red or a draft invariant red; 2 = usage or config-schema error; 9 =
       missing input (config absent, output root not writable).
 """
 # Extended contract (kept outside the five-field block; annotation budget):
+# Former-header detail (carried out of the header on the RIS-17 budget cure,
+#   verbatim in substance): the draft skeleton is bilingual markdown
+#   mirroring the round-1 adjudication ledger form (the cast date lives in
+#   the ledger surface, not in prose) with a per-source digest, three-state
+#   collision screening, C1 trigger verdict, mandatory four-element
+#   negative findings, and five-item window-scheduling advice; a real run
+#   refuses an implicit network sweep (no --out, no run).  Selftest vector
+#   enumeration: CLI face, config-schema fail-loud matrix, the three
+#   burned-in behaviors (arXiv -L from the first shot; sentinel SUSPEND
+#   beats with contiguous indexes; default coordination endpoint pinned to
+#   the Main issue with comments sub-face), cap/stop/retry machine,
+#   read-only pledge over every built argument vector, draft-template
+#   invariants, dry-run zero-write.
 #
 # Window protocol (as-built, burned in):
 #   per-source cap 8 shots; stop at the first obtained response (stop-when-

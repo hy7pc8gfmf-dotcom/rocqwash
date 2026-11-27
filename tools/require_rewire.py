@@ -9,19 +9,13 @@ Purpose.  The v1 orchestrator face of the external-evaluation gap
   Export per consumer, and emit a wash_engine-compatible patch ledger
   (tag/old/new/expect, the exact-string count-asserted form) that rewrites
   every referencing line onto S - so the rewiring itself is applied by the
-  standing engine (consumption by construction: the orchestrator plans,
-  wash/wash_engine.py executes).  A --verify face re-scans an applied tree
-  and fails loud on any surviving M reference (retirement closure).
-  Compatibility of S as a drop-in is an authoring obligation declared in
-  the plan (the anchor_guard independence-note precedent); v1 does not
-  load M or S and cannot prove the superset face.  Zero network, zero
-  toolchain, zero writes beyond the caller-named --out.
+  standing engine.  A --verify face re-scans an applied tree and fails
+  loud on any surviving M reference (retirement closure).  Zero network,
+  zero toolchain, zero writes beyond the caller-named --out.
 Interface.  python -I tools/require_rewire.py --tree DIR --retire M
   --successor S [--out FILE] | --plan FILE [same flags] | --tree DIR
-  --retire M --verify [--out FILE] | --selftest.  The --verify closure
-  face runs standalone on --tree + --retire (the successor is a plan-face
-  obligation, never required for closure): rc 0 = no surviving M face in
-  the tree; rc 1 = survivors listed (data, fail-loud).
+  --retire M --verify [--out FILE] | --selftest.  The mode semantics and
+  the deterministic report face are in the extended contract below.
 Exit-codes.  0
   clean; 1 verify survivors or selftest red; 2 usage (bad plan shape,
   M == S on the plan face, module name malformed); 9 --tree/--plan path
@@ -35,6 +29,16 @@ Evidence.  --selftest: canned-tree vectors (three line shapes captured,
   empty ledger, missing caller-named path rc 9).
 """
 # Extended contract:
+# Former-header detail (carried out of the header on the RIS-17 budget
+#   cure, verbatim in substance): the rewiring is applied by the standing
+#   engine - consumption by construction: the orchestrator plans,
+#   wash/wash_engine.py executes; compatibility of S as a drop-in is an
+#   authoring obligation declared in the plan (the anchor_guard
+#   independence-note precedent); v1 does not load M or S and cannot
+#   prove the superset face; the --verify closure face runs standalone on
+#   --tree + --retire (the successor is a plan-face obligation, never
+#   required for closure): rc 0 = no surviving M face in the tree, rc 1 =
+#   survivors listed (data, fail-loud).
 # Line shapes (anchored 1:1 to tools/wash_shape.py:247-252, re-implemented
 #   locally; drift cannot propagate): "From Stdlib Require [Import|Export]
 #   L.", "From <dir> Require [Import|Export] L.", "Require [Import|Export]
