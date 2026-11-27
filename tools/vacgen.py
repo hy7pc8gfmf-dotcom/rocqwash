@@ -1,59 +1,75 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# selftest face: python -I tools/vacgen.py --selftest (in-process vectors; the
-#   roster cases t_vacgen_shape / t_vacgen_expectedred + the vacgen segment of
-#   t_refinery continue to cover the cast face end-to-end)
 """vacgen.py (v2) - vacuity probe skeleton generator with shape recognition (four-layer engine, taxonomy-as-data).
-
-Purpose.
-    Cast the four-account vacuity probe skeleton directory for a Lean statement-face file (cast mode, v1 CLI face
-    preserved verbatim) and run a zero-compile coverage preflight over a census-qualified file set
-    (--preflight-all, difficulty map).  v2 layers: L1 premise decomposer (three-segment split, file-scope
-    `variable` / instance-binder G1 fix), L2 taxonomy lookup (rows in taxonomy.json; zero premise-family knowledge
-    in-engine), L3 confidence scoring with honest TODO-SEAT degradation (counted, never silent), L4 harness modes.
-
-Interface.
-    python -I vacgen.py --in <file.lean> --out <dir>            (cast, v1 face)
-    python -I vacgen.py --preflight-all --census <census.json>  --root <clone>
-            [--report <difficulty-map.json>] [--cluster-table <json>]
-    python -I vacgen.py --verify-anchors --mathlib <root> --taxonomy <path>
-    python -I vacgen.py --from-statements <file> --out <dir>    (batch, v2:
-            theorem statements in the audited repo's own syntax, one per
-            block, blank-line separated; each block is re-cast through the
-            untouched single-challenge machinery; one JSON per statement
-            plus <out>/summary.json)
-    python -I vacgen.py --from-repo <dir> --out <dir>           (batch, v2:
-            line-start theorem/lemma declarations enumerated over the
-            target's *.lean files with the lean_axiom_sweep enumeration
-            face, then cast as above)
-    python -I vacgen.py --selftest                              (in-process
-            vector face: taxonomy admission, premise zero-regression, ticket-15
-            conclusion-face vectors, 169B QRH end-to-end coverage 2/2,
-            statement-ingestion batch vectors; zero network, zero compile;
-            exits 111 with a loud reason when the tool-adjacent taxonomy
-            table is absent so the conclusion vectors cannot load)
-
-Dependencies.
-    Python stdlib only: argparse, hashlib, os, re, sys, datetime, fractions (v1 import face, vacgen.py:42-48) plus
-    json (stdlib; required by the taxonomy loader, arch-spec-v2.md section 3.3 pseudocode).  The v2 batch face adds
-    contextlib / io (per-statement cast-log capture) and tempfile (selftest vector dirs), all stdlib.  Zero network,
-    zero compile, python -I compatible.
-
-Evidence.
-    The tool casts skeletons and never asserts mathematics - every artifact-facing proof obligation is a declared
-    TODO-SEAT agent; coverage scores are word-face lower bounds; counters are closed-window dated snapshots,
-    cross-run comparisons use monotone bounds only (attestation: suite cases t_vacgen_shape,
-    t_vacgen_envelope_shape, t_vacgen_expectedred in tests/run_tests.sh).
-
-Exit-codes.
-    0 = verdict ok=true (all bound-form checks green); 1 = verdict ok=false (blocked checks,
-    taxonomy or anchor drift); 2 = usage error (mode exclusivity, missing --in);
-    batch face (--from-*): 0 = batch complete (per-statement failures are counted
-    UNPARSED / CAST-RED rows, never crashes; preflight parity), 1 = batch-level
-    fail-loud (usage exclusivity, unreadable input, zero statements enumerated);
-    --selftest: 0 = all vectors green, 1 = any vector red, 111 = conclusion
-    vectors skipped (tool-adjacent taxonomy table absent; loud reason printed).
+Purpose.  Cast the four-account vacuity probe skeleton directory for a
+    Lean statement-face file (cast mode, v1 CLI face preserved verbatim)
+    and run a zero-compile coverage preflight over a census-qualified
+    file set (--preflight-all, difficulty map).  v2 layers: L1 premise
+    decomposer, L2 taxonomy lookup (zero premise-family knowledge
+    in-engine), L3 confidence scoring with honest TODO-SEAT degradation
+    (counted, never silent), L4 harness modes; the layer detail is in
+    the extended contract below.
+Interface.  python -I vacgen.py --in <file.lean> --out <dir> (cast) |
+    --preflight-all --census <census.json> --root <clone>
+    [--report <difficulty-map.json>] [--cluster-table <json>] |
+    --verify-anchors --mathlib <root> --taxonomy <path> |
+    --from-statements <file> --out <dir> (batch) | --from-repo <dir>
+    --out <dir> (batch) | --selftest (in-process vector face).  The
+    per-mode semantics and the selftest vector enumeration are in the
+    extended contract.
+Dependencies.  Python stdlib only (the v1 import face vacgen.py:42-48
+    plus json, and contextlib / io / tempfile for the v2 batch face);
+    zero network, zero compile, python -I compatible.
+Evidence.  The tool casts skeletons and never asserts mathematics -
+    every artifact-facing proof obligation is a declared TODO-SEAT agent;
+    coverage scores are word-face lower bounds; counters are closed-window
+    dated snapshots, cross-run comparisons use monotone bounds only (the
+    attestation roster is in the extended contract).
+Exit-codes.  0 ok=true (all bound-form checks green); 1 ok=false
+    (blocked checks, taxonomy or anchor drift); 2 usage error (mode
+    exclusivity, missing --in); the batch and --selftest code detail is
+    in the extended contract.
 """
+
+# Extended contract (kept outside the five-field header so the header
+# stays within the 30-line budget of the annotation standard; the moved
+# facts are carried over from the former header verbatim in substance):
+#
+# Selftest face: python -I tools/vacgen.py --selftest (in-process
+#   vectors; the roster cases t_vacgen_shape / t_vacgen_expectedred + the
+#   vacgen segment of t_refinery continue to cover the cast face
+#   end-to-end).
+# Layer detail.  L1 premise decomposer: three-segment split, file-scope
+#   `variable` / instance-binder G1 fix.  L2 taxonomy lookup: rows in
+#   taxonomy.json; zero premise-family knowledge in-engine.  L4 harness
+#   modes, per-mode semantics: --in/--out casts (the v1 face);
+#   --preflight-all runs the zero-compile coverage preflight over the
+#   census-qualified set with the difficulty map (--report) and the
+#   cluster table (--cluster-table); --verify-anchors checks anchors
+#   against the mathlib root and the taxonomy; --from-statements reads
+#   theorem statements in the audited repo's own syntax, one per block,
+#   blank-line separated, each block re-cast through the untouched
+#   single-challenge machinery, one JSON per statement plus
+#   <out>/summary.json; --from-repo enumerates line-start theorem/lemma
+#   declarations over the target's *.lean files with the
+#   lean_axiom_sweep enumeration face, then casts as above.
+# Selftest vectors: taxonomy admission, premise zero-regression,
+#   ticket-15 conclusion-face vectors, 169B QRH end-to-end coverage 2/2,
+#   statement-ingestion batch vectors; zero network, zero compile; exits
+#   111 with a loud reason when the tool-adjacent taxonomy table is
+#   absent so the conclusion vectors cannot load.
+# Exit-code detail.  Batch face (--from-*): 0 = batch complete
+#   (per-statement failures are counted UNPARSED / CAST-RED rows, never
+#   crashes; preflight parity), 1 = batch-level fail-loud (usage
+#   exclusivity, unreadable input, zero statements enumerated);
+#   --selftest: 0 = all vectors green, 1 = any vector red, 111 =
+#   conclusion vectors skipped (tool-adjacent taxonomy table absent;
+#   loud reason printed).  Dependencies detail: argparse, hashlib, os,
+#   re, sys, datetime, fractions (the v1 import face, vacgen.py:42-48)
+#   plus json (required by the taxonomy loader, arch-spec-v2.md section
+#   3.3 pseudocode); contextlib / io (per-statement cast-log capture)
+#   and tempfile (selftest vector dirs), all stdlib.
+
 
 import argparse
 import contextlib

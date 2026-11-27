@@ -1,67 +1,64 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# selftest face: python -I tools/vacgen_coq.py --selftest (in-process vectors;
-#   zero network, zero compile, all offline; the only disk face is one batch
-#   vector inside a TemporaryDirectory that is removed on exit)
 """vacgen_coq.py (v0.1) - Rocq statement-face coverage prober with shape recognition (four-layer engine, taxonomy-as-data).
-
-Purpose.
-    The Coq-side sibling of tools/vacgen.py (ticket 14 work stream 1; Rocq domain support).
-    Wave 1 is a coverage/recognition face only - it enumerates the audited repo's
-    own Rocq statement faces (*.v), splits each statement into its premise and
-    conclusion faces, classifies every face against a data-driven taxonomy table
-    (taxonomy-coq.json; zero family knowledge in-engine), and reports the Coq-L3
-    coverage (recognized premises + conclusions / total) per statement and per
-    batch, with honest TODO-SEAT degradation for unknown shapes (counted, never
-    silent).  Layers mirror the Lean sibling (vacgen.py:11-13 docstring):
-    L1 statement extraction + premise/conclusion decomposer, L2 taxonomy lookup,
-    L3 confidence/coverage scoring with TODO-SEAT degradation, L4 harness modes
-    (--from-v batch face, --selftest vector face).  The Lean vacgen stays
-    untouched: the sibling line actively edits it, so this file shares no code
-    path with it - only the architecture and the report discipline.
-
-Interface.
-    python -I tools/vacgen_coq.py --from-v <file.v|dir> [--taxonomy <path>]
-            [--out <dir>] [--limit N]                 (batch, work stream 1: enumerate
-            line-start Rocq assertion statements over the target .v file or the
-            *.v files under the target directory, decompose and classify each,
-            one JSON per statement plus <out>/summary.json)
-    python -I tools/vacgen_coq.py --selftest                          (in-process
-            vector face: taxonomy-load vector, recognition vectors over the
-            fixture .v known families (real-lt premise + ne conclusion,
-            forall-quantified conclusion, unknown-shape -> todo_seat), an L3
-            computation vector, an L1 extraction/split vector, the builtin
-            chain-end vector, the hole-face degradation vector, and a batch
-            end-to-end vector inside a TemporaryDirectory; all offline)
-
-Dependencies.
-    Python stdlib only: argparse, contextlib, json, os, re, sys, tempfile,
-    datetime.  Zero network, zero compile (no Rocq process is ever started),
-    python -I compatible.  Writes only under the caller-named --out directory
-    (default vacgen_coq_batch_out) - except --selftest, whose one batch vector
-    writes inside a TemporaryDirectory that is removed on exit.
-
-Evidence.
-    The tool classifies word faces and never asserts mathematics - every
-    unmatched face is a counted TODO-SEAT row feeding the gap telemetry, and
-    every coverage number is a word-face lower bound over a dated window.  The
-    taxonomy rows ground in the real Main shape census (1246 .v files scanned,
-    26689 statements enumerated, 200 sampled over
-    ConstructiveWorld-Main/ConstructiveWorld_Live; console
-    D:/tmp/vacgen_survey/out/census_out.txt, detail
-    D:/tmp/vacgen_survey/out/detail.json) and each row cites at least one real
-    Main statement excerpt as anchor.
-
-Exit-codes.
-    0 = verdict ok=true (batch complete with per-statement failures counted as
-        honest UNPARSED rows, never crashes; or all selftest vectors green);
-    1 = batch-level fail-loud (taxonomy admission, unreadable input, zero
-        statements enumerated) or any selftest vector red;
-    2 = usage error (missing --from-v, non-positive --limit);
-    --selftest: 0 = all vectors green, 1 = any vector red, 111 = conclusion
-        vectors skipped (tool-adjacent taxonomy-coq.json absent; loud reason
-        printed, the engine is still vector-proven on the builtin chain end).
+Purpose.  The Coq-side sibling of tools/vacgen.py (ticket 14 work stream
+    1; Rocq domain support).  Wave 1 is a coverage/recognition face only:
+    it enumerates the audited repo's own Rocq statement faces (*.v),
+    splits each statement into premise and conclusion faces, classifies
+    every face against the data-driven taxonomy table (taxonomy-coq.json;
+    zero family knowledge in-engine), and reports the Coq-L3 coverage per
+    statement and per batch, with honest TODO-SEAT degradation for
+    unknown shapes (counted, never silent).  The sibling line actively
+    edits vacgen.py, so this file shares no code path with it - only the
+    architecture and the report discipline.
+Interface.  python -I tools/vacgen_coq.py --from-v <file.v|dir>
+    [--taxonomy <path>] [--out <dir>] [--limit N] (batch: enumerate
+    line-start Rocq assertion statements, decompose and classify each,
+    one JSON per statement plus <out>/summary.json) | --selftest
+    (in-process vector face; the vector enumeration is in the extended
+    contract).
+Dependencies.  Python stdlib only; zero network, zero compile (no Rocq
+    process is ever started), python -I compatible.  Writes only under
+    the caller-named --out directory (default vacgen_coq_batch_out).
+Evidence.  The tool classifies word faces and never asserts mathematics
+    - every unmatched face is a counted TODO-SEAT row feeding the gap
+    telemetry, and every coverage number is a word-face lower bound over
+    a dated window; the taxonomy grounding is in the extended contract.
+Exit-codes.  0 verdict ok=true (batch complete with failures as honest
+    UNPARSED rows, or selftest green); 1 batch-level fail-loud (taxonomy
+    admission, unreadable input, zero statements) or any selftest vector
+    red; 2 usage error (missing --from-v, non-positive --limit); the
+    --selftest code detail is in the extended contract.
 """
+
+# Extended contract (kept outside the five-field header so the header
+# stays within the 30-line budget of the annotation standard; the moved
+# facts are carried over from the former header verbatim in substance):
+#
+# Layers (mirroring the Lean sibling, vacgen.py:11-13): L1 statement
+#   extraction + premise/conclusion decomposer, L2 taxonomy lookup, L3
+#   confidence/coverage scoring with TODO-SEAT degradation, L4 harness
+#   modes (--from-v batch face, --selftest vector face).
+# Selftest face: python -I tools/vacgen_coq.py --selftest (in-process
+#   vectors; zero network, zero compile, all offline; the only disk face
+#   is one batch vector inside a TemporaryDirectory that is removed on
+#   exit).  Vectors: taxonomy-load, recognition over the fixture .v known
+#   families (real-lt premise + ne conclusion, forall-quantified
+#   conclusion, unknown-shape -> todo_seat), an L3 computation vector, an
+#   L1 extraction/split vector, the builtin chain-end vector, the
+#   hole-face degradation vector, and a batch end-to-end vector inside a
+#   TemporaryDirectory; all offline.
+# Taxonomy grounding: the rows ground in the real Main shape census
+#   (1246 .v files scanned, 26689 statements enumerated, 200 sampled over
+#   ConstructiveWorld-Main/ConstructiveWorld_Live; console
+#   D:/tmp/vacgen_survey/out/census_out.txt, detail
+#   D:/tmp/vacgen_survey/out/detail.json) and each row cites at least one
+#   real Main statement excerpt as anchor.
+# --selftest exit codes: 0 = all vectors green; 1 = any vector red; 111 =
+#   conclusion vectors skipped (tool-adjacent taxonomy-coq.json absent;
+#   loud reason printed, the engine is still vector-proven on the builtin
+#   chain end).
+
 
 import argparse
 import contextlib
