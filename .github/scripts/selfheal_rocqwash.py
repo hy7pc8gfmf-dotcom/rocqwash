@@ -501,10 +501,30 @@ def repair_content_red(token, repo, out_dir):
             ["dropped: %s" % ",".join(dropped), "pushed; CI re-judges"])
 
 
+def select_head_runs(runs, head_sha):
+    """Pick the runs that judge a PR head CI: the current head's own
+    runs (head_sha equal to the PR head) when any exist, else the
+    linked-run fallback pool; within the pool only the newest run is
+    judged, so a superseded attempt (an older head's red run) never
+    gates the merge behind a green current head (PR #123: attempt-1's
+    red permanently held the green attempt-2 head). Returns (judged
+    list, excluded stale count)."""
+    if not runs:
+        return [], 0
+    exact = [r for r in runs
+             if (r.get("head_sha") or "") == (head_sha or "")]
+    pool = exact if exact else list(runs)
+    ordered = sorted(pool, key=lambda r: ((r.get("created_at") or ""),
+                                          r.get("id") or 0))
+    return [ordered[-1]], (len(runs) - 1)
+
+
 def automerge_leg(token, repo):
     """Automerge leg: supply/* PRs whose head CI is fully green and that
     are mergeable merge automatically (one per pass - a stateless cap).
-    Other PRs are recorded, never force-merged."""
+    The head CI is judged on the newest run of the current head only;
+    superseded attempts are excluded and reported. Other PRs are
+    recorded, never force-merged."""
     prs, err = gh_api(token, "/repos/%s/pulls?state=open&per_page=20" % repo)
     if err or prs is None:
         return ["skipped(prs-list: %s)" % err]
@@ -583,7 +603,12 @@ def automerge_leg(token, repo):
                 out.append("#%s hold (no head CI yet - dispatched "
                            "ci.yml@%s)" % (num, ref))
             continue
-        if any(r.get("status") != "completed" for r in mine):
+        judged, stale = select_head_runs(mine, sha)
+        if stale:
+            out.append("#%s head CI: %d superseded run(s) excluded, "
+                       "judging the newest current-head run (stale-attempt "
+                       "gate, PR #123 incident)" % (num, stale))
+        if any(r.get("status") != "completed" for r in judged):
             out.append("#%s hold (head CI running)" % num)
             continue
         # Gate on the hosted faces: the local self-hosted face is main-only
@@ -592,7 +617,7 @@ def automerge_leg(token, repo):
         # ref whose ci.yml predates the main_only gate still runs it, and
         # its bridge-resolved checkout cannot serve non-main refs).
         hosted_seen, hosted_ok = False, True
-        for r in mine:
+        for r in judged:
             jobs, jerr = gh_api(token, "/repos/%s/actions/runs/%s/jobs"
                                 "?per_page=20" % (repo, r["id"]))
             for jb in ((jobs or {}).get("jobs") or []):

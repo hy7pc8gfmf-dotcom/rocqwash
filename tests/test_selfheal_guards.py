@@ -3,26 +3,29 @@
 """test_selfheal_guards: suite shell for the self-heal driver's three
 heal-leg guards (.github/scripts/selfheal_rocqwash.py).
 
-    Purpose.  The three guardrail reinforcement points as frozen vectors:
-      the attempt cap (heal_leg :140-143, run_attempt==1 is the stateless
-      at-most-once budget), the cancel-intent never-revive gate (:144-145;
-      the reconcile leg records cancelled as intent at :204-206), and the
-      live re-check right before the rerun POST (:149-156; a live state
-      that is cancelled or not completed is desk intent, a transport
-      error is a loud skip, only a still-completed run reaches the POST).
-    Interface.  No CLI.  Five vector groups, 20 checks: attempt-cap skip
+    Purpose.  The three heal-leg guardrails as frozen vectors (attempt
+      cap heal_leg :140-143 at-most-once; cancel-intent never-revive
+      :144-145; live re-check :149-156 - cancelled or not completed is
+      desk intent, transport error is a loud skip), the reconcile
+      intent recording (:204-206), and the automerge stale-attempt
+      head-CI selection (an older head's red never gates a green head).
+    Interface.  No CLI.  Six vector groups, 28 checks: attempt-cap skip
       with zero POST and the cap preceding the live GET; cancel-intent
       skip with zero POST plus the cap-outranks-intent order pin; the
       live re-check four-way (in-progress / cancelled / transport error
       all skip; a still-completed run dispatches exactly one
       rerun-failed-jobs POST behind exactly one GET); the transient-only
-      family whitelist; the reconcile intent recording with zero POSTs.
+      family whitelist; the reconcile intent recording with zero POSTs;
+      the stale-attempt selection (exact preference, newest-only within
+      a head, linked fallback, empty pool; replay = one merge PUT +
+      exclusion line; red newest = hold, zero POSTs).
     Dependencies.  Python 3 stdlib only (argparse, datetime, importlib.util,
       json, os, sys); the driver module loads by path and its gh_api/time
       symbols are replaced with an in-process recording stub; tmp-free,
       zero network, zero real sleep, zero repository writes.
-    Evidence.  Every check asserts on the stub's recorded (method, path)
-      call log; nothing is inferred from source reading.
+    Evidence.  The stub vectors assert on the recorded (method, path)
+      call log; the selection vectors assert on the pure helper's
+      return; nothing is inferred from source reading.
     Exit-codes.  0 all checks pass; 1 any check red (listed loudly).
 """
 import importlib.util
@@ -268,13 +271,122 @@ def main():
     check("reconcile-never-revives", api.posts() == [],
           "reconcile never POSTs a revive: %r" % api.posts())
 
+    # ---- vector 6: stale-attempt head-CI selection (automerge gate, the
+    # PR #123 incident: attempt-1's red run permanently held the green
+    # attempt-2 head; RIS-11) -------------------------------------------
+    sha_a, sha_b = "a" * 40, "b" * 40
+    red_old = {"id": 1, "head_sha": sha_a, "event": "pull_request",
+               "status": "completed", "conclusion": "failure",
+               "created_at": "2026-11-26T22:09:16Z",
+               "pull_requests": [{"number": 123}]}
+    green_new = {"id": 2, "head_sha": sha_b, "event": "pull_request",
+                 "status": "completed", "conclusion": "success",
+                 "created_at": "2026-11-26T22:42:20Z",
+                 "pull_requests": [{"number": 123}]}
+    jobs = {
+        1: [{"name": "Self-test suite (Linux)", "conclusion": "failure"}],
+        2: [{"name": "Self-test suite (Linux)", "conclusion": "success"},
+            {"name": "Self-test suite (Windows (local self-hosted))",
+             "conclusion": "skipped"}],
+    }
+    prs = [{"number": 123, "draft": False, "mergeable": True,
+            "head": {"ref": "supply/ris-9", "sha": sha_b}}]
+
+    # pure helper: exact-match preference over linked fallback
+    judged, stale = mod.select_head_runs([red_old, green_new], sha_b)
+    check("select-exact-prefers-current-head",
+          len(judged) == 1 and judged[0]["id"] == 2 and stale == 1,
+          "judged=%r stale=%r" % (judged, stale))
+    # pure helper: linked fallback when no run matches the head sha
+    # (legacy merge-ref reporting shape); newest linked run is judged
+    legacy_a = dict(red_old, head_sha="c" * 40)
+    legacy_b = dict(green_new, head_sha="d" * 40,
+                    created_at="2026-11-26T22:45:00Z")
+    judged, stale = mod.select_head_runs([legacy_a, legacy_b], sha_b)
+    check("select-linked-fallback-newest",
+          len(judged) == 1 and judged[0]["id"] == 2 and stale == 1,
+          "judged=%r stale=%r" % (judged, stale))
+    # pure helper: newest only within one head (rerun pair semantics)
+    green_older = dict(green_new, created_at="2026-11-26T22:30:00Z")
+    judged, stale = mod.select_head_runs(
+        [green_older, dict(green_new, id=3,
+                           created_at="2026-11-26T22:50:00Z")],
+        sha_b)
+    check("select-newest-within-same-head",
+          len(judged) == 1 and judged[0]["id"] == 3 and stale == 1,
+          "judged=%r stale=%r" % (judged, stale))
+    # pure helper: empty pool
+    judged, stale = mod.select_head_runs([], sha_b)
+    check("select-empty-pool", judged == [] and stale == 0,
+          "judged=%r stale=%r" % (judged, stale))
+
+    # incident replay through the leg: older red linked + green current
+    # head reaches exactly one merge PUT, with the exclusion report line
+    class AutomergeStub(object):
+        """Recording gh_api stand-in for automerge_leg: canned PR list,
+        run lists, per-run jobs; records every call; zero network."""
+
+        def __init__(self, prs_in, runs_a, runs_b, jobs_in):
+            self.prs = prs_in
+            self.runs_a = runs_a
+            self.runs_b = runs_b
+            self.jobs = jobs_in
+            self.calls = []
+
+        def __call__(self, token, path, method="GET", body=None):
+            self.calls.append((method, path))
+            if method == "GET" and "/pulls?state=open" in path:
+                return self.prs, None
+            if method == "GET" and "head_sha=" in path:
+                return {"workflow_runs": self.runs_a}, None
+            if method == "GET" and "event=pull_request" in path:
+                return {"workflow_runs": self.runs_b}, None
+            if method == "GET" and "/jobs" in path:
+                rid = int(path.rstrip("/").split("/")[-2])
+                return {"jobs": self.jobs.get(rid, [])}, None
+            return {}, None
+
+        def posts(self):
+            return [p for m, p in self.calls if m == "POST"]
+
+        def merge_puts(self):
+            return [p for m, p in self.calls
+                    if m == "PUT" and p.endswith("/pulls/123/merge")]
+
+    api = AutomergeStub(prs, [green_new], [red_old, green_new], jobs)
+    mod.gh_api = api
+    lines = mod.automerge_leg("token", "org/repo")
+    text = "\n".join(lines)
+    check("incident-replay-merges-current-head",
+          len(api.merge_puts()) == 1 and "MERGED" in text,
+          "puts=%r lines=%r" % (api.merge_puts(), lines))
+    check("incident-replay-reports-excluded-stale",
+          "1 superseded run(s) excluded" in text, text)
+
+    # a red newest run still holds, zero merge attempts
+    jobs_red_newest = dict(jobs)
+    jobs_red_newest[2] = [{"name": "Self-test suite (Linux)",
+                           "conclusion": "failure"}]
+    api = AutomergeStub(prs, [green_new], [red_old, green_new],
+                        jobs_red_newest)
+    mod.gh_api = api
+    lines = mod.automerge_leg("token", "org/repo")
+    text = "\n".join(lines)
+    check("red-newest-holds",
+          "hold (head CI hosted faces red)" in text
+          and api.merge_puts() == [],
+          "puts=%r lines=%r" % (api.merge_puts(), lines))
+    check("red-newest-zero-post", api.posts() == [],
+          "posts=%r" % api.posts())
+
     if fails:
         sys.stderr.write("T-SELFHEAL-GUARDS RED (%d): %s\n"
                          % (len(fails), "; ".join(fails)))
         return 1
-    sys.stdout.write("T-SELFHEAL-GUARDS PASS (5 vector groups, 20 checks: "
+    sys.stdout.write("T-SELFHEAL-GUARDS PASS (6 vector groups, 28 checks: "
                      "attempt-cap / cancel-intent / live re-check / family "
-                     "whitelist / reconcile intent recording)\n")
+                     "whitelist / reconcile intent recording / stale-"
+                     "attempt head-CI selection)\n")
     return 0
 
 
