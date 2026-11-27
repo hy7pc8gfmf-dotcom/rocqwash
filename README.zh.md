@@ -399,6 +399,92 @@ bash tools/cpu_guard.sh -Reg /tmp/my_reg -Front 0 -Mid 1 -- rocq c -native-compi
 # -Reg <dir> = a dedicated queue-registration lane; -Front/-Mid = ladder-queue tier cut-offs (FRONT tier runs nice 0, MID tier nice 10) — parameter reference: docs/en/architecture.md §6
 ```
 
+### 代理会话快速启动（Agent sessions）
+
+代理会话（或任何脚本化消费方）不需要上面的导览。以下复制即用路径（0–3），
+每条都在英文正本落岸前端到端执行过（本节为 `README.md` 同名节的中文镜像）。
+这类会话的会话调用契约——获取路径、工具面分组、执行律、禁与升格、活体
+自检向量——见 `docs/agent-contract.md`：
+
+**0. 两命令路径（单文件引导）。** 取引导文件，让它代跑克隆、布线输出与
+能力报告：
+
+```bash
+curl -L https://raw.githubusercontent.com/hy7pc8gfmf-dotcom/rocqwash/main/bootstrap.py -o bootstrap.py
+python3 bootstrap.py --install      # 默认 stable 通道；--track main 显式跟随 tip
+python3 bootstrap.py --mcp-config   # MCP stdio JSON（绝对路径与 env 块已注入）
+python3 bootstrap.py --report       # 已装检出的单页能力摘要
+```
+
+安装面在二次运行时对既有 `~/.rocqwash` 以 `git merge --ff-only` 对齐，
+因此同一命令即升级面。默认通道为 `stable`（机器验证的滚动 tag）；当所
+请求通道尚无 ref 时，安装面拒绝并大声报错，`--track main` 是显式后备。
+引导文件本身仅用标准库，从上面那条 raw 单文件取用即可运行。
+
+**1. 克隆整仓并接线 MCP stdio 服务器。**
+
+```bash
+git clone --depth 1 https://github.com/hy7pc8gfmf-dotcom/rocqwash.git
+cd rocqwash
+python3 -I tools/mcp_server.py --selftest   # 接口形向量；exit 0 = 全部通过（passing）
+```
+
+用 stdio 配置把 MCP 客户端指向服务器（把每个 `$ROCWASH_PATH` 换成检出
+目录的绝对路径）：
+
+```json
+{
+  "mcpServers": {
+    "rocqwash": {
+      "command": "python3",
+      "args": ["-I", "-X", "utf8", "$ROCWASH_PATH/tools/mcp_server.py"],
+      "env": {
+        "ROCWASH_HOME": "$ROCWASH_PATH",
+        "PYTHONUTF8": "1",
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}
+```
+
+Windows 主机务必保留 `PYTHONUTF8=1` 与 `PYTHONIOENCODING=utf-8`：离开
+这两个变量，JSON 线面在 GBK 代码页控制台上无法保持 ASCII 安全。协议面
+（三方法、线契约、安全姿态）见 `docs/mcp.md`；能力名册见
+`docs/CAPABILITY-INDEX.md`。每次 `git pull` 之后重启服务器进程：注册表
+与 schema 表只在启动时加载一次。
+
+**2. 不克隆单取一器（detached 形）。** 零同级 import 的工具从单个下载
+文件即可运行；census 摘要表以 `Detached-safe` 列精确标注这些工具（由
+`.github/scripts/detached_safe_derive.py` 再推导），仓库同步偏移读取器
+就是其中之一：
+
+```bash
+curl -L https://raw.githubusercontent.com/hy7pc8gfmf-dotcom/rocqwash/main/tools/repo_sync_status.py -o repo_sync_status.py
+python3 -I repo_sync_status.py --repo /path/to/a/local/rocqwash   # 对最近一次 fetch 的 origin/main 报 ahead/behind
+python3 -I repo_sync_status.py --selftest                         # 六条 fixture 向量；exit 0 = 通过（passing）
+```
+
+**3. 跟随最新或钉住发布版。**
+
+```bash
+git clone --depth 1 https://github.com/hy7pc8gfmf-dotcom/rocqwash.git                              # 跟随 main
+git clone --depth 1 --branch rw-v0.1.1-20261117 https://github.com/hy7pc8gfmf-dotcom/rocqwash.git  # 钉住发布 tag
+# 归档快照：DOI 10.5281/zenodo.24225678（Zenodo record）
+```
+
+钉住的树只对自己 fetch 到的 ref 报告 `up_to_date`。MCP 服务器的
+`--require-fresh` 旗是选择性护栏：检出树落后于最近一次 fetch 的远端 ref
+时拒绝服务（exit 1，拒绝信息给出刷新命令）；`repo_sync_status` 能力按需
+报告同一偏移。
+
+机器还维护一条滚动验证通道：主分支 CI run 每次绿完成，self-heal 工作流
+就把 `stable` tag 推进到该提交（`.github/scripts/stable_channel.py`；该
+tag 从不手移）。通道建立后，`git clone --branch stable` 跟踪的是最新
+机器验证提交而非固定发布版；MCP initialize 版本块在这类检出上把
+`stable` 报为 tag。单文件引导默认走此通道；其 `--track main` 面显式
+选择移动 tip。
+
 
 ## Platform Support
 
