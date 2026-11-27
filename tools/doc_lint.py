@@ -207,7 +207,7 @@ CASES_RE = re.compile(r'(?ms)^CASES="(.*?)"')
 
 # ---- check 3: doc scanning regexes ----
 FLAG_RE = re.compile(r"--[A-Za-z0-9][A-Za-z0-9_-]*")
-# argparse break_on_hyphens 折行复原：(--tok)-\n<ws>(cont) → --tok-cont
+# argparse break_on_hyphens wrap restore: (--tok)-\n<ws>(cont) -> --tok-cont
 HYPHEN_WRAP_RE = re.compile(
     r"(--[A-Za-z0-9][A-Za-z0-9_-]*)-\n\s*([A-Za-z0-9][A-Za-z0-9_-]*)")
 HELP_TOKEN_RE = re.compile(r"--([A-Za-z0-9][A-Za-z0-9_-]*)")
