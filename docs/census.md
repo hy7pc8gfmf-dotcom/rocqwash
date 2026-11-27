@@ -50,69 +50,69 @@ the marker does not read as a delta fact and is voided here by declaration.
 
 ## 2. Summary Table
 
-| File | Bytes | Lines | Doc | Arg | Pos/Opt | Network face (word) | Env markers | Selftest | Basis |
-|---|---|---|---|---|---|---|---|---|---|
-| _abl1_4b_compile.py | 5,621 | 116 | Y | N | 0/0 | zero | env(3), ocaml(28) | none | none |
-| _gen_fin_mac.py | 9,761 | 166 | Y | Y | 0/6 | zero | ocaml(7), coq(12), thermal(2), runner(1) | none | arg |
-| _http_backoff.py | 5,755 | 126 | Y | N | 0/0 | zero | none | token | none |
-| ai_flavor.py | 20,687 | 481 | Y | Y | 0/5 | zero | none | flag | arg |
-| ai_flavor_apply.py | 54,406 | 1,303 | Y | Y | 0/7 | urllib.request | none | flag | arg |
-| auto_merge.py | 28,831 | 636 | Y | Y | 0/10 | zero | none | flag | arg |
-| auto_round.py | 89,111 | 1,990 | Y | Y | 2/22 | zero | none | flag | arg |
-| axiom_guard.py | 28,426 | 648 | Y | Y | 0/8 | zero | env(8), coq(49), thermal(1) | flag | arg |
-| b_gate_audit.py | 21,052 | 498 | Y | Y | 0/1 | zero | none | flag | arg |
-| baseline_diff.py | 42,201 | 822 | Y | Y | 2/2 | zero | none | token | arg |
-| bus_feeder.py | 33,104 | 751 | Y | Y | 1/4 | zero | lean(1) | flag | arg |
-| calibration_ledger.py | 32,404 | 747 | Y | Y | 0/12 | zero | env(2), lean(10) | flag | arg |
-| chain_graph.py | 14,854 | 335 | Y | Y | 1/3 | zero | none | token | arg |
-| ci_triage.py | 128,886 | 2,316 | Y | Y | 0/11 | urllib.request +bridge | coq(111), win(4), runner(2) | token | arg |
-| contrib_intake.py | 62,130 | 1,365 | Y | Y | 0/11 | git: clone | coq(23) | token | arg |
-| cw_doctor.py | 60,001 | 1,194 | Y | Y | 0/15 | zero | env(3), coq(5), dyld(31), thermal(6) | token | arg |
-| cw_sentinel.py | 139,143 | 2,589 | Y | Y | 0/23 | http.client, socket, urllib.request +bridge | coq(1), dyld(1), win(5), thermal(3) | token | arg |
-| doc_lint.py | 69,864 | 1,442 | Y | Y | 0/3 | zero | none | token | arg |
-| evolution_dashboard.py | 52,889 | 1,080 | Y | Y | 0/8 | zero | lean(1) | flag | arg |
-| evolve.py | 90,910 | 1,819 | Y | Y | 0/19 | zero | coq(7) | token | arg |
-| exp_port.py | 23,281 | 540 | Y | Y | 1/13 | zero | env(2) | flag | arg |
-| flaky_guard.py | 49,683 | 1,173 | Y | Y | 0/18 | zero | env(16) | flag | arg |
-| gap_cluster.py | 30,859 | 657 | Y | Y | 0/4 | zero | lean(2), win(1) | token | arg |
-| i18n_pipeline.py | 80,939 | 1,939 | Y | Y | 0/4 | zero | none | flag | arg |
-| i18n_translate.py | 45,371 | 1,301 | Y | Y | 0/13 | urllib.request | none | flag | arg |
-| i18n_verify.py | 51,819 | 1,109 | Y | Y | 0/13 | zero | win(1) | flag | arg |
-| jargon_apply.py | 51,479 | 1,160 | Y | Y | 0/10 | zero | none | flag | arg |
-| jargon_map_sync.py | 81,054 | 1,749 | Y | Y | 0/6 | zero | none | flag | arg |
-| lean_sweep.py | 57,056 | 1,089 | Y | Y | 0/16 | zero | lean(32), thermal(1) | token | arg |
-| learning_feedback.py | 35,331 | 740 | Y | Y | 0/1 | zero | lean(5) | flag | arg |
-| ledger_sync.py | 26,938 | 549 | Y | Y | 0/5 | zero | none | token | arg |
-| mcp_server.py | 103,772 | 2,009 | Y | Y | 0/1 | zero | env(3), ocaml(2), coq(11), lean(16), thermal(1) | flag | arg |
-| net_probe.py | 28,501 | 612 | Y | Y | 0/7 | socket, ssl, urllib.request +bridge | none | token | arg |
-| netname_normalize.py | 15,623 | 341 | Y | Y | 0/4 | zero | none | token | arg |
-| norm_lint.py | 37,945 | 944 | Y | Y | 0/9 | zero | none | flag | arg |
-| periscope.py | 75,772 | 1,720 | Y | Y | 0/6 | +bridge | lean(3) | flag | arg |
-| pin_repair.py | 38,338 | 899 | Y | Y | 0/4 | zero | none | flag | arg |
-| pushci.py | 104,495 | 2,138 | Y | Y | 0/21 | urllib.request git: ls-remote+push +bridge | env(1), coq(10) | token | arg |
-| red_dispatch.py | 46,500 | 940 | Y | Y | 0/10 | zero | coq(4), win(2) | flag | arg |
-| registry_audit.py | 49,582 | 1,030 | Y | Y | 0/11 | zero | coq(12) | token | arg |
-| registry_fix.py | 73,501 | 1,420 | Y | Y | 0/9 | zero | env(1), coq(3) | token | arg |
-| registry_regen.py | 62,190 | 1,355 | Y | Y | 0/15 | zero | coq(37), win(1) | token | arg |
-| registry_union.py | 42,603 | 949 | Y | Y | 0/14 | zero | coq(4) | token | arg |
-| render_events.py | 26,759 | 578 | Y | Y | 0/5 | zero | none | token | arg |
-| repair_scope.py | 78,951 | 1,856 | Y | Y | 0/12 | zero | thermal(1) | flag | arg |
-| repair_weekly.py | 34,095 | 769 | Y | Y | 0/13 | zero | none | flag | arg |
-| repo_sync_status.py | 10,348 | 230 | Y | Y | 0/3 | zero | none | token | arg |
-| roster_resync.py | 27,142 | 619 | Y | Y | 0/4 | zero | none | token | arg |
-| row_render.py | 66,691 | 1,867 | Y | Y | 0/16 | urllib.request | lean(10) | flag | arg |
-| scheduler_lite.py | 29,088 | 695 | Y | Y | 1/11 | zero | lean(1) | token | arg |
-| select_audit.py | 32,094 | 675 | Y | Y | 0/6 | zero | ocaml(1) | token | arg |
-| selfevolve_round.py | 31,385 | 732 | Y | Y | 0/4 | urllib.request git: push +bridge | none | flag | arg |
-| symbiosis_bus.py | 39,589 | 880 | Y | Y | 1/9 | zero | none | flag | arg |
-| termbase.py | 22,477 | 520 | Y | Y | 0/5 | zero | lean(1), win(1) | flag | arg |
-| toolchain_dyld_doctor.py | 26,422 | 542 | Y | Y | 0/6 | zero | env(4), coq(32), dyld(45), win(1), thermal(6) | token | arg |
-| tree_audit.py | 27,402 | 593 | Y | Y | 0/3 | zero | lean(15) | flag | arg |
-| unclog.py | 103,325 | 1,943 | Y | Y | 0/30 | zero | coq(5), thermal(2) | token | arg |
-| uplink.py | 59,383 | 1,392 | Y | Y | 0/11 | zero | none | flag | arg |
-| vacgen.py | 146,132 | 3,105 | Y | Y | 0/21 | zero | lean(65), thermal(3) | flag | arg |
-| verdict_diff.py | 33,797 | 668 | Y | Y | 0/6 | zero | none | token | arg |
-| wash_shape.py | 123,970 | 2,521 | Y | Y | 0/16 | zero | env(6), coq(6), dyld(1), win(3) | token | arg |
+| File | Bytes | Lines | Doc | Arg | Pos/Opt | Network face (word) | Env markers | Selftest | Basis | Detached-safe |
+|---|---|---|---|---|---|---|---|---|---|---|
+| _abl1_4b_compile.py | 5,621 | 116 | Y | N | 0/0 | zero | env(3), ocaml(28) | none | none | no |
+| _gen_fin_mac.py | 9,761 | 166 | Y | Y | 0/6 | zero | ocaml(7), coq(12), thermal(2), runner(1) | none | arg | no |
+| _http_backoff.py | 5,755 | 126 | Y | N | 0/0 | zero | none | token | none | no |
+| ai_flavor.py | 20,687 | 481 | Y | Y | 0/5 | zero | none | flag | arg | yes |
+| ai_flavor_apply.py | 54,406 | 1,303 | Y | Y | 0/7 | urllib.request | none | flag | arg | yes |
+| auto_merge.py | 28,831 | 636 | Y | Y | 0/10 | zero | none | flag | arg | yes |
+| auto_round.py | 89,111 | 1,990 | Y | Y | 2/22 | zero | none | flag | arg | yes |
+| axiom_guard.py | 28,426 | 648 | Y | Y | 0/8 | zero | env(8), coq(49), thermal(1) | flag | arg | yes |
+| b_gate_audit.py | 21,052 | 498 | Y | Y | 0/1 | zero | none | flag | arg | yes |
+| baseline_diff.py | 42,201 | 822 | Y | Y | 2/2 | zero | none | token | arg | yes |
+| bus_feeder.py | 33,104 | 751 | Y | Y | 1/4 | zero | lean(1) | flag | arg | no |
+| calibration_ledger.py | 32,404 | 747 | Y | Y | 0/12 | zero | env(2), lean(10) | flag | arg | yes |
+| chain_graph.py | 14,854 | 335 | Y | Y | 1/3 | zero | none | token | arg | yes |
+| ci_triage.py | 128,886 | 2,316 | Y | Y | 0/11 | urllib.request +bridge | coq(111), win(4), runner(2) | token | arg | no |
+| contrib_intake.py | 62,130 | 1,365 | Y | Y | 0/11 | git: clone | coq(23) | token | arg | no |
+| cw_doctor.py | 60,001 | 1,194 | Y | Y | 0/15 | zero | env(3), coq(5), dyld(31), thermal(6) | token | arg | yes |
+| cw_sentinel.py | 139,143 | 2,589 | Y | Y | 0/23 | http.client, socket, urllib.request +bridge | coq(1), dyld(1), win(5), thermal(3) | token | arg | no |
+| doc_lint.py | 69,864 | 1,442 | Y | Y | 0/3 | zero | none | token | arg | yes |
+| evolution_dashboard.py | 52,889 | 1,080 | Y | Y | 0/8 | zero | lean(1) | flag | arg | yes |
+| evolve.py | 90,910 | 1,819 | Y | Y | 0/19 | zero | coq(7) | token | arg | no |
+| exp_port.py | 23,281 | 540 | Y | Y | 1/13 | zero | env(2) | flag | arg | yes |
+| flaky_guard.py | 49,683 | 1,173 | Y | Y | 0/18 | zero | env(16) | flag | arg | yes |
+| gap_cluster.py | 30,859 | 657 | Y | Y | 0/4 | zero | lean(2), win(1) | token | arg | yes |
+| i18n_pipeline.py | 80,939 | 1,939 | Y | Y | 0/4 | zero | none | flag | arg | yes |
+| i18n_translate.py | 45,371 | 1,301 | Y | Y | 0/13 | urllib.request | none | flag | arg | yes |
+| i18n_verify.py | 51,819 | 1,109 | Y | Y | 0/13 | zero | win(1) | flag | arg | yes |
+| jargon_apply.py | 51,479 | 1,160 | Y | Y | 0/10 | zero | none | flag | arg | yes |
+| jargon_map_sync.py | 81,054 | 1,749 | Y | Y | 0/6 | zero | none | flag | arg | yes |
+| lean_sweep.py | 57,056 | 1,089 | Y | Y | 0/16 | zero | lean(32), thermal(1) | token | arg | yes |
+| learning_feedback.py | 35,331 | 740 | Y | Y | 0/1 | zero | lean(5) | flag | arg | yes |
+| ledger_sync.py | 26,938 | 549 | Y | Y | 0/5 | zero | none | token | arg | yes |
+| mcp_server.py | 103,772 | 2,009 | Y | Y | 0/1 | zero | env(3), ocaml(2), coq(11), lean(16), thermal(1) | flag | arg | yes |
+| net_probe.py | 28,501 | 612 | Y | Y | 0/7 | socket, ssl, urllib.request +bridge | none | token | arg | yes |
+| netname_normalize.py | 15,623 | 341 | Y | Y | 0/4 | zero | none | token | arg | yes |
+| norm_lint.py | 37,945 | 944 | Y | Y | 0/9 | zero | none | flag | arg | yes |
+| periscope.py | 75,772 | 1,720 | Y | Y | 0/6 | +bridge | lean(3) | flag | arg | yes |
+| pin_repair.py | 38,338 | 899 | Y | Y | 0/4 | zero | none | flag | arg | yes |
+| pushci.py | 104,495 | 2,138 | Y | Y | 0/21 | urllib.request git: ls-remote+push +bridge | env(1), coq(10) | token | arg | no |
+| red_dispatch.py | 46,500 | 940 | Y | Y | 0/10 | zero | coq(4), win(2) | flag | arg | yes |
+| registry_audit.py | 49,582 | 1,030 | Y | Y | 0/11 | zero | coq(12) | token | arg | no |
+| registry_fix.py | 73,501 | 1,420 | Y | Y | 0/9 | zero | env(1), coq(3) | token | arg | no |
+| registry_regen.py | 62,190 | 1,355 | Y | Y | 0/15 | zero | coq(37), win(1) | token | arg | no |
+| registry_union.py | 42,603 | 949 | Y | Y | 0/14 | zero | coq(4) | token | arg | yes |
+| render_events.py | 26,759 | 578 | Y | Y | 0/5 | zero | none | token | arg | yes |
+| repair_scope.py | 78,951 | 1,856 | Y | Y | 0/12 | zero | thermal(1) | flag | arg | no |
+| repair_weekly.py | 34,095 | 769 | Y | Y | 0/13 | zero | none | flag | arg | yes |
+| repo_sync_status.py | 10,348 | 230 | Y | Y | 0/3 | zero | none | token | arg | yes |
+| roster_resync.py | 27,142 | 619 | Y | Y | 0/4 | zero | none | token | arg | no |
+| row_render.py | 66,691 | 1,867 | Y | Y | 0/16 | urllib.request | lean(10) | flag | arg | yes |
+| scheduler_lite.py | 29,088 | 695 | Y | Y | 1/11 | zero | lean(1) | token | arg | yes |
+| select_audit.py | 32,094 | 675 | Y | Y | 0/6 | zero | ocaml(1) | token | arg | yes |
+| selfevolve_round.py | 31,385 | 732 | Y | Y | 0/4 | urllib.request git: push +bridge | none | flag | arg | yes |
+| symbiosis_bus.py | 39,589 | 880 | Y | Y | 1/9 | zero | none | flag | arg | no |
+| termbase.py | 22,477 | 520 | Y | Y | 0/5 | zero | lean(1), win(1) | flag | arg | yes |
+| toolchain_dyld_doctor.py | 26,422 | 542 | Y | Y | 0/6 | zero | env(4), coq(32), dyld(45), win(1), thermal(6) | token | arg | yes |
+| tree_audit.py | 27,402 | 593 | Y | Y | 0/3 | zero | lean(15) | flag | arg | yes |
+| unclog.py | 103,325 | 1,943 | Y | Y | 0/30 | zero | coq(5), thermal(2) | token | arg | yes |
+| uplink.py | 59,383 | 1,392 | Y | Y | 0/11 | zero | none | flag | arg | yes |
+| vacgen.py | 146,132 | 3,105 | Y | Y | 0/21 | zero | lean(65), thermal(3) | flag | arg | yes |
+| verdict_diff.py | 33,797 | 668 | Y | Y | 0/6 | zero | none | token | arg | yes |
+| wash_shape.py | 123,970 | 2,521 | Y | Y | 0/16 | zero | env(6), coq(6), dyld(1), win(3) | token | arg | yes |
 
 Legend: Doc = module docstring present; Arg = argparse import present; Pos/Opt = positional/
 optional flag counts (deduplicated call-site names); Network face = three-channel word-face
@@ -698,6 +698,20 @@ disk count), so the count_guard R6 face reads anchored-current (zero-lag)
 at this increment. The MCP roster face advanced 57 to 58 in the same
 increment; the four-number reconciliation rows above stay the records of
 their own cast times and are not rewritten.
+
+### Detached-safe column, November 28, 2026 (the detached-safe column increment)
+
+The detached-safe column increment (branch
+`supply/desk-offpeak/stranger-call-delta-20261128`, base `origin/main` =
+`682f9f9`, the bootstrap landing) surfaces the derived `Detached-safe`
+column on the section 2 summary table and the CAPABILITY-INDEX section 1
+table, derived mechanically from the recorded `imports.local` face of the
+standing census rows (empty local imports and no underscore prefix means
+the tool runs from one downloaded file); the standing census generator and
+its frozen v1 rules stay untouched, the rows are otherwise verbatim, and
+`.github/scripts/detached_safe_derive.py` re-derives the column (`--check`
+reads it against the standing census; 65 of the 80 non-helper tools are
+detached-safe at this cast, 15 carry sibling imports).
 
 ## 6. Negative-Finding Boundaries (four elements)
 
