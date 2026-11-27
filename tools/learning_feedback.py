@@ -1735,12 +1735,14 @@ def selftest():
 
         # Vector 15: the default consumer label is platform-independent.
         # The tracked face contract states the repo-relative form with
-        # forward slashes on every host; a platform separator in the
-        # label dirties the tracked face on non-posix hosts.
+        # forward slashes on every host; a backslash in the label is the
+        # platform-leak form that dirties the tracked face on Windows
+        # hosts. The forward slash itself is required, so on a posix host
+        # (where os.sep is the slash) the label must still carry it.
         label15 = default_scheduler_label()
         _check(failures, 15, "default label posix form",
                label15 == "tools/scheduler_lite.py"
-               and "\\" not in label15 and os.sep not in label15,
+               and "\\" not in label15,
                "label %r" % label15)
     finally:
         shutil.rmtree(root, ignore_errors=True)
