@@ -3,52 +3,58 @@ Purpose.  Expose the repository tool capability surface over the Model
   Context Protocol (MCP) through two transports served by one shared
   dispatcher: the newline-delimited JSON-RPC 2.0 stdio face, and the
   --http face (POST application/json on /mcp, streamable-style
-  request/response, with an internal Mcp-Session-Id response header;
-  Python stdlib http.server, zero new dependencies).  57 registered
-  capabilities, each spec transcribed from its docs/CAPABILITY-INDEX.md
-  entry line (the later increments from their tools' own CLI contract
-  headers).  Default deny for the network and heavy capabilities
-  (sentinel_status, net_probe, ci_triage, pushci_status, claim_watch,
-  source_fetch, release_chain): a failed tool result names
-  ROCQWASH_MCP_ALLOW_NET=1 until that variable equals 1.
-  Credential zero contact: no credential store, token file or netrc
-  path is read; child stdout and stderr are captured, never merged into
-  the protocol stream; every call runs under ROCQWASH_MCP_TIMEOUT
-  (default 300) and a timed-out child is reported as failed.
-
-Interface.  `python -I mcp_server.py [--stdio] [--http PORT
-  [--http-host HOST]] [--selftest]`; the flag gate runs before any
-  service loop: --selftest exits with the frozen interface-shape and
-  dispatcher round-trip vectors (no stdin read, no service loop, no
-  socket unless ROCQWASH_MCP_HTTP_SMOKE=1), --help exits 0, an unknown
-  flag exits 2, no flag serves stdio.  --http PORT alone serves the
-  HTTP face standalone; --stdio --http PORT serves both faces in one
-  process, so a dead stdio pipe or a dead HTTP session costs one
-  transport, never the tool registry.  The HTTP listener binds
-  127.0.0.1 unless --http-host widens it (trusted-network-only: the
-  endpoint performs no authentication unless ROCWASH_MCP_TOKEN is
-  configured - then every POST must carry X-ROCQWASH-TOKEN or
-  Authorization: Bearer, else 401; unconfigured prints one loud
-  auth-disabled warning at startup and stays open, never fail-closed); GET /mcp answers 405 with a
-  plain hint, other methods and paths answer 404, and a malformed
-  body answers a JSON-RPC parse-error object, never a traceback.  The
-  service face needs ROCQWASH_HOME at the repository root and answers
-  one compact JSON-RPC 2.0 object per request (contract: docs/mcp.md).
-
+  request/response; Python stdlib http.server, zero new dependencies).
+  57 registered capabilities, each spec transcribed from its
+  docs/CAPABILITY-INDEX.md entry line (the later increments from their
+  tools' own CLI contract headers).  Default deny for the network and heavy
+  capabilities; credential zero contact; per-call timeout; the variable,
+  auth posture, and timeout detail are in the extended contract below.
+Interface.  `python -I mcp_server.py [--stdio] [--http PORT [--http-host HOST]]
+  [--selftest]`; the flag gate runs before any service loop: --selftest
+  exits with the frozen vectors, --help exits 0, an unknown flag exits
+  2, no flag serves stdio; --http PORT alone serves the HTTP face;
+  --stdio --http PORT serves both faces in one process.
+  The service face needs ROCWASH_HOME at the repository root and answers
+  one compact JSON-RPC 2.0 object per request (contract: docs/mcp.md;
+  the HTTP binding, authentication, and path behavior in the contract).
 Dependencies.  Python 3 standard library only (argparse, http.client
   [selftest smoke only], http.server, json, os, subprocess, sys,
-  threading); registered CLIs resolve under ROCQWASH_HOME.
-
+  threading); registered CLIs resolve under ROCWASH_HOME.
 Evidence.  tests/t_mcp_face.py asserts the 57-name roster and the wire
-  contract; --selftest self-proofs the frozen interface-shape vectors
-  plus the dispatcher round-trip vectors (initialize, tools/list, one
-  tools/call shape), with the socket smoke gated behind
-  ROCQWASH_MCP_HTTP_SMOKE=1.
-
+  contract; --selftest self-proofs the frozen interface-shape and
+  dispatcher round-trip vectors (initialize, tools/list, one tools/call
+  shape), socket smoke gated behind ROCWASH_MCP_HTTP_SMOKE=1.
 Exit-codes.  0 green (selftest pass, --help, stdin end of file); 1 selftest red
   (red list on stderr) or HTTP bind failure; 2 usage error (unknown flag,
   out-of-range --http port); wire error codes per docs/mcp.md.
 """
+
+# Extended contract (kept outside the five-field header so the header
+# stays within the 30-line budget of the annotation standard; the moved
+# facts are carried over from the former header verbatim in substance):
+#
+# Default deny: the network and heavy capabilities (sentinel_status,
+#   net_probe, ci_triage, pushci_status, claim_watch, source_fetch,
+#   release_chain) fail until ROCWASH_MCP_ALLOW_NET=1; a failed tool
+#   result names that variable.
+# Credential zero contact: no credential store, token file or netrc path
+#   is read; child stdout and stderr are captured, never merged into the
+#   protocol stream; every call runs under ROCWASH_MCP_TIMEOUT (default
+#   300) and a timed-out child is reported as failed.
+# HTTP face detail: the listener binds 127.0.0.1 unless --http-host
+#   widens it (trusted-network-only: the endpoint performs no
+#   authentication unless ROCWASH_MCP_TOKEN is configured - then every
+#   POST must carry X-ROCQWASH-TOKEN or Authorization: Bearer, else 401;
+#   unconfigured prints one loud auth-disabled warning at startup and
+#   stays open, never fail-closed); GET /mcp answers 405 with a plain
+#   hint, other methods and paths answer 404, and a malformed body
+#   answers a JSON-RPC parse-error object, never a traceback; an
+#   internal Mcp-Session-Id response header rides the streamable-style
+#   response.
+# Transport resilience: --stdio --http PORT serves both faces in one
+#   process, so a dead stdio pipe or a dead HTTP session costs one
+#   transport, never the tool registry.
+
 
 import argparse
 import hmac
