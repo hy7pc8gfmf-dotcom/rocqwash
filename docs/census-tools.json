@@ -1,9 +1,9 @@
 {
  "meta": {
-  "generated_at_utc": "2026-11-27T18:48:15Z",
+  "generated_at_utc": "2026-11-27T22:04:41Z",
   "method": "python -I AST word-face parse; no listed tool executed; stdlib only",
   "tools_dir": "tools",
-  "git_head_recorded": "",
+  "git_head_recorded": "b822bb36f00768f051edbd57caeebf35bc98c64c",
   "py_files_censused": 83,
   "non_py_files_present": [
    "__pycache__",
@@ -36,9 +36,7 @@
    "syntax_errors": 0
   },
   "rescan_generation": {
-   "added_this_generation": [
-    "repo_sync_status.py"
-   ],
+   "added_this_generation": [],
    "generator": "tools/census_rescan.py v1",
    "method_note": "rows above the generation split keep their original generator's semantics; rows added by the generation follow census_rescan.py's documented v1 rules",
    "history": [
@@ -62,6 +60,13 @@
     {
      "added_this_generation": [
       "capability_ratchet.py"
+     ],
+     "generator": "tools/census_rescan.py v1",
+     "method_note": "rows above the generation split keep their original generator's semantics; rows added by the generation follow census_rescan.py's documented v1 rules"
+    },
+    {
+     "added_this_generation": [
+      "repo_sync_status.py"
      ],
      "generator": "tools/census_rescan.py v1",
      "method_note": "rows above the generation split keep their original generator's semantics; rows added by the generation follow census_rescan.py's documented v1 rules"
