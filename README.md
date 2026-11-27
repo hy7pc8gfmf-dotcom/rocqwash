@@ -415,6 +415,25 @@ An agent session (or any scripted consumer) does not need the tour above.
 Three copy-ready paths, each executed end to end before this section
 landed:
 
+**0. The two-command path (single-file bootstrap).** Fetch the
+bootstrap file and let it run the clone, the wiring output, and the
+capability report:
+
+```bash
+curl -L https://raw.githubusercontent.com/hy7pc8gfmf-dotcom/rocqwash/main/bootstrap.py -o bootstrap.py
+python3 bootstrap.py --install      # the stable channel by default; --track main follows the tip
+python3 bootstrap.py --mcp-config   # the MCP stdio JSON with absolute paths and the env block injected
+python3 bootstrap.py --report       # the one-page capability summary of the installed checkout
+```
+
+The install face aligns an existing `~/.rocqwash` with
+`git merge --ff-only` on a second run, so the same command is the
+upgrade face. The default channel is `stable`, the machine-verified
+rolling tag; when the requested channel has no ref yet, the install
+face refuses loudly and `--track main` is the explicit fallback. The
+bootstrap file itself is standard-library only and runs from the single
+raw fetch shown above.
+
 **1. Clone the repository and wire the MCP stdio server.**
 
 ```bash

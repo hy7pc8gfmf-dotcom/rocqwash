@@ -182,7 +182,9 @@ subprocess with the environment set; the generic JSON config form is:
 ```
 
 Substitute the absolute checkout path for `<ROCWASH_PATH>` (the JSON
-form does not expand `~`). `ROCWASH_HOME` is the one required variable
+form does not expand `~`). The repository-root `bootstrap.py --mcp-config`
+prints this exact config for an installed checkout (absolute paths and
+the environment block injected), and is the canonical config source. `ROCWASH_HOME` is the one required variable
 (section 4 env table); `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8` keep
 the wire ASCII-safe on Windows consoles with a GBK codepage. The server
 answers one JSON-RPC 2.0 object per line on stdout; a client that
