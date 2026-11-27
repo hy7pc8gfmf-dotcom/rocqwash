@@ -1,6 +1,6 @@
 # tests/: rocqwash self-test suite
 
-> Purpose.  The repository's self-test suite: 91 statically rostered cases (the
+> Purpose.  The repository's self-test suite: 92 statically rostered cases (the
 >   `CASES` roster in `tests/run_tests.sh`) covering every tool family with
 >   positive and negative judgments; the per-case tables below are the evidence
 >   surface for each roster entry, and the live count is always the roster.
@@ -19,8 +19,8 @@
 > Evidence.  Every case below cites the tool face it drives and the exact
 >   criteria it asserts.  `tools/doc_lint.py` check 2 pins the roster count;
 >   its two count-anchor shapes are kept verbatim as data faces (backticked,
->   so the normalization lint's masking applies): `覆盖面（91 例）` and
->   `预期 91 过`: both read 91 and must stay in step with the roster.
+>   so the normalization lint's masking applies): `覆盖面（92 例）` and
+>   `预期 92 过`: both read 92 and must stay in step with the roster.
 >
 > Exit-codes.  Suite level: 0 = all green (SKIP not counted red), 1 = any red;
 >   a case exits 111 = SKIP when the canonical environment is absent; the
@@ -35,10 +35,10 @@ bash tests/run_tests.sh          # all green EXIT 0; any red EXIT 1; idempotent 
 Suite self-check (verifies the "any red EXIT 1" contract; injects one always-red case):
 
 ```bash
-ROCQWASH_TESTS_FAIL_PROBE=1 bash tests/run_tests.sh   # expected: 91 passing / 1 failing / EXIT 1
+ROCQWASH_TESTS_FAIL_PROBE=1 bash tests/run_tests.sh   # expected: 92 passing / 1 failing / EXIT 1
 ```
 
-## Coverage (91 cases): the live count is the CASES roster in tests/run_tests.sh (sync after adding a case)
+## Coverage (92 cases): the live count is the CASES roster in tests/run_tests.sh (sync after adding a case)
 
 | # | Case | Under test | Criteria |
 |---|------|------|------|
@@ -312,3 +312,4 @@ ROCQWASH_TESTS_FAIL_PROBE=1 bash tests/run_tests.sh   # expected: 91 passing / 1
 | 89 | `t_lean_parity` | `tools/lean_parity_crosswalk.py` (the Lean/Rocq axiom parity crosswalk engine over schema rocqwash.parity.lean-census/1: both parent tools' frozen vectors crosswalked row by row on the five mirror proposition keys clean / classical / funext / custom / sorry, the bilingual mirror fixture group `tests/fixtures/lean_parity`, the grade mapping read verbatim from `axiom_audit.LEAN_PARITY_ROWS/1` with the design-frozen Rocq Admitted <-> Lean sorryAx mirror rule preceding the table) | `tests/t_lean_parity.py` three legs, zero network, writes only inside temporary directories: leg A the offline frozen-vector crosswalk, always runs with no engine (the crosswalk's own --selftest rc=0, the offline payload verdict MATCH over five matched pairs with equal two-side enumeration counts, the mapping-source verbatim face, the Admitted mirror rule riding the sorry pair's basis, and the module-level parity-map identity against the audit tool's own 5-row table); leg B the real axiom_audit census over the mirror .v files, compile-engine gated (rc 0, the fixture_rocq leg record "ran", the matrix MATCH over the live Rocq side, the live Admitted own-name axiom mapped to SORRY-ALARM); leg C the real lean_axiom_sweep over the mirror .lean files, Lean-toolchain gated (rc 0, the lean_live leg record "ran", the matrix MATCH over the live Lean side); a gated leg prints one loud SKIP line naming the requirement and never silently passes; exit contract 0 all legs green / 1 any FAIL (red outranks skip) / 111 a gated leg skipped for its absent engine |
 | 90 | `t_count_guard` | `tools/count_guard.py` (the six-face roster count reconciler: R1 tools count / R2 tree face / R3 MCP roster pair / R4 cw.sh route face / R5 routed-target face / R6 census declared-lag, rc-neutral by design) | `tests/t_count_guard.py` two checks, zero network, writes nothing: C1 the tool's own `--selftest` rc 0 with the frozen `COUNT-GUARD-SELFTEST PASS` word face and six `[PASS]` vector lines, no `[FAIL]` (V1 clean fixture / V2 drift injection rc 1 / V3 missing-face rc 2 / V4 declared-lag rc 0 / V5 roster break rc 1 / V6 wall-clock budget); C2 the `--help` usage face rc 0 naming the six groups R1-R6; the live four-count face is deliberately not asserted here (R6 is rc-neutral and the tree may legitimately drift between landings; the CI doc-count gate and `tools/repair_scope.py` carry that face); exit contract 0 all green / 1 any red |
 | 91 | `t_anchor_guard_shape` | `tools/anchor_guard.py` (the anchor and certificate guard: manifest validation, compile tri-classification, coqchk kernel recheck, per-anchor probe face, mutation kill matrix over the manifest's copied defect rows) | `tests/t_anchor_guard_shape.py` six checks, zero network, nothing in the repository written: the CLI faces, the exit-code matrix, the manifest validation rules driven through the module's own loader, and the companion mutation library volume shape (`tools/mutants-v1.json`); where the toolchain binaries are absent the guard honestly skips and the shell asserts the skip face itself; rostered at the count-face cures increment (November 26, 2026), retiring the earlier deliberate-not-rostered note whose deferred README count-line rewrite this increment owns; exit contract per the shell's own assertion faces |
+| 92 | `t_tool_probes` | the planted-fault probe proof face of the tools/ selftest meta enumerator (`tests/test_tool_selftests.py --prove`, the `PROBE_ROSTER` constant): every rostered carrier's `--selftest` must come back green AND carry its declared probe literal - a planted known-bad input the guard actually reported: `count_guard` V2 drift injection, `norm_lint` planted jargon/forbidden vectors, `axiom_guard` strict red plants, `statement_identity` uncast row, `anchor_guard` vacuous-certificate pipeline | the `--prove` face over the declared roster: a green carrier whose probe literal is absent answers CANNOT-FAIL rc 2 (the proof face proves nothing); a carrier selftest that runs red answers the ordinary rc 1; the toolchain-gated carrier (`anchor_guard`) is listed `SKIPPED-TOOLCHAIN` on its honest rc 111 - visible, never counted green, never a FAIL; exit 0 every rostered literal proven; zero network, zero repository writes; rostered at the probe-proof-face increment (November 28, 2026) |
