@@ -98,6 +98,7 @@ the marker does not read as a delta fact and is voided here by declaration.
 | render_events.py | 26,759 | 578 | Y | Y | 0/5 | zero | none | token | arg |
 | repair_scope.py | 78,951 | 1,856 | Y | Y | 0/12 | zero | thermal(1) | flag | arg |
 | repair_weekly.py | 34,095 | 769 | Y | Y | 0/13 | zero | none | flag | arg |
+| repo_sync_status.py | 10,348 | 230 | Y | Y | 0/3 | zero | none | token | arg |
 | roster_resync.py | 27,142 | 619 | Y | Y | 0/4 | zero | none | token | arg |
 | row_render.py | 66,691 | 1,867 | Y | Y | 0/16 | urllib.request | lean(10) | flag | arg |
 | scheduler_lite.py | 29,088 | 695 | Y | Y | 1/11 | zero | lean(1) | token | arg |
@@ -684,6 +685,19 @@ records the split (added list, generator, method note) so the mixed
 generation is data rather than a silent method change.
 `py_files_censused` now equals the disk count and the R6 face reads
 anchored-current (zero-lag).
+
+### Repo-sync merge, November 28, 2026 (the repo-sync registration increment)
+
+The repo-sync registration increment (branch
+`supply/desk-offpeak/stranger-call-beta-20261128`, base `origin/main` =
+`aa9d0bc`, the probe-proof-face landing) lands `tools/repo_sync_status.py`
+and appends its row through the in-repo `census_rescan --merge` face: the
+standing rows are preserved verbatim, the appended row follows the same
+documented v1 rules, and `meta.py_files_censused` advances 82 to 83 (the
+disk count), so the count_guard R6 face reads anchored-current (zero-lag)
+at this increment. The MCP roster face advanced 57 to 58 in the same
+increment; the four-number reconciliation rows above stay the records of
+their own cast times and are not rewritten.
 
 ## 6. Negative-Finding Boundaries (four elements)
 

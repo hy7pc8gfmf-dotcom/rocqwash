@@ -310,7 +310,7 @@ rocqwash/
 - **方法论正典**：[docs/recursive-evolution-whitepaper-v1.0-20261121.md](docs/recursive-evolution-whitepaper-v1.0-20261121.md)——七律、七支柱、§7 2026-11-19/21 链实录。
 - **CI 红例分类表**：[docs/ci-triage-table.json](docs/ci-triage-table.json) v1.5——19 类（R1–R19），上方递归代 CI 白皮书徽章背后的分类表。
 - **逐器契约面**：[docs/CAPABILITY-INDEX.md](docs/CAPABILITY-INDEX.md)——一器一条目，每条七字段（路径、一行用途、调用形、可复制示例、imports、网络面、SKIP 面）。
-- **MCP stdio 服务器**：`tools/mcp_server.py`——stdio 上换行分隔 JSON-RPC 2.0、三方法、57 能力名册（冻结 `SELFTEST_ROSTER_COUNT`；`tests/t_mcp_face.py` `EXPECTED_TOOLS = 57` 机检）；协议面与安全面见 [docs/mcp.md](docs/mcp.md)。
+- **MCP stdio 服务器**：`tools/mcp_server.py`——stdio 上换行分隔 JSON-RPC 2.0、三方法、58 能力名册（冻结 `SELFTEST_ROSTER_COUNT`；`tests/t_mcp_face.py` `EXPECTED_TOOLS = 58` 机检）；协议面与安全面见 [docs/mcp.md](docs/mcp.md)。
 
 ## Quick Start
 

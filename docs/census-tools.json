@@ -1,10 +1,10 @@
 {
  "meta": {
-  "generated_at_utc": "2026-11-26T17:18:04Z",
+  "generated_at_utc": "2026-11-27T18:48:15Z",
   "method": "python -I AST word-face parse; no listed tool executed; stdlib only",
   "tools_dir": "tools",
   "git_head_recorded": "",
-  "py_files_censused": 82,
+  "py_files_censused": 83,
   "non_py_files_present": [
    "__pycache__",
    "_abl1_4b_compile.py.zh.md",
@@ -37,7 +37,7 @@
   },
   "rescan_generation": {
    "added_this_generation": [
-    "capability_ratchet.py"
+    "repo_sync_status.py"
    ],
    "generator": "tools/census_rescan.py v1",
    "method_note": "rows above the generation split keep their original generator's semantics; rows added by the generation follow census_rescan.py's documented v1 rules",
@@ -55,6 +55,13 @@
       "pipeline_lite.py",
       "qed_cost_lint.py",
       "require_rewire.py"
+     ],
+     "generator": "tools/census_rescan.py v1",
+     "method_note": "rows above the generation split keep their original generator's semantics; rows added by the generation follow census_rescan.py's documented v1 rules"
+    },
+    {
+     "added_this_generation": [
+      "capability_ratchet.py"
      ],
      "generator": "tools/census_rescan.py v1",
      "method_note": "rows above the generation split keep their original generator's semantics; rows added by the generation follow census_rescan.py's documented v1 rules"
@@ -10985,6 +10992,102 @@
    },
    "selftest_flag": true,
    "selftest_token_face": true
+  },
+  {
+   "name": "repo_sync_status.py",
+   "bytes": 10348,
+   "sha256": "87179afee9a277fcabbe94d17864b2cfbd0412591efb6dde7fd7f1779ddbd874",
+   "lines": 230,
+   "underscore_prefix": false,
+   "has_main_guard": true,
+   "docstring": {
+    "present": true,
+    "lines": 24,
+    "head": "repo_sync_status.py - local repository sync offset reader (rocqwash tools/).\nPurpose.  One read-only offset measurement of the working repository against\n  the last fetched remote main ref: how many commits the local HEAD is ahead\n  of and behind `refs/remotes/origin/main`, whether the two agree, and the\n  HEAD/tag identity of the measured tree - the staleness face a remote\n  consumer needs before trusting this checkout's answers.  Every field is a\n  `{value, basis}` pair; a measurement that cannot be taken is exit 9 with\n  the reason, never a guessed zero.\nInterface.  `python -I tools/repo_sy"
+   },
+   "argparse": {
+    "imported": false,
+    "parser_descriptions": [],
+    "add_argument": [
+     {
+      "flags": [
+       "--repo"
+      ],
+      "kwargs": {
+       "default": ".",
+       "help": "repository root to measure (default: the working directory)"
+      }
+     },
+     {
+      "flags": [
+       "--json"
+      ],
+      "kwargs": {
+       "default": null,
+       "metavar": "OUT",
+       "help": "write the report JSON object to this path"
+      }
+     }
+    ],
+    "positionals": [],
+    "optionals": [
+     "--json",
+     "--repo"
+    ],
+    "subcommands": [],
+    "has_subparsers": false,
+    "set_defaults_func": false
+   },
+   "usage_face": [],
+   "imports": {
+    "modules": [],
+    "third_party": [
+     "argparse",
+     "json",
+     "os",
+     "shutil",
+     "subprocess",
+     "sys",
+     "tempfile"
+    ],
+    "local": [],
+    "guarded_conditional": []
+   },
+   "network": {
+    "transport_imports": [],
+    "adjacent_imports": [],
+    "literal_face": [],
+    "subprocess_bridge_suspect": false,
+    "zero_network": true,
+    "git_subprocess_network_face": {
+     "present": true,
+     "tokens": [
+      "git",
+      "git call",
+      "git describe",
+      "git init",
+      "git rev-list",
+      "git rev-parse"
+     ]
+    }
+   },
+   "skip_face": {
+    "markers": [
+     {
+      "kind": "coq_rocq",
+      "count": 3,
+      "samples": [
+       "rocqwash"
+      ]
+     }
+    ]
+   },
+   "selftest_flag": false,
+   "selftest_token_face": true,
+   "invocation": {
+    "form": "Interface.  `python -I tools/repo_sync_status.py [--repo DIR] [--json OUT] |",
+    "basis": "docstring-interface"
+   }
   },
   {
    "name": "require_rewire.py",

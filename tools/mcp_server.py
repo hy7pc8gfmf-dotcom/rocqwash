@@ -4,29 +4,28 @@ Purpose.  Expose the repository tool capability surface over the Model
   dispatcher: the newline-delimited JSON-RPC 2.0 stdio face, and the
   --http face (POST application/json on /mcp, streamable-style
   request/response; Python stdlib http.server, zero new dependencies).
-  57 registered capabilities, each spec transcribed from its
-  docs/CAPABILITY-INDEX.md entry line (the later increments from their
-  tools' own CLI contract headers).  Default deny for the network and heavy
-  capabilities; credential zero contact; per-call timeout; the variable,
-  auth posture, and timeout detail are in the extended contract below.
+  58 registered capabilities; default deny for the network and heavy
+  capabilities, credential zero contact, per-call timeout.
 Interface.  `python -I mcp_server.py [--stdio] [--http PORT [--http-host HOST]]
-  [--selftest]`; the flag gate runs before any service loop: --selftest
-  exits with the frozen vectors, --help exits 0, an unknown flag exits
-  2, no flag serves stdio; --http PORT alone serves the HTTP face;
-  --stdio --http PORT serves both faces in one process.
-  The service face needs ROCWASH_HOME at the repository root and answers
-  one compact JSON-RPC 2.0 object per request (contract: docs/mcp.md;
-  the HTTP binding, authentication, and path behavior in the contract).
-Dependencies.  Python 3 standard library only (argparse, http.client
-  [selftest smoke only], http.server, json, os, subprocess, sys,
-  threading); registered CLIs resolve under ROCWASH_HOME.
-Evidence.  tests/t_mcp_face.py asserts the 57-name roster and the wire
+  [--require-fresh] [--selftest]`; the flag gate runs before any service
+  loop: --selftest exits with the frozen vectors, --help exits 0, an
+  unknown flag exits 2, no flag serves stdio; --require-fresh refuses
+  (exit 1) a tree behind the last fetched origin/main, naming the
+  refresh command.  The service face needs ROCWASH_HOME at the repository
+  root and answers one compact JSON-RPC 2.0 object per request (contract:
+  docs/mcp.md; the HTTP binding and auth posture in the extended contract).
+Dependencies.  Python 3 standard library only (argparse, hashlib
+  [selftest digest], http.client [selftest smoke only], http.server,
+  json, os, subprocess, sys, threading); registered CLIs resolve under
+  ROCWASH_HOME.
+Evidence.  tests/t_mcp_face.py asserts the 58-name roster and the wire
   contract; --selftest self-proofs the frozen interface-shape and
-  dispatcher round-trip vectors (initialize, tools/list, one tools/call
-  shape), socket smoke gated behind ROCWASH_MCP_HTTP_SMOKE=1.
-Exit-codes.  0 green (selftest pass, --help, stdin end of file); 1 selftest red
-  (red list on stderr) or HTTP bind failure; 2 usage error (unknown flag,
-  out-of-range --http port); wire error codes per docs/mcp.md.
+  dispatcher round-trip vectors (initialize with the repository version
+  block, tools/list, one tools/call shape, the require-fresh refusal),
+  socket smoke gated behind ROCWASH_MCP_HTTP_SMOKE=1.
+Exit-codes.  0 green (selftest pass, --help, stdin end of file); 1 selftest
+  red, HTTP bind failure, or a --require-fresh staleness refusal; 2 usage
+  error (unknown flag, out-of-range --http port); wire codes per docs/mcp.md.
 """
 
 # Extended contract (kept outside the five-field header so the header
@@ -54,9 +53,24 @@ Exit-codes.  0 green (selftest pass, --help, stdin end of file); 1 selftest red
 # Transport resilience: --stdio --http PORT serves both faces in one
 #   process, so a dead stdio pipe or a dead HTTP session costs one
 #   transport, never the tool registry.
+# Server self-description: the initialize response serverInfo carries a
+#   repository block next to name and version - head_sha, tag,
+#   census_count, selftest_digest, each a {value, basis} pair measured at
+#   initialize time (local git plumbing plus the standing census meta;
+#   zero network, no remote contact).  A field that cannot be measured
+#   carries an empty or null value and a basis naming the reason, so a
+#   stale or unusual checkout is visible to the consumer, never guessed.
+# Staleness gate: --require-fresh (opt-in, default off) measures the sync
+#   offset before any service loop starts and refuses to serve a tree
+#   that is behind the last fetched origin/main, or whose offset cannot
+#   be measured (exit 1; the refusal names the refresh command) - the
+#   flag means "serve only what is verifiably fresh".  The standalone
+#   measurement face of the same offset is the repo_sync_status
+#   capability (tools/repo_sync_status.py).
 
 
 import argparse
+import hashlib
 import hmac
 import http.client
 import http.server
@@ -97,9 +111,13 @@ HTTP_MAX_BODY_BYTES = 32 * 1024 * 1024
 # read-only top-level flags), plus the capability-ratchet registration
 # increment (one read/plan face over the landed nine-metric ratchet CLI
 # tools/capability_ratchet.py: measure/gate/compare/selftest, the ledger
-# --append face staying CLI-side); a roster change re-freezes this value and
+# --append face staying CLI-side), plus the repo-sync registration
+# increment (one read-only local-git staleness face over the landed
+# tools/repo_sync_status.py; the server-side --require-fresh flag and
+# the initialize repository block hang their contracts on this
+# measurement); a roster change re-freezes this value and
 # EXPECTED_TOOLS in tests/t_mcp_face.py in the same round.
-SELFTEST_ROSTER_COUNT = 57
+SELFTEST_ROSTER_COUNT = 58
 
 PARSE_ERROR = -32700
 INVALID_REQUEST = -32600
@@ -2349,7 +2367,44 @@ TOOL_SPECS = [
             "away.  The ledger --append face (it refuses a working tree "
             "that differs from HEAD under the source paths unless "
             "--allow-dirty-anchor is given) and the --from-sha window "
-            "override stay CLI-side (the ledger-append-face layer law)."
+            "override stay CLI-side per the ledger-append-face layer law."
+        ),
+    },
+    # ---- the repo-sync registration increment (one read-only local-git
+    # staleness face over the landed tools/repo_sync_status.py; the
+    # server-side --require-fresh flag and the initialize repository
+    # block hang their contracts on this measurement)
+    {
+        "name": "repo_sync_status",
+        "kind": "cli",
+        "cli": os.path.join("tools", "repo_sync_status.py"),
+        "net_gated": False,
+        "fixed_args": [],
+        "arg_map": (
+            ("repo", "--repo"),
+            ("json", "--json"),
+            ("selftest", "--selftest"),
+        ),
+        "schema": _object_schema(
+            {
+                "repo": {"type": "string", "description": "repository root to measure (default: the server's ROCWASH_HOME working directory); CLI flag --repo"},
+                "json": {"type": "boolean", "description": "write the report JSON object to this path instead of stdout; CLI flag --json"},
+                "selftest": {"type": "boolean", "description": "run the six frozen fixture vectors (three offset states, two refusal forms, the schema closed key set) on private temporary directories; zero network; CLI flag --selftest"},
+            }
+        ),
+        "description": (
+            "Repository sync offset face (tools/repo_sync_status.py, schema "
+            "rocqwash-repo-sync-status/1): one read-only measurement of how "
+            "far the working HEAD is ahead of and behind the last fetched "
+            "refs/remotes/origin/main, with head_sha, tag, origin_sha, and "
+            "an up_to_date verdict, every field a {value, basis} pair.  Zero "
+            "network: the origin side is the last fetched ref, never a live "
+            "remote query - a re-fetch refreshes it, the measurement stays "
+            "local.  An offset that cannot be taken (not a git work tree, "
+            "no fetched origin/main) is exit 9 with the reason on stderr, "
+            "never a guessed zero.  This is the measurement the server-side "
+            "--require-fresh staleness gate and the initialize repository "
+            "block report on demand."
         ),
     },
 ]
@@ -2508,6 +2563,114 @@ def _run_cli(argv, cwd):
     return code, out, err
 
 
+def _measured(value, basis):
+    """One measured field: the value and where it came from."""
+    return {"value": value, "basis": basis}
+
+
+def _git_local(repo, *args):
+    """One local git plumbing call for the self-description and staleness
+    faces: local working-tree reads only, no remote contact, no credential
+    contact.  (None, reason) on any failure."""
+    try:
+        completed = subprocess.run(
+            ["git", "-C", repo] + list(args),
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None, "the git call failed to run"
+    if completed.returncode != 0:
+        return None, completed.stderr.decode("utf-8", "replace").strip()
+    return completed.stdout.decode("utf-8", "replace").strip(), ""
+
+
+def _version_block(home):
+    """The repository self-description block of the initialize response:
+    head_sha, tag, census_count, selftest_digest, each {value, basis}.  A
+    field that cannot be measured carries an empty or null value and a
+    basis naming the reason, so a stale or unusual checkout is visible,
+    never guessed."""
+    block = {
+        "selftest_digest": _measured(
+            hashlib.sha256(
+                "\n".join(sorted(spec["name"] for spec in TOOL_SPECS)).encode("utf-8")
+            ).hexdigest(),
+            "sha256 over the sorted registered capability names, one per line",
+        )
+    }
+    if not home or not os.path.isdir(home):
+        reason = "environment variable {0} is not set to a repository root".format(HOME_ENV)
+        block["head_sha"] = _measured("", reason)
+        block["tag"] = _measured("", reason)
+        block["census_count"] = _measured(None, reason)
+        return block
+    sha, err = _git_local(home, "rev-parse", "HEAD")
+    if sha is None:
+        block["head_sha"] = _measured("", "not measurable: {0}".format(err or "git failed"))
+    else:
+        block["head_sha"] = _measured(sha, "git rev-parse HEAD at {0}".format(home))
+    tag, terr = _git_local(home, "describe", "--tags", "--exact-match", "HEAD")
+    if tag is None:
+        block["tag"] = _measured("", "no tag names this commit ({0})".format(terr or "git failed"))
+    else:
+        block["tag"] = _measured(tag, "git describe --tags --exact-match HEAD")
+    census = None
+    cbasis = "docs/census-tools.json meta.py_files_censused at {0}".format(home)
+    try:
+        with open(os.path.join(home, "docs", "census-tools.json"), "r", encoding="utf-8") as handle:
+            census = json.load(handle).get("meta", {}).get("py_files_censused")
+    except (OSError, ValueError):
+        cbasis = "docs/census-tools.json unreadable at {0}".format(home)
+    block["census_count"] = _measured(census, cbasis)
+    return block
+
+
+def _sync_offset(home):
+    """The staleness measurement behind --require-fresh: (ahead, behind,
+    reason); ahead and behind are None when the offset cannot be taken."""
+    if not home or not os.path.isdir(home):
+        return None, None, "environment variable {0} is not set to a repository root".format(HOME_ENV)
+    head, err = _git_local(home, "rev-parse", "HEAD")
+    if head is None:
+        return None, None, "git rev-parse HEAD failed at {0} ({1})".format(home, err or "git failed")
+    origin, oerr = _git_local(home, "rev-parse", "--verify", "refs/remotes/origin/main")
+    if origin is None:
+        return None, None, (
+            "refs/remotes/origin/main does not resolve at {0} ({1}); fetch the remote first".format(home, oerr or "unresolved")
+        )
+    counts, cerr = _git_local(home, "rev-list", "--left-right", "--count", "HEAD...refs/remotes/origin/main")
+    if counts is None or len(counts.split()) != 2:
+        return None, None, "the offset count failed ({0})".format(cerr or counts)
+    ahead_s, behind_s = counts.split()
+    return int(ahead_s), int(behind_s), ""
+
+
+def _require_fresh_refusal(home):
+    """The --require-fresh gate decision: "" when serving may proceed,
+    otherwise the refusal text naming the refresh command."""
+    ahead, behind, reason = _sync_offset(home)
+    if ahead is None:
+        return (
+            "REQUIRE-FRESH REFUSAL: the sync offset at {0} cannot be measured ({1}).\n"
+            "The flag serves only what is verifiably fresh; refresh the repository "
+            "or drop the flag (tools/repo_sync_status.py reports the same offset on demand)."
+        ).format(home, reason)
+    if behind > 0:
+        return (
+            "REQUIRE-FRESH REFUSAL: the repository at {0} is behind the last fetched "
+            "origin/main by {1} commit(s) (ahead {2}).\n"
+            "Refusing to serve a stale tree; refresh first, then restart:\n"
+            '  git -C "{3}" pull --ff-only\n'
+            "(or drop --require-fresh to serve anyway; tools/repo_sync_status.py "
+            "reports the same offset on demand)."
+        ).format(home, behind, ahead, home)
+    return ""
+
+
 def _handle_initialize(msg_id, params):
     requested = ""
     if isinstance(params, dict):
@@ -2520,7 +2683,11 @@ def _handle_initialize(msg_id, params):
         {
             "protocolVersion": version,
             "capabilities": {"tools": {"listChanged": False}},
-            "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
+            "serverInfo": {
+                "name": SERVER_NAME,
+                "version": SERVER_VERSION,
+                "repository": _version_block(os.environ.get(HOME_ENV, "")),
+            },
         },
     )
 
@@ -2667,7 +2834,8 @@ def _selftest():
     source_fetch, sweep_verdict, release_chain, plus the numeric-probe
     registration batch of two: numeric_probe, statement_probes, plus the
     capability-ratchet registration increment of one:
-    capability_ratchet), the
+    capability_ratchet, plus the repo-sync registration increment of
+    one: repo_sync_status), the
     same freeze discipline as EXPECTED_TOOLS in tests/t_mcp_face.py; a
     roster change re-freezes both.
     """
@@ -2824,6 +2992,39 @@ def _selftest():
         and (init_default or {}).get("result", {}).get("protocolVersion")
         == PROTOCOL_VERSION_DEFAULT,
         "a params-less initialize must answer the default protocol version",
+    )
+    # V5a repository block: the initialize serverInfo carries the version
+    # face - head_sha, tag, census_count, selftest_digest, each a
+    # {value, basis} pair (the value may be empty or null when
+    # unmeasurable; the basis always names where the value came from or
+    # why it is absent).
+    repository = (init_resp or {}).get("result", {}).get("serverInfo", {}).get("repository", {})
+    check(
+        "V5a repository block shape",
+        isinstance(repository, dict)
+        and sorted(repository.keys())
+        == ["census_count", "head_sha", "selftest_digest", "tag"]
+        and all(
+            isinstance(repository[key], dict)
+            and "value" in repository[key]
+            and "basis" in repository[key]
+            for key in repository
+        ),
+        "the initialize repository block drifted: keys {0!r}".format(
+            sorted(repository.keys())
+        ),
+    )
+    # V5b require-fresh refusal decision: an unmeasurable offset refuses
+    # (the flag serves only what is verifiably fresh); a nonexistent root
+    # is unmeasurable without any filesystem write.
+    check(
+        "V5b require-fresh refusal form",
+        bool(
+            _require_fresh_refusal(
+                os.path.join(os.sep, "nonexistent", "rocqwash-fresh-probe")
+            )
+        ),
+        "an unmeasurable root must refuse",
     )
     status, listing_resp = _http_handle_body(
         json.dumps({"jsonrpc": "2.0", "id": 103, "method": "tools/list"}).encode(
@@ -3633,6 +3834,13 @@ def _build_parser():
         "authentication, so never expose it to an untrusted network",
     )
     parser.add_argument(
+        "--require-fresh",
+        action="store_true",
+        help="refuse to serve when the repository is behind the last fetched "
+        "origin/main, or when the offset cannot be measured: exit 1 with the "
+        "refresh command (opt-in staleness gate, default off)",
+    )
+    parser.add_argument(
         "--stdio",
         action="store_true",
         help="serve the newline-delimited JSON-RPC stdio face on stdin and "
@@ -3649,6 +3857,11 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.selftest:
         return _selftest()
+    if args.require_fresh:
+        refusal = _require_fresh_refusal(os.environ.get(HOME_ENV, ""))
+        if refusal:
+            sys.stderr.write(refusal + "\n")
+            return 1
     if args.http is not None:
         if not 1 <= args.http <= 65535:
             parser.error("--http PORT must be an integer between 1 and 65535")
