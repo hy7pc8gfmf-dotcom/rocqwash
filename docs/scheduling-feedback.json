@@ -20,9 +20,9 @@
   "repair_outcomes": {
     "errors": [],
     "escalated": 0,
-    "repair_action_rate": 0.2747,
+    "repair_action_rate": 0.2294,
     "repaired": 25,
-    "unrecorded": 64,
+    "unrecorded": 82,
     "watch_only_guard_correct": 2
   },
   "rounds": {
