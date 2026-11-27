@@ -22,10 +22,10 @@ Dependencies.  Python 3 stdlib only; zero network; zero eval/exec;
   and b_gate_audit (the ready verdict, imported, never re-implemented);
   the feedback edge AST-scans tools/scheduler_lite.py (the standing
   consumer, comment-proof: a parsed source carries no comments).
-Evidence.  --selftest on temporary fixtures, fourteen vectors: the eight
-  standing faces plus the promotion row lock, the exp_port interop, and
-  the four feedback-edge faces (closed, partial, open-kill-shape and
-  tolerant-absent).
+Evidence.  --selftest on temporary fixtures, fifteen vectors: the eight
+  standing faces plus the promotion row lock, the exp_port interop, the
+  four feedback-edge faces (closed, partial, open-kill-shape and
+  tolerant-absent), and the platform-independent default label.
 Exit-codes.  0 = face produced / promotion scan clean (appends and skips
   are both clean); 1 = at least one account error or a write failure,
   named on stdout; 2 = usage error.
@@ -198,6 +198,13 @@ CALIB_FACES = ("PASS", "FAIL")
 SCHED_DEFAULT = ("tools", "scheduler_lite.py")
 EDGE_RATE_KEY = "approval_rate_auto"
 EDGE_DOC_TOKEN = "scheduling-feedback"
+
+
+def default_scheduler_label():
+    """The repo-relative standing consumer label, platform-independent:
+    forward slashes on every host, per the learning-feedback contract
+    (the tracked face carries no machine-specific path)."""
+    return "/".join(SCHED_DEFAULT)
 EDGE_APPLY_CALL = "apply_feedback_input"
 EDGE_RECORD_KEY = "schedulingInput"
 EDGE_TRACE_KEY = "scheduling_input"
@@ -608,7 +615,7 @@ def build_face(rounds_path, state_path, exp_path, scheduler_path=None):
     calibration = compute_calibration(exp_rows, ledger_present)
     source_label = None
     if scheduler_path is None:
-        source_label = os.path.join(*SCHED_DEFAULT)
+        source_label = default_scheduler_label()
         scheduler_path = os.path.join(_repo_root(), *SCHED_DEFAULT)
     edge = feedback_edge_grade(scheduler_path, rounds_path, source_label)
     return {"schema": SCHEMA,
@@ -992,8 +999,8 @@ SELFTEST_ONLY_SCHED_SOURCE = (
 
 
 def selftest():
-    """Fourteen offline vectors on temp fixtures; zero repository paths."""
-    total_vectors = 14
+    """Fifteen offline vectors on temp fixtures; zero repository paths."""
+    total_vectors = 15
     root = tempfile.mkdtemp(prefix="learning_feedback_selftest_")
     failures = []
     try:
@@ -1725,6 +1732,16 @@ def selftest():
                and face14["feedback_edge"]["status"] == "open"
                and face14["rounds"]["errors"],  # absent state file: one error
                "face %r" % face14["feedback_edge"])
+
+        # Vector 15: the default consumer label is platform-independent.
+        # The tracked face contract states the repo-relative form with
+        # forward slashes on every host; a platform separator in the
+        # label dirties the tracked face on non-posix hosts.
+        label15 = default_scheduler_label()
+        _check(failures, 15, "default label posix form",
+               label15 == "tools/scheduler_lite.py"
+               and "\\" not in label15 and os.sep not in label15,
+               "label %r" % label15)
     finally:
         shutil.rmtree(root, ignore_errors=True)
     for line in failures:
