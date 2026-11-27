@@ -47,8 +47,10 @@ Exit-codes.  0 clean; 2 usage; 9 --repo/--tools/--stand path missing.
 #   - usage_face: python-invocation lines from the docstring when argparse
 #     is absent (the axiom_guard shape); [] otherwise.
 #   - imports: {modules (top-level stdlib module roots), third_party (roots
-#     outside sys.stdlib_module_names and not in-repo), local (in-repo: the
-#     tools package or a sibling tools/ module), guarded_conditional
+#     outside the interpreter stdlib vocabulary - sys.stdlib_module_names
+#     from Python 3.10, the frozen _PRE_310_STDLIB_ROOTS vocabulary on
+#     older interpreters - and not in-repo), local (in-repo: the tools
+#     package or a sibling tools/ module), guarded_conditional
 #     (import roots nested inside try/if/with/def at any depth)}.
 #   - network: {transport_imports (the transport module roots),
 #     adjacent_imports (local siblings whose own text carries a transport
@@ -81,7 +83,70 @@ import subprocess
 import sys
 
 PROG = "census_rescan"
-STDLIB = frozenset(getattr(sys, "stdlib_module_names", ()) or ())
+# Import-root vocabulary for interpreters below Python 3.10, where
+# sys.stdlib_module_names does not exist.  Frozen once from the CPython
+# 3.9.6 reference interpreter (builtin module names plus the module roots
+# of the stdlib path entries, site-packages excluded), sorted; it mirrors
+# the 3.10+ semantics of naming every importable standard module,
+# interpreter-internal ones included.  Consumed only as the fallback
+# below; never read on a 3.10+ interpreter.
+_PRE_310_STDLIB_ROOTS = (
+    "__future__", "_abc", "_aix_support", "_ast", "_asyncio", "_bisect",
+    "_blake2", "_bootlocale", "_bootsubprocess", "_bz2", "_codecs",
+    "_codecs_cn", "_codecs_hk", "_codecs_iso2022", "_codecs_jp",
+    "_codecs_kr", "_codecs_tw", "_collections", "_collections_abc",
+    "_compat_pickle", "_compression", "_contextvars", "_crypt", "_csv",
+    "_ctypes", "_ctypes_test", "_curses", "_curses_panel", "_datetime",
+    "_dbm", "_decimal", "_elementtree", "_functools", "_hashlib", "_heapq",
+    "_imp", "_io", "_json", "_locale", "_lsprof", "_lzma", "_markupbase",
+    "_md5", "_multibytecodec", "_multiprocessing", "_opcode", "_operator",
+    "_osx_support", "_peg_parser", "_pickle", "_posixshmem",
+    "_posixsubprocess", "_py_abc", "_pydecimal", "_pyio", "_queue",
+    "_random", "_scproxy", "_sha1", "_sha256", "_sha3", "_sha512",
+    "_signal", "_sitebuiltins", "_socket", "_sqlite3", "_sre", "_ssl",
+    "_stat", "_statistics", "_string", "_strptime", "_struct", "_symtable",
+    "_sysconfigdata__darwin_darwin", "_testbuffer", "_testcapi",
+    "_testimportmultiple", "_testinternalcapi", "_testmultiphase",
+    "_thread", "_threading_local", "_tkinter", "_tracemalloc", "_uuid",
+    "_warnings", "_weakref", "_weakrefset", "_xxsubinterpreters",
+    "_xxtestfuzz", "_zoneinfo", "abc", "aifc", "antigravity", "argparse",
+    "array", "ast", "asynchat", "asyncio", "asyncore", "atexit", "audioop",
+    "base64", "bdb", "binascii", "binhex", "bisect", "builtins", "bz2",
+    "cProfile", "calendar", "cgi", "cgitb", "chunk", "cmath", "cmd",
+    "code", "codecs", "codeop", "collections", "colorsys", "compileall",
+    "concurrent", "configparser", "contextlib", "contextvars", "copy",
+    "copyreg", "crypt", "csv", "ctypes", "curses", "dataclasses",
+    "datetime", "dbm", "decimal", "difflib", "dis", "distutils", "doctest",
+    "email", "encodings", "ensurepip", "enum", "errno", "faulthandler",
+    "fcntl", "filecmp", "fileinput", "fnmatch", "formatter", "fractions",
+    "ftplib", "functools", "gc", "genericpath", "getopt", "getpass",
+    "gettext", "glob", "graphlib", "grp", "gzip", "hashlib", "heapq",
+    "hmac", "html", "http", "imaplib", "imghdr", "imp", "importlib",
+    "inspect", "io", "ipaddress", "itertools", "json", "keyword",
+    "lib2to3", "linecache", "locale", "logging", "lzma", "mailbox",
+    "mailcap", "marshal", "math", "mimetypes", "mmap", "modulefinder",
+    "multiprocessing", "netrc", "nis", "nntplib", "ntpath", "nturl2path",
+    "numbers", "opcode", "operator", "optparse", "os", "parser", "pathlib",
+    "pdb", "pickle", "pickletools", "pipes", "pkgutil", "platform",
+    "plistlib", "poplib", "posix", "posixpath", "pprint", "profile",
+    "pstats", "pty", "pwd", "py_compile", "pyclbr", "pydoc", "pydoc_data",
+    "pyexpat", "queue", "quopri", "random", "re", "readline", "reprlib",
+    "resource", "rlcompleter", "runpy", "sched", "secrets", "select",
+    "selectors", "shelve", "shlex", "shutil", "signal", "site", "smtpd",
+    "smtplib", "sndhdr", "socket", "socketserver", "sqlite3",
+    "sre_compile", "sre_constants", "sre_parse", "ssl", "stat",
+    "statistics", "string", "stringprep", "struct", "subprocess", "sunau",
+    "symbol", "symtable", "sys", "sysconfig", "syslog", "tabnanny",
+    "tarfile", "telnetlib", "tempfile", "termios", "textwrap", "this",
+    "threading", "time", "timeit", "tkinter", "token", "tokenize", "trace",
+    "traceback", "tracemalloc", "tty", "turtle", "turtledemo", "types",
+    "typing", "unicodedata", "unittest", "urllib", "uu", "uuid", "venv",
+    "warnings", "wave", "weakref", "webbrowser", "wsgiref", "xdrlib",
+    "xml", "xmlrpc", "xxlimited", "xxsubtype", "zipapp", "zipfile",
+    "zipimport", "zlib", "zoneinfo",
+)
+STDLIB = frozenset(getattr(sys, "stdlib_module_names", None)
+                   or _PRE_310_STDLIB_ROOTS)
 TRANSPORT_ROOTS = frozenset((
     "http", "urllib", "socket", "ssl", "ftplib", "smtplib", "poplib",
     "imaplib", "telnetlib", "xmlrpc",
@@ -556,6 +621,7 @@ def selftest():
             and beta["argparse"]["imported"] is False
             and beta["imports"]["modules"] == []
             and beta["imports"]["guarded_conditional"] == ["json"]
+            and beta["imports"]["third_party"] == []
             and len(beta["docstring"]["head"]) == 600
             and beta["invocation"]["basis"] == "none",
             "beta faces")
