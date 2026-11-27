@@ -212,6 +212,7 @@ t_dual_scan \
  t_selfheal_guards \
  t_jargon_map_sync \
  t_tool_selftests \
+ t_tool_probes \
  t_axiom_audit \
  t_count_guard \
  t_anchor_guard_shape \
@@ -1236,6 +1237,22 @@ t_tool_selftests() {
   # faces.  Per-tool subprocess cap 120 seconds; zero network; zero writes
   # (python -B child runs; offline vector faces only).
   "$PY" -B "$REPO/tests/test_tool_selftests.py"
+}
+
+t_tool_probes() {
+  # the planted-fault probe proof face (tests/test_tool_selftests.py
+  # --prove): every rostered carrier's --selftest must come back green AND
+  # carry its declared probe literal - a planted known-bad input the guard
+  # actually reported (count_guard drift injection, norm_lint planted
+  # jargon/forbidden vectors, axiom_guard strict red plants,
+  # statement_identity uncast row, anchor_guard vacuous-certificate
+  # pipeline).  A green carrier whose probe literal is absent answers
+  # CANNOT-FAIL rc 2 (the proof face proves nothing); a carrier selftest
+  # that runs red answers the ordinary rc 1; the toolchain-gated carrier
+  # (anchor_guard) is listed SKIPPED-TOOLCHAIN on its honest rc 111 -
+  # visible, never counted green, never a FAIL.  Offline except the
+  # toolchain-gated probe tier; zero repository writes.
+  "$PY" -B "$REPO/tests/test_tool_selftests.py" --prove
 }
 
 t_axiom_audit() {
