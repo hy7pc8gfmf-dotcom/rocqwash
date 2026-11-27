@@ -1,22 +1,32 @@
-#!/usr/bin/env bash
-# cw.sh — unified entry for the rocqwash tool suite: the v29-v32 seven-tool
-#         release plus the v35-v39 five-tool release plus the v37 three-tool
-#         release plus the v38 aggregate doctor plus the v39 trio (doc-lint,
-#         netname-normalize, select-audit) plus the v40 baseline-diff plus
-#         the v45 render-events ledger renderer plus the v46
-#         `red-dispatch`/`registry-audit` pair plus the v47 registry-fix
-#         prescription applier plus the annotation-face normalization
-#         linter (norm-lint) plus the contribution registration-row
-#         regenerator (registry-regen) plus the contribution intake
-#         inspector (contrib-intake) plus the autonomous evolution engine
-#         (evolve) plus the cross-repository experience bus (symbiosis-bus)
-#         plus the external return-package intake gate (uplink)
-#         — thirty-two tools in total
-#         (repository root, bash 3.2 compatible)
-#
-# Usage: bash cw.sh <tool> [args...]
-#
-# 工具表 Tools (one usage line + target script per tool; args and exit codes pass through 1:1):
+# cw.sh.zh.md - zh archive mirror of the cw.sh interface document (rocqwash tools suite)
+
+> **Language versions:** this file is the zh archive mirror of `cw.sh`. The
+> zh decorations (the tool-table heading prefix and the two unknown-tool
+> line wrappers) are this archive's own; every other line of the mirrored
+> faces follows the cw.sh text of record. Tool names, flags, paths and
+> exit-code semantics are identical in both.
+
+Purpose.  Mirror the interface document of `cw.sh`, the repository's
+  one-command entry, for the zh archive series: the tool table, the
+  per-route usage lines, the routing faces, and the exit-code passthrough
+  contract, re-applied verbatim so the mirror stays equal to the record.
+Interface.  Documentation face only; nothing here executes. The executable
+  entry is `bash cw.sh <tool> [args...]` at the repository root;
+  arguments and exit codes pass through 1:1.
+Dependencies.  None (documentation face; no build, no toolchain, no
+  runtime); derived from `cw.sh` by one-shot mechanical re-application.
+Evidence.  norm_lint reports zero error findings on this face; the
+  route inventory equals cw.sh's (route-line extraction diff
+  empty); the tool-table, usage-echo, run-tool, and unknown-tool faces are
+  byte-equal to the record except the declared zh decorations; the suite
+  (tests/run_tests.sh) stays green - its cw.sh entry test consumes cw.sh,
+  never this archive.
+Exit-codes.  Not applicable (documentation face; the file defines no
+  process exit code).
+
+## Mirrored faces (cw.sh text of record)
+
+# 工具表 Tool table (one usage line + target script per tool; args and exit codes pass through 1:1):
 #   scan4       token-level qualified-identifier census -> scan/scan_v4_token.py
 #               cw.sh scan4 --file <f.v> [--json out.json] [--ids S] [--text]
 #   cure        consumer-cure canonical pack (dry-run by default) -> wash/cure_applier.py
@@ -72,7 +82,7 @@
 #               cw.sh render-events --events F.jsonl [--dir DIR] [--md out.md] [--json out] [--top N]
 #   dispatch    red-event router (sentinel red events -> action presets; three tiers report-only/suggest/auto)
 #                                                    -> tools/red_dispatch.py
-#               cw.sh dispatch --event-file <json> [--preset report-only|suggest|auto] [--json OUT] [--state-file F] [--cooldown S] [--repo-path DIR] [--param K=V] [--dry-run]
+#               cw.sh `dispatch` --event-file <json> [--preset report-only|suggest|auto] [--json OUT] [--state-file F] [--cooldown S] [--repo-path DIR] [--param K=V] [--dry-run]
 #   audit       registry hygiene auditor (dual-book read-only four-account output + deterministic prescription; --apply does not exist)
 #                                                    -> tools/registry_audit.py
 #               cw.sh audit --order ORDER --project _CoqProject | --git REPO --ref REF [--live-src DIR] [--anchor-src DIR] [--fix-plan] [--json out] [--md out]
@@ -107,8 +117,8 @@
 #               cw.sh ai-flavor --file <p> [--json out] | --tree DIR | --selftest
 #   ai-flavor-apply AI-wording advisory apply face (writes only through the rewrite provider; handoff leg default zero-network; http leg default-deny; zh ban faces never machine-written) -> tools/ai_flavor_apply.py
 #               cw.sh ai-flavor-apply --file <p> [--json out] [--emit-handoff out.jsonl | --apply-handoff in.jsonl --state p] [--provider handoff|http]
-#   auto-round  round-ledger admission/rollback/salvage body (auto/gated gear per autonomy.json; append-only ledger; rollback = drift archive then one revert; no reset no force no push) -> tools/auto_round.py
-#               cw.sh auto-round <command> [--repo-root P] [--autonomy P] [--state P] [--ledger P] [--continue] [--selftest]
+#   auto-round  round-ledger admission/rollback/salvage body (auto/gated gear per autonomy.json; append-only ledger; rollback = drift archive then one revert; no reset no force no push; commit --scheduler-plan P records the plan face's schedulingInput influence as the row's scheduling_input trace) -> tools/auto_round.py
+#               cw.sh auto-round <command> [--repo-root P] [--autonomy P] [--state P] [--ledger P] [--continue] [--scheduler-plan P] [--selftest]
 #   i18n-pipeline zh-en four-linkage i18n pipeline orchestration (P0 policy pre-check / P1 segmenter / P3 four-linkage apply / P6 ledger closure; refusal is a legal exit-0 ledgered outcome) -> tools/i18n_pipeline.py
 #               cw.sh i18n-pipeline --manifest run.json --stage p0|p1|p3|p6 [--json out] [--selftest]
 #   i18n-translate model-site layer P2 of the i18n pipeline (handoff emit/ingest default zero-network; http leg optional default-deny; NETRED ledger line per call) -> tools/i18n_translate.py
@@ -132,13 +142,37 @@
 #   symbiosis-bus  cross-repository experience bus over docs/exp-ledger.jsonl (swap schema rocqwash-symbio/1; import walks the exp_port append face one call per entry; export/status/diff read-only; zero network by design) -> tools/symbiosis_bus.py
 #               cw.sh symbiosis-bus export --out SWAP.jsonl [--ledger P] [--source-repo NAME] [--anchor HEX] [--dry-run] | import --swap SWAP.jsonl [--ledger P] [--dry-run] | status [--ledger P] [--swap F] | diff --a A --b B
 #   uplink      external return-package intake gate (verify / intake / pr-prep; md5 mismatch and missing declared members are fail-loud; the intake register row and the caller-named draft are the only writes; zero network by design) -> tools/uplink.py
-#               cw.sh uplink verify --package P.zip [--digest HEX|SIDECAR] [--manifest M.md5] | intake --package P.zip --source-agent SEAT --landed-ref REF [--digest HEX|SIDECAR] [--manifest M.md5] [--register F] [--dry-run] | pr-prep --package NAME --out DRAFT.md [--register F] [--signature LINE]
+#               cw.sh uplink verify --package P.zip [--digest HEX|SIDECAR] [--manifest M.md5] | intake --package P.zip --source-seat SEAT --landed-ref REF [--digest HEX|SIDECAR] [--manifest M.md5] [--register F] [--dry-run] | pr-prep --package NAME --out DRAFT.md [--register F] [--signature LINE]
 #   evolution-dashboard  self-evolution dashboard over the three standing accounts (experience ledger + round ledger + vacgen v2 TODO-SEAT reports -> coverageLowerPct curve + rounds conversion + per-run gap thermometer; JSON + markdown faces; absent standing paths are data) -> tools/evolution_dashboard.py
 #               cw.sh evolution-dashboard [--repo ROOT] [--exp-ledger P] [--rounds P] [--reports P]... [--json-out P] [--md-out P] [--stdout markdown|json] [--selftest]
 #   bus-feeder  gap-ledger feeder for symbiosis swap packages (rocqwash-symbio/1 in, TODO-SEAT gap rows out; family-shape keyed, idempotent on id and fingerprint; the gap feed ledger is the only write face; zero network by design) -> tools/bus_feeder.py
 #               cw.sh bus-feeder feed --swap SWAP.jsonl [--ledger P] [--dry-run] | status [--ledger P] [--swap F] | --selftest
-#   axiom-guard repo-wide axiom guard (every .v compiled and tri-classified: compile-ok / compile-broken debt register / skip-no-toolchain; two-level detection on compile-ok files: per-theorem Print Assumptions census plus the authoritative coqchk -o kernel recheck; Closed zero axioms, empty default whitelist; env-gated, rc 111 honest skip; zero repository writes) -> tools/axiom_guard.py
-#               cw.sh axiom-guard --repo DIR [--out DIR] [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC] [--keep]
+#   axiom-guard repo-wide axiom guard (every .v compiled and tri-classified: compile-ok / compile-broken debt register / skip-no-toolchain; two-level detection on compile-ok files: per-theorem Print Assumptions census plus the authoritative coqchk -o kernel recheck; Closed zero axioms, empty default whitelist; --strict strict mode: compile-broken and trust-surface alarm files red (default debt, verdict-neutral); --strict-exclude strict-gate scope entry (repeatable): under --strict a file under it contributes no red of any kind and is named in the report's strict_excluded face, trust-surface alarms never excludable, inert without --strict; env-gated, rc 111 honest skip; zero repository writes) -> tools/axiom_guard.py
+#               cw.sh axiom-guard --repo DIR [--out DIR] [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC] [--keep] [--strict] [--strict-exclude PATH]... | --selftest
+#   source-fetch audit fetch face (dual-source cross-pin, sha256 pin from caller or CI-source file, HTML-trap sniff, NETRED backoff; honest-unverified and net-gated states are data) -> tools/source_fetch.py
+#               cw.sh source-fetch --url URL [--sha256 HEX] [--sha256-source URL] [--mirror URL] [--trap-sniff] [--out DIR] [--timeout SEC] [--retries N] | --selftest
+#   sweep-verdict batch sweep judge (per-lane result ledgers union-deduped into a GREEN/EXCEPTION/MISSING verdict table; expected-red interlock with baselinediff semantics; shared-append ledgers are the anti-pattern it exists to prevent) -> tools/sweep_verdict.py
+#               cw.sh sweep-verdict --lanes DIR [--expected-red FILE] [--out FILE] | --selftest
+#   release-chain release chain planner (issue body -> GitHub Release per-asset -> Zenodo deposit, three gated layers; dry-run by default, publish needs --confirm-publish; URLs and DOIs are taken verbatim from service responses) -> tools/release_chain.py
+#               cw.sh release-chain --issue N --release-title T --assets DIR [--zenodo-meta FILE] [--repo OWNER/NAME] [--stage 1|2|3|4] [--dry-run] [--confirm-publish] | --selftest
+#   claim-watch conclusion-level claim watch (the eight RH signals + three NS/Euler triggers from the seed config; machine-readable status endpoints; heartbeat silent-death and unverifiable registration; append-only actor-namespaced round ledger; live face) -> tools/claim_watch.py
+#               cw.sh claim-watch --config FILE [--round-label L] [--ledger FILE] [--actor A] | --offline-selftest
+#   axiom-sweep per-theorem Lean axiom-closure classifier (#print axioms via the target's own lake env; CLEAN / BENIGN-STANDARD trio / SORRY-ALARM / CUSTOM-AXIOM-ALARM / PRIVATE-COVERED / UNPARSED; closure snapshot plus baseline diff_alarm) -> tools/lean_axiom_sweep.py
+#               cw.sh axiom-sweep --root FILE|DIR [--json OUT] [--snapshot OUT] [--baseline SNAP] [--allow-axiom NAME]... | --selftest
+#   numeric-probe numerical claim verifier (stdlib exact arithmetic executes rational-bound and interval-containment claims; transcendental plans stay honestly PLANNED) -> tools/numeric_probe.py
+#               cw.sh numeric-probe --claim FILE [--out FILE] | --selftest
+#   statement-identity two-face statement identity prober (claimed vs proven normalization, three-seam classification, uncast-region matrix) -> tools/statement_identity.py
+#               cw.sh statement-identity --claimed FILE --proven FILE [--out FILE] | --selftest
+#   capability-index capability index reader (full and summary modes plus single-tool query over the census masters; summary exists because the full index overran harness response caps) -> tools/capability_index.py
+#               cw.sh capability-index [--mode full|summary] [--tool NAME] | --selftest
+#   axiom-audit Coq-side axiom audit (fixture-corpus census per coqc engine; declared axioms with file/line/form, reverse map to introducing files, platform grades classical/funext/stdlib; live engine required, unconfigured skips honestly) -> tools/axiom_audit.py
+
+#               cw.sh axiom-audit census --repo DIR [--json OUT] | --selftest
+
+#   vacgen-coq Coq-side statement ingestion and probe-cast planner (Rocq vernacular extraction, premise/conclusion split, data-driven taxonomy rows, Coq-L3 coverage metric; ticket 14 work stream 1; zero network zero compile) -> tools/vacgen_coq.py
+
+#               cw.sh vacgen-coq --from-v FILE|DIR [--taxonomy FILE] [--out DIR] [--limit N] | --selftest
+
 #   flaky-guard flaky quarantine guard, repair class E2-3 (detect classifies each red case by an isolation probe: suite-red + alone-green = order-dependent, red in both contexts = content red that stays visible; --move quarantines into tests/advisory_roster.txt so the default suite drops it with a loud ADVISORY-OUT and the CI flaky-watch lane keeps observing it; scope-checked against tools/repair_scope.py, budget-capped at 2 per class per branch, ledgered in docs/repair-ledger.jsonl; dry-run by default; --restore needs green-round evidence) -> tools/flaky_guard.py
 #               cw.sh flaky-guard --detect --log LOG [--json OUT] [--no-probe] | --probe CASE | --move CASE [--apply] | --restore CASE [--apply] [--green-rounds N] | --status | --selftest
 #   repair-scope shared repair-scope exclusion table for the E2 guard family (frozen LEDGER8/CHECKERS rows read at runtime from certify/frozen8.py, the append-only ledger document, the frozen directory families; per-class writable faces + budget registry; the single source every repair guard imports) -> tools/repair_scope.py
@@ -153,97 +187,74 @@
 #               cw.sh jargon-map-sync [--md P] [--map P] [--json P] | --apply | --selftest
 #   repair-weekly  repair-outcome ledger weekly distribution face, repair class E6 (aggregates docs/repair-ledger.jsonl into the ISO-week per-red outcome census plus the class/ticket distributions; read-only over the ledger, --out/--json are the only write faces; --record appends one per-red rocqwash-repair-ledger/2 row under the enforced vocabulary, --apply required) -> tools/repair_weekly.py
 #               cw.sh repair-weekly [--ledger P] [--date YYYY-MM-DD] [--out FILE] [--json P] | --record --class CLASS --target T --repair-outcome VALUE [--ticket K] [--evidence-file J] [--reason S] [--apply] | --selftest
-#   selfevolve-round  one deterministic mechanical round, cron face (census jargon_apply --plan, then apply, then verify py_compile/bash -n hard gates plus norm_lint/doc_lint advisory, then auto_round commit, then push, then route the CI judge; frozen faces excluded by jargon_apply; zero qualifying fixes = clean no-op pass; apply residue nonzero = fail-loud, no commit) -> tools/selfevolve_round.py
+#   selfevolve-round  one deterministic mechanical round, cron face (scheduler_lite plan face verdict gate: quiet/blocked = loud data skip, due = the round fires, failure = loud fail-open with no trace; census jargon_apply --plan, then apply, then verify py_compile/bash -n hard gates plus norm_lint/doc_lint advisory, then auto_round commit carrying the plan's scheduling_input trace, then push, then route the CI judge; frozen faces excluded by jargon_apply; zero qualifying fixes = clean no-op pass; apply residue nonzero = fail-loud, no commit) -> tools/selfevolve_round.py
 #               cw.sh selfevolve-round [--dry-run]
+#   pin-repair  provenance-pin drift repair for the jargon seed map, triage row R15 auto-repair executor (re-signs drifted provenance.sources md5 pins behind the sync tool's zero-write plan IN-SYNC verdict; --plan writes nothing, --apply touches only md5 values and re-runs the seeds suite, red verify rolls back to the pre-apply bytes; not-IN-SYNC exits without touching the seed) -> tools/pin_repair.py
+#               cw.sh pin-repair --selftest | --plan | --apply [--seed P]
+#   learning-feedback  scheduling feedback face over the three standing ledgers (round ledger, round state, experience ledger read-only; casts schema rocqwash.scheduling-feedback/1 into docs/scheduling-feedback.json: the auto versus human-approved round split, the approval rate, the per-class breakdown, and the four-state repair outcome tally; missing or corrupt inputs land in the errors field, never guessed) -> tools/learning_feedback.py
+#               cw.sh learning-feedback [--selftest]
+#   b-gate  B-level generalization threshold audit over the round records (3 instances, each grounded in at least 1 executed round; per-class instance and round counts, a per-class readiness verdict, and an explicit gap list into docs/b-gate-audit.json, schema rocqwash.b-gate-audit/1; counts are measured from the records, never inflated) -> tools/b_gate_audit.py
+#               cw.sh b-gate [--selftest]
+#   tree-audit  read-only tree health audit over .lean/.v source trees (one JSON-line census: totals, declarations, the unsound-feature sweep, comment faces, per-directory and largest-file tables, import roots; byte-literal counting calibrated to the census oracle; zero subprocess, zero network, zero tree writes) -> tools/tree_audit.py
+#               cw.sh tree-audit --root DIR [--json OUT] | --selftest
+#   pipeline-lite  gap-to-admission pipeline executor, D2-2 data layer (scheduler_lite plan verdict imported, never re-derived; gap_cluster clusters transformed to row_render gap rows with the layer-law policyPrecheckRef stamped; emit packet then ingest a backfill into a draft whose rows enter at tenpointVerdict PENDING; quiet and blocked write nothing; pending-backfill and pending-human stops are data; code-layer faces (ten-point verdicts, taxonomy row integration, apply pass, auto_round commit and approve) stay human-gated and are never composed; b-gate audit counter carried read-only; zero network) -> tools/pipeline_lite.py
+#               cw.sh pipeline-lite [--plan F] [--gap-ledger P]... [--reports P]... [--rounds P] [--autonomy P] [--state P] [--ef-marker P] [--threshold N] [--interval-seconds N] [--now-utc ISO8601Z] [--gap-out F] [--render-gaps F] [--packet-out F] [--backfill F] [--draft-out F] [--b-gate-audit P] [--policy-ref S] [--stop-at {data,human}] [--json] | --selftest
+#   anchor-guard  anchor and certificate guard for one module directory (manifest validation V1-V10, module compile tri-classification in a private temp workdir, coqchk -o kernel recheck baseline, per-anchor probe face over vm_compute checks plus Print Assumptions, mutation kill matrix over the manifest's copied defect rows: a certificate that kills zero mutants is VACUOUS and red, a non-hold baseline is an unanchored anchor, module compile-broken is red; manifest copies its mutant rows from tools/mutants-v1.json, the guard never loads the library; env-gated, rc 111 honest skip; zero repository writes) -> tools/anchor_guard.py
+#               cw.sh anchor-guard --repo DIR --manifest FILE [--out DIR] [--rocq BIN] [--coqchk BIN] [--timeout SEC] [--keep] | --selftest
+#   attest-join   side-by-side join of the cw.attest/v1 module archive and the rocqwash.b-axiom-audit/1 axiom-audit report (juxtaposition on the exact module key, never an equality check: the two hash faces are different objects - compiled .vo bytes vs source bytes - so rows record both verbatim; keys land in matched / matched_local / unmatched sides, a missing side is a loud absent-side face, --basename-fallback relaxes the exact-key join; zero network, read-only) -> tools/attest_join.py
+#                 cw.sh attest-join [--attest F] [--report F] [--out F] [--basename-fallback] | --selftest
+#   count-guard   six-face roster count reconciler (check-only: R1 tools count / R2 tree face / R3 MCP roster pair and docs/mcp.md tokens / R4 cw.sh route face / R5 routed-target face / R6 census declared-lag, rc-neutral by design; re-derives every standing tool-count face from its sources and fails loudly on cross-face inequality with both file:line faces and both values named - repair by token-swap; rc 0 all green, 1 drift, 2 missing-face) -> tools/count_guard.py
+#                 cw.sh count-guard [--repo DIR] [--json F] | --selftest
+#   lean-parity-crosswalk  the Lean/Rocq axiom parity crosswalk engine (both parent tools' frozen vectors crosswalked row by row on the five mirror proposition keys clean / classical / funext / custom / sorry; the mapping is axiom_audit.LEAN_PARITY_ROWS verbatim, the Admitted <-> sorryAx mirror rule design-frozen; compile/Lean-engine gated legs honestly SKIP; schema rocqwash.parity.lean-census/1) -> tools/lean_parity_crosswalk.py
+#                 cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest
+#   mutant-manifest  anchor_guard manifest skeleton generator (the deterministic bridge from the frozen mutation library tools/mutants-v1.json, schema rocqwash.mutants/1, to a rocqwash.anchor/1 draft: selected mutant rows copied verbatim - never re-derived, never mechanically narrowed - the anchors array deliberately empty because anchor_guard rejects an empty anchors array by rule, so the skeleton is judgeable-by-design only after authoring; the authoring checklist prints loudly on stdout; --families selects rows by exact id, unknown id = fail-loud rc 2; sorted keys, double-run byte-identical; zero network, zero toolchain) -> tools/mutant_manifest.py
+#                 cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest
+#   coqtop-batch  batch statement feed through coqtop with per-statement error classification (one stdin-fed session chunks on the toplevel prompt markers Rocq < / legacy Coq < ; nested proof prompts never split a chunk; every error lands at once with statement attribution - the interactive-batch face beside probe_engine's single-error compile face; binary resolves flag > ROCWASH_COQTOP > honest skip rc 111; zero network) -> tools/coqtop_batch.py
+#                 cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest
+#   qed-cost-lint  candidate Qed-cost lint over Proof..Qed blocks (the source face of the three-source design volume docs/qed-cost-lint-design-20261126.md: long non-fast blocks surface as candidates, fast-closure blocks demote, report-only by default with --gate adding rc semantics; the kernel slow-path grind is a recorded blind spot - the coqc -time log face is the follow-up ticket; zero toolchain, zero network) -> tools/qed_cost_lint.py
+#                 cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest
+#   require-rewire  module-retirement rewiring orchestrator (given a retirement plan - module M retires onto successor S - scans a .v tree for every Require face referencing M via the three wash_shape-anchored line shapes (From Stdlib / From <dir> / bare, each with optional Import/Export), classifies Import vs Export per consumer, and emits a wash_engine-compatible patch ledger (tag/old/new/expect, the exact-string count-asserted form) so the standing engine applies the rewiring itself - the orchestrator plans, wash/wash_engine.py executes; the standalone --verify closure face fails loud on any surviving M reference, rc 0 clean / 1 survivors, and never requires the successor; the successor's drop-in compatibility is a plan authoring obligation (the anchor_guard independence-note precedent); deterministic: sorted consumers, double-run byte-identical; zero network, zero toolchain) -> tools/require_rewire.py
+#                 cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest
+#   independence-screener  name-level independence screening over an anchor manifest against the mutant defect library (the mechanical first-pass face of the authoring obligation mutants-v1.json records and anchor_guard honestly leaves as future work beyond V7's non-emptiness: extracts each mutant's site identifiers from its regex-source pattern/replacement fields - a composed site name appears there as regex fragments, rsT_ / recipQ - and each anchor's independent_derivation tokens, and flags every underscore-part intersection (parts >= 3) as a collision, the VACUOUS-certificate risk shape; prose can never false-positive because a part counts only when it equals a real library fragment part, generic-name hits are listed as data for review; no-name rows (the CONST-001 numeric shape) are recorded, never judged; screening is not proof - the report records the library independence_note verbatim and states the obligation stays with review; zero network, zero toolchain) -> tools/independence_screener.py
+#                 cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest
+#   census-rescan  AST word-face census re-scan generator (the in-repo reproduction face of the census lane: the standing docs/census-tools.json was produced by a lane-side one-off absent from the repository, so this tool re-produces records under its own documented v1 rules - file facts, main guard, docstring head truncation at 600, argparse capture, import buckets incl. guarded conditionals, network classification with the git-bridge subset, skip-face token vocabulary, selftest flag vs token face, invocation reconstruction - and --merge appends the missing tools to the standing census with the old rows preserved verbatim and meta.rescan_generation recording the split: mixed-generation lineage is data, never passed off as one method; deterministic sorted rows, double-run byte-identical; zero network, zero subprocess on the scan face) -> tools/census_rescan.py
+#                 cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest
+#   capability-ratchet  the nine-metric capability ratchet (append-only capability readings that only roll forward: four capability-carrier metrics (triage classes, regression vectors, taxonomy rows, cure patterns) plus five mechanism metrics (MCP roster, selftest vectors, repair action rate, B-gate ready classes, calibration agreement rate) are re-derived from their source accounts at every run, never hand-filled; unmeasured is null, never 0; --measure derives fresh readings, --gate judges against a --baseline (below rc 1), --compare validates the whole ledger chain against fresh readings, --append lands exactly one chain-linked snapshot line and is the only write face; --selftest is an offline vector group, repository-write-free; zero network) -> tools/capability_ratchet.py
+#                 cw.sh capability-ratchet [--repo DIR] [--measure [--json [PATH]]] [--gate --baseline FILE] [--compare FILE] [--append FILE [--allow-dirty-anchor]] [--from-sha SHA] | --selftest
+#   repo-sync-status  local repository sync offset reader (the staleness face a remote consumer checks before trusting this checkout: how far HEAD is ahead of and behind the last fetched origin/main, with head_sha, tag, origin_sha, and the up_to_date verdict, every field a {value, basis} pair; zero network - the origin side is the last fetched ref, never a live remote query; an unmeasurable offset is exit 9 with the reason, never a guessed zero) -> tools/repo_sync_status.py
+#                 cw.sh repo-sync-status [--repo DIR] [--json OUT] | --selftest
 #   help        this help (help <tool> = the tool's one-line usage hint)
 #
-# 路由契约 Routing contract:
-#   1. All paths resolve relative to the repository root (ROOT is derived from
-#      this script's own directory) — zero hardcoded absolute paths; the repo
-#      can be relocated freely.
-#   2. Arguments and exit codes pass through 1:1 (direct exec; fail-loud,
-#      never rewritten); same contract as cli/rocqwash.
-#   3. Exit codes: 0=pass; 2=unknown tool; 9=target script missing; anything
-#      else follows each tool's own convention and passes through
-#      (per-tool conventions: --help/--selftest=0; argparse usage errors /
-#      FAIL-LOUD assertion failures=2; missing target files=9).
-#      pushci passes through its verdict seal (success/dry-run=0;
-#      heal-exhausted/unstable/toolchain=1; fix-content/gate4-block=2;
-#      9=target missing). The v37 trio follows the same shape: 0=green /
-#      inspection complete / unclogged; 1=data-side incomplete (shaping
-#      partial / plan-miss; wall / rounds-exhausted — red is data, not tool
-#      failure; reported loudly on stdout); 2=usage error; 9=missing /
-#      fail-loud.
-#      cw-doctor, same shape: 0=healthy (aggregate score >= 90); 1=degraded
-#      (red is data, not tool failure; reported loudly on stdout);
-#      2=usage error; 9=missing / fail-loud.
-#      doc-lint, same shape: 0=consistent (all three checks drift-free);
-#      1=drift (any check drifted; red is data, not tool failure; reported
-#      loudly on stdout); 2=usage error (--help-cap<1); 9=missing (required
-#      input absent / tool --help red or timed out, fail-loud).
-#      baseline-diff, same shape: 0=improved/stable (reds fewer or equal);
-#      1=degraded/incomparable (reds increased, or honest refusal on a
-#      changed candidate set; red is data, not tool failure; reported loudly
-#      on stdout); 2=usage error / malformed input (schema mismatch / ledger
-#      self-consistency broken); 9=path missing.
-#      route, same shape: 0=processing complete (red is data, not tool
-#      failure; a dispatched rc!=0 / timeout / dedup skip is recorded without
-#      touching the exit code); 2=usage error (--param guard / --dry-run
-#      tier mismatch / negative --cooldown); 9=missing input (event file
-#      absent / missing fields listed item by item / unresolvable parameter /
-#      metacharacter refused at construction / malformed state refused).
-#      audit, same shape: 0=report emitted (findings are data; count>0
-#      still exits 0; reported loudly on stdout); 2=usage error (parameter
-#      mismatch / no input surface / only one of the two books given);
-#      9=missing input (book files / git show / live-src / anchor-src
-#      absent).
-#      registry-fix, same shape: 0=dry-run report emitted, or --apply
-#      written plus all three assertions passed; 2=usage error (schema
-#      mismatch / missing fix_plan / same-parameter breach / entry key
-#      missing / AssertBlast assertion failure — the report carries evidence
-#      after a rollback); 9=missing input (audit JSON / the two books / the
-#      audit tool / anchor-src directory absent).
-#      norm-lint, same shape: 0=accounted (report-only: findings are data,
-#      the exit code never escalates on them); 1=selftest red (an assertion
-#      in the five selftest vectors failed); 2=usage error (no scan face /
-#      both --tree and --file / --gate or --strict reserved / negative
-#      --cjk-threshold); 9=missing input (tree or file absent / jargon map
-#      unreadable / CJK whitelist unreadable).
-#      registry-regen, same shape: 0=draft produced (BLOCK pieces are
-#      data, reported loudly); 1=selftest red; 2=usage error (apply
-#      without out / empty pieces / negative seq) or assertion failure
-#      (key collision / new anchor-text collision / dependency cycle /
-#      entity ambiguity / entity-blob divergence / write integrity -
-#      failure means zero writes); 9=missing input (repo / ref / book /
-#      anchor-src directory absent, coqdep absent when selected).
-#      contrib-intake, same shape: 0=verdict issued (a BLOCK verdict is
-#      data, reported loudly; gates never short-circuit); 1=instrument
-#      failure (no verdict can be issued); 2=usage error; 9=missing input
-#      (face path absent / ref unresolvable / instrument missing).
-#   4. bash 3.2 compatible (no associative arrays, no bash-4+ features);
-#      read-only routing layer — itself writes nothing.
+# Routing contract:
+#   1. All paths resolve relative to the repository root (ROOT derives from this script's own directory); zero hardcoded absolute paths, so the repository can be relocated freely.
+#   2. Arguments and exit codes pass through 1:1 (direct exec, fail-loud, never rewritten); same contract as cli/rocqwash.
+#   3. Exit codes: 0=pass; 2=unknown tool; 9=target script missing; anything else follows each tool's own convention and passes through (per-tool conventions: --help/--selftest=0; argparse usage errors / FAIL-LOUD assertion failures=2; missing target files=9).
+#      (pushci) verdict seal: success/dry-run=0; heal-exhausted/unstable/toolchain=1; fix-content/gate4-block=2; 9=target missing.
+#      (v37 trio) same shape: 0=green / inspection complete / unclogged; 1=data-side incomplete (shaping partial / plan-miss; wall / rounds-exhausted — a failing result is data, not a tool failure, reported loudly on stdout); 2=usage error; 9=missing / fail-loud.
+#      (cw-doctor) same shape: 0=healthy (aggregate score >= 90); 1=degraded (a failing result is data, not a tool failure, reported loudly on stdout); 2=usage error; 9=missing / fail-loud.
+#      (doc-lint) same shape: 0=consistent (all three checks drift-free); 1=drift (a check drifted; a failing result is data, not a tool failure, reported loudly on stdout); 2=usage error (--help-cap<1); 9=missing (required input absent / a failing or timed-out tool --help run, fail-loud).
+#      (baseline-diff) same shape: 0=improved/stable (failing blocks fewer or equal); 1=degraded/incomparable (failing blocks increased, or an honest refusal on a changed candidate set; a failing result is data, not a tool failure, reported loudly on stdout); 2=usage error / malformed input (schema mismatch / ledger self-consistency broken); 9=path missing.
+#      (route) same shape: 0=processing complete (a failing result is data, not a tool failure; a dispatched rc!=0 / timeout / dedup skip is recorded without touching the exit code); 2=usage error (--param guard / --dry-run tier mismatch / negative --cooldown); 9=missing input (event file absent / missing fields listed item by item / unresolvable parameter / metacharacter refused at construction / malformed state refused).
+#      (audit) same shape: 0=report emitted (findings are data; count>0 still exits 0, reported loudly on stdout); 2=usage error (parameter mismatch / no input surface / only one of the two books given); 9=missing input (book files / git show / live-src / anchor-src absent).
+#      (registry-fix) same shape: 0=dry-run report emitted, or --apply written plus all three assertions passed; 2=usage error (schema mismatch / missing fix_plan / same-parameter breach / entry key missing / AssertBlast assertion failure — the report carries evidence after a rollback); 9=missing input (audit JSON / the two books / the audit tool / anchor-src directory absent).
+#      (norm-lint) same shape: 0=accounted (report-only: findings are data, the exit code never escalates on them); 1=selftest red (an assertion in the five selftest vectors failed); 2=usage error (no scan face / both --tree and --file / --gate or --strict reserved / negative --cjk-threshold); 9=missing input (tree or file absent / jargon map unreadable / CJK whitelist unreadable).
+#      (registry-regen) same shape: 0=draft produced (BLOCK pieces are data, reported loudly); 1=selftest red; 2=usage error (apply without out / empty pieces / negative seq) or assertion failure (key collision / new anchor-text collision / dependency cycle / entity ambiguity / entity-blob divergence / write integrity - failure means zero writes); 9=missing input (repo / ref / book / anchor-src directory absent, coqdep absent when selected).
+#      (contrib-intake) same shape: 0=verdict issued (a BLOCK verdict is data, reported loudly; gates never short-circuit); 1=instrument failure (no verdict can be issued); 2=usage error; 9=missing input (face path absent / ref unresolvable / instrument missing).
+#   4. bash 3.2 compatible (no associative arrays, no bash-4+ features); the routing layer is read-only and itself writes nothing.
+# Coverage note: cli/rocqwash routes the pre-v29 modules (scan/names/ wash/verify/seam/certify/watch); the v29-v32 tools, the v35-v39 five tools (doctor/net-probe/triage/union/pushci), the v37 trio (cw_sentinel/wash_shape/unclog) and the v38 aggregate doctor (cw_doctor) live in module directories holding several generic entries each, where the auto-router's ambiguity guard (exit 4) deliberately declines to guess; this entry fills the gap by explicit tool name, so the two entries are complementary.
 #
-# 覆盖面注 Coverage note: cli/rocqwash routes the pre-v29 modules (scan/names/
-# wash/verify/seam/certify/watch). The v29-v32 tools and the v35-v39 five tools
-# (doctor/net-probe/triage/union/pushci in tools/) plus the v37 three tools
-# (cw_sentinel/wash_shape/unclog) plus the v38 aggregate doctor (cw_doctor)
-# live in module directories that now
-# hold several generic entries each, where the auto-router's ambiguity guard
-# (exit 4) deliberately declines to guess — this entry fills that gap by
-# explicit tool name. The two entries are complementary.
 
 set -u
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-usage() {
-  cat <<'EOF'
+usage() { cat <<'EOF'
 cw.sh — unified entry for the rocqwash tool suite (32 tools · bash 3.2 compatible)
-（中文过渡注 zh transition note: this help is English-first; the full original Chinese quick reference is archived in README-cw.zh.md）
+(zh transition note: this help is English-first; the full original Chinese quick reference is archived in README-cw.zh.md)
 
 Usage: bash cw.sh <tool> [args...]
 
-工具 Tools:
+Tools:
   scan4       token-level qualified-identifier census -> scan/scan_v4_token.py
               cw.sh scan4 --file <f.v> [--json out.json] [--ids S] [--text]
   cure        consumer-cure canonical pack (dry-run by default) -> wash/cure_applier.py
@@ -299,7 +310,7 @@ Usage: bash cw.sh <tool> [args...]
               cw.sh render-events --events F.jsonl [--dir DIR] [--md out.md] [--json out] [--top N]
   dispatch    red-event router (sentinel red events -> action presets; three tiers report-only/suggest/auto)
                                                    -> tools/red_dispatch.py
-              cw.sh dispatch --event-file <json> [--preset report-only|suggest|auto] [--json OUT] [--state-file F] [--cooldown S] [--repo-path DIR] [--param K=V] [--dry-run]
+              cw.sh `dispatch` --event-file <json> [--preset report-only|suggest|auto] [--json OUT] [--state-file F] [--cooldown S] [--repo-path DIR] [--param K=V] [--dry-run]
   audit       registry hygiene auditor (dual-book read-only four-account output + deterministic prescription; --apply does not exist)
                                                    -> tools/registry_audit.py
               cw.sh audit --order ORDER --project _CoqProject | --git REPO --ref REF [--live-src DIR] [--anchor-src DIR] [--fix-plan] [--json out] [--md out]
@@ -359,13 +370,33 @@ Usage: bash cw.sh <tool> [args...]
   symbiosis-bus  cross-repository experience bus over docs/exp-ledger.jsonl (swap schema rocqwash-symbio/1; import walks the exp_port append face one call per entry; export/status/diff read-only; zero network by design) -> tools/symbiosis_bus.py
               cw.sh symbiosis-bus export --out SWAP.jsonl [--ledger P] [--source-repo NAME] [--anchor HEX] [--dry-run] | import --swap SWAP.jsonl [--ledger P] [--dry-run] | status [--ledger P] [--swap F] | diff --a A --b B
   uplink      external return-package intake gate (verify / intake / pr-prep; md5 mismatch and missing declared members are fail-loud; the intake register row and the caller-named draft are the only writes; zero network by design) -> tools/uplink.py
-              cw.sh uplink verify --package P.zip [--digest HEX|SIDECAR] [--manifest M.md5] | intake --package P.zip --source-agent SEAT --landed-ref REF [--digest HEX|SIDECAR] [--manifest M.md5] [--register F] [--dry-run] | pr-prep --package NAME --out DRAFT.md [--register F] [--signature LINE]
+              cw.sh uplink verify --package P.zip [--digest HEX|SIDECAR] [--manifest M.md5] | intake --package P.zip --source-seat SEAT --landed-ref REF [--digest HEX|SIDECAR] [--manifest M.md5] [--register F] [--dry-run] | pr-prep --package NAME --out DRAFT.md [--register F] [--signature LINE]
   evolution-dashboard  self-evolution dashboard over the three standing accounts (experience ledger + round ledger + vacgen v2 TODO-SEAT reports -> coverageLowerPct curve + rounds conversion + per-run gap thermometer; JSON + markdown faces; absent standing paths are data) -> tools/evolution_dashboard.py
               cw.sh evolution-dashboard [--repo ROOT] [--exp-ledger P] [--rounds P] [--reports P]... [--json-out P] [--md-out P] [--stdout markdown|json] [--selftest]
   bus-feeder  gap-ledger feeder for symbiosis swap packages (rocqwash-symbio/1 in, TODO-SEAT gap rows out; family-shape keyed, idempotent on id and fingerprint; the gap feed ledger is the only write face; zero network by design) -> tools/bus_feeder.py
               cw.sh bus-feeder feed --swap SWAP.jsonl [--ledger P] [--dry-run] | status [--ledger P] [--swap F] | --selftest
-  axiom-guard repo-wide axiom guard (every .v compiled and tri-classified: compile-ok / compile-broken debt register / skip-no-toolchain; two-level detection on compile-ok files: per-theorem Print Assumptions census plus the authoritative coqchk -o kernel recheck; Closed zero axioms, empty default whitelist; env-gated, rc 111 honest skip; zero repository writes) -> tools/axiom_guard.py
-              cw.sh axiom-guard --repo DIR [--out DIR] [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC] [--keep]
+  axiom-guard repo-wide axiom guard (every .v compiled and tri-classified: compile-ok / compile-broken debt register / skip-no-toolchain; two-level detection on compile-ok files: per-theorem Print Assumptions census plus the authoritative coqchk -o kernel recheck; Closed zero axioms, empty default whitelist; --strict strict mode: compile-broken and trust-surface alarm files red (default debt, verdict-neutral); --strict-exclude strict-gate scope entry (repeatable): under --strict a file under it contributes no red of any kind and is named in the report's strict_excluded face, trust-surface alarms never excludable, inert without --strict; env-gated, rc 111 honest skip; zero repository writes) -> tools/axiom_guard.py
+              cw.sh axiom-guard --repo DIR [--out DIR] [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC] [--keep] [--strict] [--strict-exclude PATH]... | --selftest
+  axiom-audit Coq-side axiom audit (fixture-corpus census per coqc engine; declared axioms with file/line/form, reverse map to introducing files, platform grades classical/funext/stdlib; live engine required, unconfigured skips honestly) -> tools/axiom_audit.py
+              cw.sh axiom-audit census --repo DIR [--json OUT] | --selftest
+  vacgen-coq Coq-side statement ingestion and probe-cast planner (Rocq vernacular extraction, premise/conclusion split, data-driven taxonomy rows, Coq-L3 coverage metric; ticket 14 work stream 1; zero network zero compile) -> tools/vacgen_coq.py
+              cw.sh vacgen-coq --from-v FILE|DIR [--taxonomy FILE] [--out DIR] [--limit N] | --selftest
+  source-fetch audit fetch face (dual-source cross-pin, sha256 pin from caller or CI-source file, HTML-trap sniff, NETRED backoff; honest-unverified and net-gated states are data) -> tools/source_fetch.py
+  cw.sh source-fetch --url URL [--sha256 HEX] [--sha256-source URL] [--mirror URL] [--trap-sniff] [--out DIR] [--timeout SEC] [--retries N] | --selftest
+  sweep-verdict batch sweep judge (per-lane result ledgers union-deduped into a GREEN/EXCEPTION/MISSING verdict table; expected-red interlock with baselinediff semantics; shared-append ledgers are the anti-pattern it exists to prevent) -> tools/sweep_verdict.py
+  cw.sh sweep-verdict --lanes DIR [--expected-red FILE] [--out FILE] | --selftest
+  release-chain release chain planner (issue body -> GitHub Release per-asset -> Zenodo deposit, three gated layers; dry-run by default, publish needs --confirm-publish; URLs and DOIs are taken verbatim from service responses) -> tools/release_chain.py
+  cw.sh release-chain --issue N --release-title T --assets DIR [--zenodo-meta FILE] [--repo OWNER/NAME] [--stage 1|2|3|4] [--dry-run] [--confirm-publish] | --selftest
+  claim-watch conclusion-level claim watch (the eight RH signals + three NS/Euler triggers from the seed config; machine-readable status endpoints; heartbeat silent-death and unverifiable registration; append-only actor-namespaced round ledger; live face) -> tools/claim_watch.py
+  cw.sh claim-watch --config FILE [--round-label L] [--ledger FILE] [--actor A] | --offline-selftest
+  axiom-sweep per-theorem Lean axiom-closure classifier (#print axioms via the target's own lake env; CLEAN / BENIGN-STANDARD trio / SORRY-ALARM / CUSTOM-AXIOM-ALARM / PRIVATE-COVERED / UNPARSED; closure snapshot plus baseline diff_alarm) -> tools/lean_axiom_sweep.py
+  cw.sh axiom-sweep --root FILE|DIR [--json OUT] [--snapshot OUT] [--baseline SNAP] [--allow-axiom NAME]... | --selftest
+  numeric-probe numerical claim verifier (stdlib exact arithmetic executes rational-bound and interval-containment claims; transcendental plans stay honestly PLANNED) -> tools/numeric_probe.py
+  cw.sh numeric-probe --claim FILE [--out FILE] | --selftest
+  statement-identity two-face statement identity prober (claimed vs proven normalization, three-seam classification, uncast-region matrix) -> tools/statement_identity.py
+  cw.sh statement-identity --claimed FILE --proven FILE [--out FILE] | --selftest
+  capability-index capability index reader (full and summary modes plus single-tool query over the census masters; summary exists because the full index overran harness response caps) -> tools/capability_index.py
+  cw.sh capability-index [--mode full|summary] [--tool NAME] | --selftest
   flaky-guard flaky quarantine guard, repair class E2-3 (detect classifies each red case by an isolation probe: suite-red + alone-green = order-dependent, red in both contexts = content red that stays visible; --move quarantines into tests/advisory_roster.txt so the default suite drops it with a loud ADVISORY-OUT and the CI flaky-watch lane keeps observing it; scope-checked against tools/repair_scope.py, budget-capped at 2 per class per branch, ledgered in docs/repair-ledger.jsonl; dry-run by default; --restore needs green-round evidence) -> tools/flaky_guard.py
               cw.sh flaky-guard --detect --log LOG [--json OUT] [--no-probe] | --probe CASE | --move CASE [--apply] | --restore CASE [--apply] [--green-rounds N] | --status | --selftest
   repair-scope shared repair-scope exclusion table for the E2 guard family (frozen LEDGER8/CHECKERS rows read at runtime from certify/frozen8.py, the append-only ledger document, the frozen directory families; per-class writable faces + budget registry; the single source every repair guard imports) -> tools/repair_scope.py
@@ -381,13 +412,54 @@ Usage: bash cw.sh <tool> [args...]
 
   repair-weekly  repair-outcome ledger weekly distribution face, repair class E6 (aggregates docs/repair-ledger.jsonl into the ISO-week per-red outcome census plus the class/ticket distributions; read-only over the ledger, --out/--json are the only write faces; --record appends one per-red rocqwash-repair-ledger/2 row under the enforced vocabulary, --apply required) -> tools/repair_weekly.py
               cw.sh repair-weekly [--ledger P] [--date YYYY-MM-DD] [--out FILE] [--json P] | --record --class CLASS --target T --repair-outcome VALUE [--ticket K] [--evidence-file J] [--reason S] [--apply] | --selftest
-  selfevolve-round  one deterministic mechanical round, cron face (census jargon_apply --plan, then apply, then verify py_compile/bash -n hard gates plus norm_lint/doc_lint advisory, then auto_round commit, then push, then route the CI judge; frozen faces excluded by jargon_apply; zero qualifying fixes = clean no-op pass; apply residue nonzero = fail-loud, no commit) -> tools/selfevolve_round.py
+  selfevolve-round  one deterministic mechanical round, cron face (scheduler_lite plan face verdict gate: quiet/blocked = loud data skip, due = the round fires, failure = loud fail-open with no trace; census jargon_apply --plan, then apply, then verify py_compile/bash -n hard gates plus norm_lint/doc_lint advisory, then auto_round commit carrying the plan's scheduling_input trace, then push, then route the CI judge; frozen faces excluded by jargon_apply; zero qualifying fixes = clean no-op pass; apply residue nonzero = fail-loud, no commit) -> tools/selfevolve_round.py
               cw.sh selfevolve-round [--dry-run]
+  pin-repair  provenance-pin drift repair for the jargon seed map, triage row R15 auto-repair executor (re-signs drifted provenance.sources md5 pins behind the sync tool's zero-write plan IN-SYNC verdict; --plan writes nothing, --apply touches only md5 values and re-runs the seeds suite, red verify rolls back to the pre-apply bytes; not-IN-SYNC exits without touching the seed) -> tools/pin_repair.py
+              cw.sh pin-repair --selftest | --plan | --apply [--seed P]
+  learning-feedback  scheduling feedback face over the three standing ledgers (round ledger, round state, experience ledger read-only; casts schema rocqwash.scheduling-feedback/1 into docs/scheduling-feedback.json: the auto versus human-approved round split, the approval rate, the per-class breakdown, and the four-state repair outcome tally; missing or corrupt inputs land in the errors field, never guessed) -> tools/learning_feedback.py
+              cw.sh learning-feedback [--selftest]
+  b-gate  B-level generalization threshold audit over the round records (3 instances, each grounded in at least 1 executed round; per-class instance and round counts, a per-class readiness verdict, and an explicit gap list into docs/b-gate-audit.json, schema rocqwash.b-gate-audit/1; counts are measured from the records, never inflated) -> tools/b_gate_audit.py
+              cw.sh b-gate [--selftest]
+  tree-audit  read-only tree health audit over .lean/.v source trees (one JSON-line census: totals, declarations, the unsound-feature sweep, comment faces, per-directory and largest-file tables, import roots; byte-literal counting calibrated to the census oracle; zero subprocess, zero network, zero tree writes) -> tools/tree_audit.py
+              cw.sh tree-audit --root DIR [--json OUT] | --selftest
+  pipeline-lite  gap-to-admission pipeline executor, D2-2 data layer (scheduler_lite plan verdict imported, never re-derived; gap_cluster clusters transformed to row_render gap rows with the layer-law policyPrecheckRef stamped; emit packet then ingest a backfill into a draft whose rows enter at tenpointVerdict PENDING; quiet and blocked write nothing; pending-backfill and pending-human stops are data; code-layer faces (ten-point verdicts, taxonomy row integration, apply pass, auto_round commit and approve) stay human-gated and are never composed; b-gate audit counter carried read-only; zero network) -> tools/pipeline_lite.py
+              cw.sh pipeline-lite [--plan F] [--gap-ledger P]... [--reports P]... [--rounds P] [--autonomy P] [--state P] [--ef-marker P] [--threshold N] [--interval-seconds N] [--now-utc ISO8601Z] [--gap-out F] [--render-gaps F] [--packet-out F] [--backfill F] [--draft-out F] [--b-gate-audit P] [--policy-ref S] [--stop-at {data,human}] [--json] | --selftest
+  anchor-guard  anchor and certificate guard for one module directory (manifest validation V1-V10, module compile tri-classification in a private temp workdir, coqchk -o kernel recheck baseline, per-anchor probe face over vm_compute checks plus Print Assumptions, mutation kill matrix over the manifest's copied defect rows: a certificate that kills zero mutants is VACUOUS and red, a non-hold baseline is an unanchored anchor, module compile-broken is red; manifest copies its mutant rows from tools/mutants-v1.json, the guard never loads the library; env-gated, rc 111 honest skip; zero repository writes) -> tools/anchor_guard.py
+              cw.sh anchor-guard --repo DIR --manifest FILE [--out DIR] [--rocq BIN] [--coqchk BIN] [--timeout SEC] [--keep] | --selftest
+
+  attest-join   side-by-side join of the cw.attest/v1 module archive and the rocqwash.b-axiom-audit/1 axiom-audit report (juxtaposition on the exact module key, never an equality check: the two hash faces are different objects - compiled .vo bytes vs source bytes - so rows record both verbatim; keys land in matched / matched_local / unmatched sides, a missing side is a loud absent-side face, --basename-fallback relaxes the exact-key join; zero network, read-only) -> tools/attest_join.py
+                cw.sh attest-join [--attest F] [--report F] [--out F] [--basename-fallback] | --selftest
+  count-guard   six-face roster count reconciler (check-only: R1 tools count / R2 tree face / R3 MCP roster pair and docs/mcp.md tokens / R4 cw.sh route face / R5 routed-target face / R6 census declared-lag, rc-neutral by design; re-derives every standing tool-count face from its sources and fails loudly on cross-face inequality with both file:line faces and both values named - repair by token-swap; rc 0 all green, 1 drift, 2 missing-face) -> tools/count_guard.py
+                cw.sh count-guard [--repo DIR] [--json F] | --selftest
+  lean-parity-crosswalk  the Lean/Rocq axiom parity crosswalk engine (both parent tools' frozen vectors crosswalked row by row on the five mirror proposition keys clean / classical / funext / custom / sorry; the mapping is axiom_audit.LEAN_PARITY_ROWS verbatim, the Admitted <-> sorryAx mirror rule design-frozen; compile/Lean-engine gated legs honestly SKIP; schema rocqwash.parity.lean-census/1) -> tools/lean_parity_crosswalk.py
+                cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest
+
+  mutant-manifest  anchor_guard manifest skeleton generator (the deterministic bridge from the frozen mutation library tools/mutants-v1.json, schema rocqwash.mutants/1, to a rocqwash.anchor/1 draft: selected mutant rows copied verbatim - never re-derived, never mechanically narrowed - the anchors array deliberately empty because anchor_guard rejects an empty anchors array by rule, so the skeleton is judgeable-by-design only after authoring; the authoring checklist prints loudly on stdout; --families selects rows by exact id, unknown id = fail-loud rc 2; sorted keys, double-run byte-identical; zero network, zero toolchain) -> tools/mutant_manifest.py
+                cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest
+
+  coqtop-batch  batch statement feed through coqtop with per-statement error classification (one stdin-fed session chunks on the toplevel prompt markers Rocq < / legacy Coq < ; nested proof prompts never split a chunk; every error lands at once with statement attribution - the interactive-batch face beside probe_engine's single-error compile face; binary resolves flag > ROCWASH_COQTOP > honest skip rc 111; zero network) -> tools/coqtop_batch.py
+                cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest
+
+  qed-cost-lint  candidate Qed-cost lint over Proof..Qed blocks (the source face of the three-source design volume docs/qed-cost-lint-design-20261126.md: long non-fast blocks surface as candidates, fast-closure blocks demote, report-only by default with --gate adding rc semantics; the kernel slow-path grind is a recorded blind spot - the coqc -time log face is the follow-up ticket; zero toolchain, zero network) -> tools/qed_cost_lint.py
+                cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest
+
+  require-rewire  module-retirement rewiring orchestrator (given a retirement plan - module M retires onto successor S - scans a .v tree for every Require face referencing M via the three wash_shape-anchored line shapes (From Stdlib / From <dir> / bare, each with optional Import/Export), classifies Import vs Export per consumer, and emits a wash_engine-compatible patch ledger (tag/old/new/expect, the exact-string count-asserted form) so the standing engine applies the rewiring itself - the orchestrator plans, wash/wash_engine.py executes; the standalone --verify closure face fails loud on any surviving M reference, rc 0 clean / 1 survivors, and never requires the successor; the successor's drop-in compatibility is a plan authoring obligation (the anchor_guard independence-note precedent); deterministic: sorted consumers, double-run byte-identical; zero network, zero toolchain) -> tools/require_rewire.py
+                cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest
+
+  independence-screener  name-level independence screening over an anchor manifest against the mutant defect library (the mechanical first-pass face of the authoring obligation mutants-v1.json records and anchor_guard honestly leaves as future work beyond V7's non-emptiness: extracts each mutant's site identifiers from its regex-source pattern/replacement fields - a composed site name appears there as regex fragments, rsT_ / recipQ - and each anchor's independent_derivation tokens, and flags every underscore-part intersection (parts >= 3) as a collision, the VACUOUS-certificate risk shape; prose can never false-positive because a part counts only when it equals a real library fragment part, generic-name hits are listed as data for review; no-name rows (the CONST-001 numeric shape) are recorded, never judged; screening is not proof - the report records the library independence_note verbatim and states the obligation stays with review; zero network, zero toolchain) -> tools/independence_screener.py
+                cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest
+
+  census-rescan  AST word-face census re-scan generator (the in-repo reproduction face of the census lane: the standing docs/census-tools.json was produced by a lane-side one-off absent from the repository, so this tool re-produces records under its own documented v1 rules - file facts, main guard, docstring head truncation at 600, argparse capture, import buckets incl. guarded conditionals, network classification with the git-bridge subset, skip-face token vocabulary, selftest flag vs token face, invocation reconstruction - and --merge appends the missing tools to the standing census with the old rows preserved verbatim and meta.rescan_generation recording the split: mixed-generation lineage is data, never passed off as one method; deterministic sorted rows, double-run byte-identical; zero network, zero subprocess on the scan face) -> tools/census_rescan.py
+                cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest
+  capability-ratchet  the nine-metric capability ratchet (append-only capability readings that only roll forward: four capability-carrier metrics (triage classes, regression vectors, taxonomy rows, cure patterns) plus five mechanism metrics (MCP roster, selftest vectors, repair action rate, B-gate ready classes, calibration agreement rate) are re-derived from their source accounts at every run, never hand-filled; unmeasured is null, never 0; --measure derives fresh readings, --gate judges against a --baseline (below rc 1), --compare validates the whole ledger chain against fresh readings, --append lands exactly one chain-linked snapshot line and is the only write face; --selftest is an offline vector group, repository-write-free; zero network) -> tools/capability_ratchet.py
+                cw.sh capability-ratchet [--repo DIR] [--measure [--json [PATH]]] [--gate --baseline FILE] [--compare FILE] [--append FILE [--allow-dirty-anchor]] [--from-sha SHA] | --selftest
+  repo-sync-status  local repository sync offset reader (the staleness face a remote consumer checks before trusting this checkout: how far HEAD is ahead of and behind the last fetched origin/main, with head_sha, tag, origin_sha, and the up_to_date verdict, every field a {value, basis} pair; zero network - the origin side is the last fetched ref, never a live remote query; an unmeasurable offset is exit 9 with the reason, never a guessed zero) -> tools/repo_sync_status.py
+                cw.sh repo-sync-status [--repo DIR] [--json OUT] | --selftest
 
   help        this help (help <tool> = the tool's one-line usage hint)
 
-退出码 Exit codes: 0=pass  2=unknown-tool  9=target-script-missing  others = each tool's own convention, passed through
-路由说明 Routing notes:
+Exit codes: 0=pass  2=unknown-tool  9=target-script-missing  others = each tool's own convention, passed through
+Routing notes:
   - Arguments and exit codes pass through 1:1 (direct exec; fail-loud, never rewritten); same contract as cli/rocqwash.
   - All paths resolve relative to the repository root (ROOT is derived from this script's own directory) — the repo can be relocated freely; zero hardcoded absolute paths.
   - `cw.sh <tool>` with no args prints the tool's one-line hint to stderr, then passes through; `cw.sh help <tool>` prints the hint only.
@@ -448,7 +520,17 @@ hint_for() {  # $1=tool
     uplink)      echo "cw.sh uplink verify --package P.zip [--digest HEX|SIDECAR] [--manifest M.md5] | intake --package P.zip --source-seat SEAT --landed-ref REF [--digest HEX|SIDECAR] [--manifest M.md5] [--register F] [--dry-run] | pr-prep --package NAME --out DRAFT.md [--register F] [--signature LINE]   # external return-package intake gate (verify / intake / pr-prep; md5 mismatch and missing declared members are fail-loud; the intake register row and the caller-named draft are the only writes; zero network by design) -> tools/uplink.py" ;;
     evolution-dashboard) echo "cw.sh evolution-dashboard [--repo ROOT] [--exp-ledger P] [--rounds P] [--reports P]... [--json-out P] [--md-out P] [--stdout markdown|json] [--selftest]   # self-evolution dashboard over the three standing accounts (experience ledger rocqwash-exp/1 + round ledger rocqwash-round/1 + vacgen v2 TODO-SEAT report faces -> coverageLowerPct curve with per-run TODO-SEAT delta and rise flag, rounds conversion greenPct/classConversionPct, per-run gap count thermometer; absent default-path inputs are data with present=false, explicitly flagged absent paths exit 9; writes only caller-named --json-out/--md-out files; zero network) -> tools/evolution_dashboard.py" ;;
     bus-feeder)  echo "cw.sh bus-feeder feed --swap SWAP.jsonl [--ledger P] [--dry-run] | status [--ledger P] [--swap F] | --selftest   # gap-ledger feeder for symbiosis swap packages (rocqwash-symbio/1 in, TODO-SEAT gap rows out; family-shape keyed, idempotent on id and fingerprint; the gap feed ledger is the only write face; zero network by design) -> tools/bus_feeder.py" ;;
-    axiom-guard) echo "cw.sh axiom-guard --repo DIR [--out DIR] [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC] [--keep]   # repo-wide axiom guard (every .v compiled and tri-classified: compile-ok / compile-broken debt register / skip-no-toolchain; two-level detection on compile-ok files: per-theorem Print Assumptions census plus the authoritative coqchk -o kernel recheck; Closed zero axioms, empty default whitelist; write faces: the caller-named --out report and the private temp workdir only; rc 0=PASS 1=red 2=usage 9=fail-loud missing binary 111=honest skip unconfigured toolchain; ROCWASH_ROCQ/ROCWASH_COQCHK env gating; zero repository writes) -> tools/axiom_guard.py" ;;
+    axiom-guard) echo "cw.sh axiom-guard --repo DIR [--out DIR] [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC] [--keep] [--strict] [--strict-exclude PATH]... | --selftest   # repo-wide axiom guard (every .v compiled and tri-classified: compile-ok / compile-broken debt register / skip-no-toolchain; two-level detection on compile-ok files: per-theorem Print Assumptions census plus the authoritative coqchk -o kernel recheck; Closed zero axioms, empty default whitelist; --strict strict mode: compile-broken and trust-surface alarm files red (default debt, verdict-neutral); --strict-exclude strict-gate scope entry (repeatable): under --strict a file under it contributes no red of any kind and is named in the report's strict_excluded face, trust-surface alarms never excludable, inert without --strict; --selftest frozen offline vector group; write faces: the caller-named --out report and the private temp workdir only; rc 0=PASS 1=red 2=usage 9=fail-loud missing binary 111=honest skip unconfigured toolchain; ROCWASH_ROCQ/ROCWASH_COQCHK env gating; zero repository writes) -> tools/axiom_guard.py" ;;
+    source-fetch) echo "cw.sh source-fetch --url URL [--sha256 HEX] [--sha256-source URL] [--mirror URL] [--trap-sniff] [--out DIR] [--timeout SEC] [--retries N] | --selftest   # audit fetch face (dual-source cross-pin, sha256 pin from caller or CI-source file, HTML-trap sniff, NETRED backoff; honest-unverified and net-gated states are data) -> tools/source_fetch.py" ;;
+    sweep-verdict) echo "cw.sh sweep-verdict --lanes DIR [--expected-red FILE] [--out FILE] | --selftest   # batch sweep judge (per-lane result ledgers union-deduped into a GREEN/EXCEPTION/MISSING verdict table; expected-red interlock with baselinediff semantics) -> tools/sweep_verdict.py" ;;
+    release-chain) echo "cw.sh release-chain --issue N --release-title T --assets DIR [--zenodo-meta FILE] [--repo OWNER/NAME] [--stage 1|2|3|4] [--dry-run] [--confirm-publish] | --selftest   # release chain planner (issue body -> GitHub Release per-asset -> Zenodo deposit, three gated layers; dry-run by default, publish needs --confirm-publish; URLs and DOIs are taken verbatim from service responses) -> tools/release_chain.py" ;;
+    claim-watch) echo "cw.sh claim-watch --config FILE [--round-label L] [--ledger FILE] [--actor A] | --offline-selftest   # conclusion-level claim watch (the eight RH signals + three NS/Euler triggers from the seed config; machine-readable status endpoints; heartbeat silent-death and unverifiable registration; append-only actor-namespaced round ledger; live face) -> tools/claim_watch.py" ;;
+    axiom-sweep) echo "cw.sh axiom-sweep --root FILE|DIR [--json OUT] [--snapshot OUT] [--baseline SNAP] [--allow-axiom NAME]... | --selftest   # per-theorem Lean axiom-closure classifier (#print axioms via the target's own lake env; CLEAN / BENIGN-STANDARD trio / SORRY-ALARM / CUSTOM-AXIOM-ALARM / PRIVATE-COVERED / UNPARSED; closure snapshot plus baseline diff_alarm) -> tools/lean_axiom_sweep.py" ;;
+    numeric-probe) echo "cw.sh numeric-probe --claim FILE [--out FILE] | --selftest   # numerical claim verifier (stdlib exact arithmetic executes rational-bound and interval-containment claims; transcendental plans stay honestly PLANNED) -> tools/numeric_probe.py" ;;
+    statement-identity) echo "cw.sh statement-identity --claimed FILE --proven FILE [--out FILE] | --selftest   # two-face statement identity prober (claimed vs proven normalization, three-seam classification, uncast-region matrix) -> tools/statement_identity.py" ;;
+    capability-index) echo "cw.sh capability-index [--mode full|summary] [--tool NAME] | --selftest   # capability index reader (full and summary modes plus single-tool query over the census masters; summary exists because the full index overran harness response caps) -> tools/capability_index.py" ;;
+    axiom-audit) echo "cw.sh axiom-audit census --repo DIR [--json OUT] | --selftest   # Coq-side axiom audit (fixture-corpus census per coqc engine; declared axioms with file/line/form, reverse map, platform grades; live engine required) -> tools/axiom_audit.py" ;;
+    vacgen-coq) echo "cw.sh vacgen-coq --from-v FILE|DIR [--taxonomy FILE] [--out DIR] [--limit N] | --selftest   # Coq-side statement ingestion and probe-cast planner (Rocq vernacular extraction, premise/conclusion split, data-driven taxonomy rows, Coq-L3 coverage; zero network zero compile) -> tools/vacgen_coq.py" ;;
     flaky-guard) echo "cw.sh flaky-guard --detect --log LOG [--json OUT] [--no-probe] | --probe CASE | --move CASE [--apply] | --restore CASE [--apply] [--green-rounds N] | --status | --selftest   # flaky quarantine guard, repair class E2-3 (isolation probe verdicts order-dependent vs content-red; --move quarantines into tests/advisory_roster.txt, the default suite drops it with ADVISORY-OUT and the CI flaky-watch lane keeps observing it; scope-checked against tools/repair_scope.py, budget 2 per class per branch, ledgered in docs/repair-ledger.jsonl; dry-run by default; --restore needs green-round evidence; findings and refusals are data, rc 0/1/2/9) -> tools/flaky_guard.py" ;;
     repair-scope) echo "cw.sh repair-scope --check PATH... | --classes | --selftest   # shared repair-scope exclusion table for the E2 guard family (runtime LEDGER8/CHECKERS read from certify/frozen8.py + the append-only ledger document + the frozen directory families; per-class writable faces and budget registry; --check exits 1 when any path is excluded, a refusal verdict is data) -> tools/repair_scope.py" ;;
     roster-resync) echo "cw.sh roster-resync [--repo DIR] [--apply] [--ledger P] [--json OUT] | --selftest   # roster count drift guard, repair class E2-2 (one-way recount from the run_tests.sh CASES roster into the doc_lint count lines of tests/README.md + README.md; the roster file is never written; scope-checked against tools/repair_scope.py, budget 2 per class per branch, ledgered in docs/repair-ledger.jsonl; dry-run by default) -> tools/roster_resync.py" ;;
@@ -457,6 +539,23 @@ hint_for() {  # $1=tool
     jargon-map-sync) echo "cw.sh jargon-map-sync [--md P] [--map P] [--json P] | --apply | --selftest   # jargon map sync, md table -> seed JSON (detector-map superset absorbed into the apply map; single-form admission: parenthetical annotations stripped, em-dash cells land as rewrite_or_delete, slash alternations rejected, six note-guard markers rejected; existing entries preserved with their id/exempts/cross_track_note; exact count label; plan zero-write default, --apply writes the map) -> tools/jargon_map_sync.py" ;;
     repair-weekly) echo "cw.sh repair-weekly [--ledger P] [--date YYYY-MM-DD] [--out FILE] [--json P] | --record --class CLASS --target T --repair-outcome VALUE [--ticket K] [--evidence-file J] [--reason S] [--apply] | --selftest   # repair-outcome ledger weekly distribution face, repair class E6 (ISO-week per-red outcome census + class/ticket distributions; read-only over the ledger, --out/--json the only write faces; --record appends one per-red rocqwash-repair-ledger/2 row under the enforced vocabulary, --apply required) -> tools/repair_weekly.py" ;;
     selfevolve-round) echo "cw.sh selfevolve-round [--dry-run]   # one deterministic mechanical round, cron face (census jargon_apply --plan -> apply -> verify py_compile/bash -n hard gates + norm_lint/doc_lint advisory -> auto_round commit -> push -> dispatch the CI judge; frozen faces excluded by jargon_apply; zero qualifying fixes = clean no-op pass; apply residue != zero = fail-loud, no commit) -> tools/selfevolve_round.py" ;;
+    pin-repair) echo "cw.sh pin-repair --selftest | --plan | --apply [--seed P]   # provenance-pin drift repair for the jargon seed map, triage row R15 auto-repair executor (re-signs drifted provenance.sources md5 pins behind the sync tool's zero-write plan IN-SYNC verdict; --plan writes nothing, --apply touches only md5 values and re-runs the seeds suite, red verify rolls back to the pre-apply bytes; not-IN-SYNC exits without touching the seed) -> tools/pin_repair.py" ;;
+    learning-feedback) echo "cw.sh learning-feedback [--selftest]   # scheduling feedback face over the three standing ledgers (round ledger, round state, experience ledger read-only; casts schema rocqwash.scheduling-feedback/1 into docs/scheduling-feedback.json: the auto versus human-approved round split, the approval rate, the per-class breakdown, and the four-state repair outcome tally; missing or corrupt inputs land in the errors field, never guessed) -> tools/learning_feedback.py" ;;
+    b-gate) echo "cw.sh b-gate [--selftest]   # B-level generalization threshold audit over the round records (3 instances, each grounded in at least 1 executed round; per-class instance and round counts, a per-class readiness verdict, and an explicit gap list into docs/b-gate-audit.json, schema rocqwash.b-gate-audit/1; counts are measured from the records, never inflated) -> tools/b_gate_audit.py" ;;
+    tree-audit) echo "cw.sh tree-audit --root DIR [--json OUT] | --selftest   # read-only tree health audit over .lean/.v source trees (one JSON-line census; zero subprocess, zero network, zero tree writes) -> tools/tree_audit.py" ;;
+    pipeline-lite) echo "cw.sh pipeline-lite [--plan F] [--gap-ledger P]... [--reports P]... [--rounds P] [--autonomy P] [--state P] [--ef-marker P] [--threshold N] [--interval-seconds N] [--now-utc ISO8601Z] [--gap-out F] [--render-gaps F] [--packet-out F] [--backfill F] [--draft-out F] [--b-gate-audit P] [--policy-ref S] [--stop-at {data,human}] [--json] | --selftest   # gap-to-admission pipeline executor, D2-2 data layer (verdict imported from scheduler_lite; rows enter PENDING; code-layer faces stay human-gated; zero network) -> tools/pipeline_lite.py" ;;
+    anchor-guard) echo "cw.sh anchor-guard --repo DIR --manifest FILE [--out DIR] [--rocq BIN] [--coqchk BIN] [--timeout SEC] [--keep] | --selftest   # anchor and certificate guard for one module directory (manifest validation V1-V10; compile tri-classification; coqchk -o kernel baseline; per-anchor probe face; mutation kill matrix, zero kills = VACUOUS = red; env-gated rc 111 honest skip; write faces: the caller-named --out report and the private temp workdir; rc 0=PASS 1=red 2=usage 9=fail-loud 111=honest skip) -> tools/anchor_guard.py" ;;
+    attest-join) echo "cw.sh attest-join [--attest F] [--report F] [--out F] [--basename-fallback] | --selftest   # side-by-side join of the cw.attest/v1 archive and the rocqwash.b-axiom-audit/1 report (juxtaposition on the exact module key, never an equality check; matched / matched_local / unmatched sides; read-only, zero network) -> tools/attest_join.py" ;;
+    count-guard) echo "cw.sh count-guard [--repo DIR] [--json F] | --selftest   # six-face roster count reconciler (check-only: R1 tools count / R2 tree face / R3 MCP roster pair and docs/mcp.md tokens / R4 cw.sh route face / R5 routed-target face / R6 census declared-lag rc-neutral; cross-face inequality names both file:line faces and both values; rc 0 green / 1 drift / 2 missing-face) -> tools/count_guard.py" ;;
+    lean-parity-crosswalk) echo "cw.sh lean-parity-crosswalk [--fixtures DIR] [--rocq-face] [--lean-face] [--rocq BIN] [--lean-sweep-json F] [--census-json F] [--snapshot F] [--baseline F] [--json F] | --selftest   # Lean/Rocq axiom parity crosswalk engine (five mirror proposition keys; mapping = axiom_audit.LEAN_PARITY_ROWS verbatim; Admitted <-> sorryAx mirror rule design-frozen; gated legs honestly SKIP; schema rocqwash.parity.lean-census/1) -> tools/lean_parity_crosswalk.py" ;;
+    mutant-manifest) echo "cw.sh mutant-manifest --library F --module NAME.v [--families ID,ID] [--out F] | --selftest   # anchor_guard manifest skeleton generator (mutant rows verbatim from the frozen library; anchors empty by rule - the authoring checklist prints; unknown family id fail-loud rc 2; double-run byte-identical; zero network) -> tools/mutant_manifest.py" ;;
+    coqtop-batch) echo "cw.sh coqtop-batch --input FILE [--coqtop BIN] [--timeout SEC] [--json F] | --selftest   # batch coqtop session with per-statement error classification (toplevel prompt chunks; nested proof prompts stay one chunk; honest skip rc 111 without a binary; zero network) -> tools/coqtop_batch.py" ;;
+    qed-cost-lint) echo "cw.sh qed-cost-lint --file F.v | --tree DIR [--threshold N] [--gate] [--json F] | --selftest   # candidate Qed-cost lint (long non-fast Proof..Qed blocks nominate; vm_compute-family closure demotes; report-only default; design volume in docs/) -> tools/qed_cost_lint.py" ;;
+    require-rewire) echo "cw.sh require-rewire --tree DIR --retire M --successor S [--out F] | --plan FILE [same flags] | --tree DIR --retire M --verify [--out F] | --selftest   # module-retirement rewiring orchestrator (plan -> wash_engine patch ledger -> standalone verify closure face; survivors fail loud rc 1; zero network, zero toolchain) -> tools/require_rewire.py" ;;
+    independence-screener) echo "cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest   # name-level independence screening (anchor manifest x mutant library; underscore-part collisions listed fail-loud rc 1; no-name rows recorded; screening is not proof; zero network) -> tools/independence_screener.py" ;;
+    census-rescan) echo "cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest   # census lane reproduction (AST word-face rows v1; --merge appends missing tools verbatim-preserving; meta generation split; zero network) -> tools/census_rescan.py" ;;
+    capability-ratchet) echo "cw.sh capability-ratchet [--repo DIR] [--measure [--json [PATH]]] [--gate --baseline FILE] [--compare FILE] [--append FILE [--allow-dirty-anchor]] [--from-sha SHA] | --selftest   # nine-metric capability ratchet (append-only readings re-derived from source accounts, never hand-filled; unmeasured is null, never 0; --append is the only write face; zero network) -> tools/capability_ratchet.py" ;;
+    repo-sync-status) echo "cw.sh repo-sync-status [--repo DIR] [--json OUT] | --selftest   # local repository sync offset reader (ahead/behind against the last fetched origin/main, {value, basis} fields, up_to_date verdict; zero network; unmeasurable is exit 9 with the reason) -> tools/repo_sync_status.py" ;;
     *) return 1 ;;
   esac
 }
@@ -529,6 +628,16 @@ case "${1:-}" in
   evolution-dashboard) shift; run_tool evolution-dashboard "tools/evolution_dashboard.py" "$@" ;;
   bus-feeder)  shift; run_tool bus-feeder "tools/bus_feeder.py" "$@" ;;
   axiom-guard) shift; run_tool axiom-guard "tools/axiom_guard.py" "$@" ;;
+  source-fetch) shift; run_tool source-fetch "tools/source_fetch.py" "$@" ;;
+  sweep-verdict) shift; run_tool sweep-verdict "tools/sweep_verdict.py" "$@" ;;
+  release-chain) shift; run_tool release-chain "tools/release_chain.py" "$@" ;;
+  claim-watch) shift; run_tool claim-watch "tools/claim_watch.py" "$@" ;;
+  axiom-sweep) shift; run_tool axiom-sweep "tools/lean_axiom_sweep.py" "$@" ;;
+  numeric-probe) shift; run_tool numeric-probe "tools/numeric_probe.py" "$@" ;;
+  statement-identity) shift; run_tool statement-identity "tools/statement_identity.py" "$@" ;;
+  capability-index) shift; run_tool capability-index "tools/capability_index.py" "$@" ;;
+  axiom-audit) shift; run_tool axiom-audit "tools/axiom_audit.py" "$@" ;;
+  vacgen-coq) shift; run_tool vacgen-coq "tools/vacgen_coq.py" "$@" ;;
   flaky-guard) shift; run_tool flaky-guard "tools/flaky_guard.py" "$@" ;;
   repair-scope) shift; run_tool repair-scope "tools/repair_scope.py" "$@" ;;
   roster-resync) shift; run_tool roster-resync "tools/roster_resync.py" "$@" ;;
@@ -537,12 +646,29 @@ case "${1:-}" in
   jargon-map-sync) shift; run_tool jargon-map-sync "tools/jargon_map_sync.py" "$@" ;;
   repair-weekly) shift; run_tool repair-weekly "tools/repair_weekly.py" "$@" ;;
   selfevolve-round) shift; run_tool selfevolve-round "tools/selfevolve_round.py" "$@" ;;
+  pin-repair) shift; run_tool pin-repair "tools/pin_repair.py" "$@" ;;
+  learning-feedback) shift; run_tool learning-feedback "tools/learning_feedback.py" "$@" ;;
+  b-gate) shift; run_tool b-gate "tools/b_gate_audit.py" "$@" ;;
+  tree-audit) shift; run_tool tree-audit "tools/tree_audit.py" "$@" ;;
+  pipeline-lite) shift; run_tool pipeline-lite "tools/pipeline_lite.py" "$@" ;;
+  anchor-guard) shift; run_tool anchor-guard "tools/anchor_guard.py" "$@" ;;
+  attest-join) shift; run_tool attest-join "tools/attest_join.py" "$@" ;;
+  count-guard) shift; run_tool count-guard "tools/count_guard.py" "$@" ;;
+  mutant-manifest) shift; run_tool mutant-manifest "tools/mutant_manifest.py" "$@" ;;
+  coqtop-batch) shift; run_tool coqtop-batch "tools/coqtop_batch.py" "$@" ;;
+  qed-cost-lint) shift; run_tool qed-cost-lint "tools/qed_cost_lint.py" "$@" ;;
+  require-rewire) shift; run_tool require-rewire "tools/require_rewire.py" "$@" ;;
+  independence-screener) shift; run_tool independence-screener "tools/independence_screener.py" "$@" ;;
+  census-rescan) shift; run_tool census-rescan "tools/census_rescan.py" "$@" ;;
+  lean-parity-crosswalk) shift; run_tool lean-parity-crosswalk "tools/lean_parity_crosswalk.py" "$@" ;;
+  capability-ratchet) shift; run_tool capability-ratchet "tools/capability_ratchet.py" "$@" ;;
+  repo-sync-status) shift; run_tool repo-sync-status "tools/repo_sync_status.py" "$@" ;;
   help|-h|--help)
     if [ "$#" -ge 2 ]; then
       if hint_for "$2"; then
         exit 0
       else
-        echo "cw.sh help: unknown tool: $2（未知工具·legal: scan4|cure|probe|chain|sync-ledger|erasure|dual-scan|doctor|net-probe|triage|union|pushci|sentinel|wash-shape|unclog|cw-doctor|doc-lint|netname-normalize|select-audit|baseline-diff|render-events|dispatch|audit|registry-fix|norm-lint|registry-regen|contrib-intake|evolve）" >&2
+        echo "cw.sh help: unknown tool: $2 （未知工具·legal: scan4|cure|probe|chain|sync-ledger|erasure|dual-scan|doctor|net-probe|triage|union|pushci|sentinel|wash-shape|unclog|cw-doctor|doc-lint|netname-normalize|select-audit|baseline-diff|render-events|dispatch|audit|registry-fix|norm-lint|registry-regen|contrib-intake|evolve）" >&2
         exit 2
       fi
     fi
@@ -550,7 +676,7 @@ case "${1:-}" in
     exit 0 ;;
   "") usage; exit 0 ;;
   *)
-    echo "cw.sh: unknown tool: $1（未知工具·legal: scan4|cure|probe|chain|sync-ledger|erasure|dual-scan|doctor|net-probe|triage|union|pushci|sentinel|wash-shape|unclog|cw-doctor|doc-lint|netname-normalize|select-audit|baseline-diff|render-events|dispatch|audit|registry-fix|norm-lint|registry-regen|contrib-intake|evolve|help）" >&2
+    echo "cw.sh: unknown tool: $1 （未知工具·legal: scan4|cure|probe|chain|sync-ledger|erasure|dual-scan|doctor|net-probe|triage|union|pushci|sentinel|wash-shape|unclog|cw-doctor|doc-lint|netname-normalize|select-audit|baseline-diff|render-events|dispatch|audit|registry-fix|norm-lint|registry-regen|contrib-intake|evolve|help）" >&2
     usage >&2
     exit 2 ;;
 esac

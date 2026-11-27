@@ -560,7 +560,13 @@ def resolve_jargon_map(args):
 def gate_norm(args, contrib_face, changed, prefixes, tmpdir):
     """Gate norm: each new or changed prose face through norm_lint --file on
     materialized content; error-level findings block, warn-level ones are
-    recorded only (norm_lint grading mirrored, never re-graded here)."""
+    recorded only (norm_lint grading mirrored, never re-graded here).  The
+    jargon mapping table face itself is recorded, not re-scanned: norm_lint
+    exempts the loaded table from the jargon battery by canonical-path
+    equality, an identity a materialized copy cannot carry, so re-scanning
+    it here would flag the table's own curated content and block every
+    table edit.  The canonical-path norm_lint run stays the checker of
+    record for that face."""
     rels = sorted(p for p in set(changed["added"]) | set(changed["modified"])
                   if os.path.splitext(p)[1].lower() in FACES)
     evidence = []
@@ -568,7 +574,20 @@ def gate_norm(args, contrib_face, changed, prefixes, tmpdir):
     error_total = 0
     warn_total = 0
     map_path = resolve_jargon_map(args)
+    map_rel = None
+    if map_path.endswith(os.path.join(*DEFAULT_JARGON_MAP_REL)):
+        map_rel = os.path.normpath(os.path.join(*DEFAULT_JARGON_MAP_REL))
     for i, rel in enumerate(rels):
+        if map_rel is not None and os.path.normpath(rel) == map_rel:
+            evidence.append("norm: %s - the jargon mapping table itself; "
+                            "recorded per the table exemption, not "
+                            "re-scanned through a materialized copy" % rel)
+            files.append({"path": rel, "error": 0, "warn": 0,
+                          "findings": [],
+                          "note": "jargon mapping table source face "
+                                  "(table-exempt); the canonical-path "
+                                  "norm_lint run is the checker of record"})
+            continue
         local = materialize(contrib_face, rel, tmpdir, "norm%d" % i)
         tj = os.path.join(tmpdir, "norm_report_%d.json" % i)
         argv = [sys.executable, "-B", NORM_PY, "--file", local,
@@ -1042,7 +1061,9 @@ def selftest():
     3 norm jargon hit (error-level finding, norm gate BLOCK)
     4 core-lane overlap (warning-level only, verdict PASS)
     5 read-only + determinism + archive parity + paths filter
-    6 gate7 real-probe outcomes + CLI four-code checks.
+    6 gate7 real-probe outcomes + CLI four-code checks
+    7 jargon mapping table face (recorded per the table exemption, never
+      blocked through a materialized rescan).
     """
     import hashlib as _hashlib
 
@@ -1161,7 +1182,7 @@ def selftest():
             and iso1["outside"] == ["_CoqProject", "order.txt"], iso1
         assert iso1["registry_overlap"] == ["_CoqProject", "order.txt"], iso1
         assert rep1["summary"]["warn_total"] == 2, rep1["summary"]
-        print("  [1/6] clean contribution OK (verdict PASS, registry "
+        print("  [1/7] clean contribution OK (verdict PASS, registry "
               "unique=1 both kinds, gate4 PASS, lane account: 2 inside / "
               "2 registry overlap, warnings recorded)")
 
@@ -1196,7 +1217,7 @@ def selftest():
         assert g2["norm"]["verdict"] == "PASS" \
             and g2["gate_expectation"]["verdict"] == "PASS", g2
         assert rep2["summary"]["warn_total"] >= 1, rep2["summary"]
-        print("  [2/6] registry collision OK (A2-ADDED-KEY-IN-MAIN, "
+        print("  [2/7] registry collision OK (A2-ADDED-KEY-IN-MAIN, "
               "registry BLOCK, coqproject pass, prescription chain "
               "union+audit+fix attached)")
 
@@ -1221,7 +1242,7 @@ def selftest():
                 if f["kind"] == "jargon"]
         assert len(hits) == 1 and hits[0]["term"] == "wave", hits
         assert g3["registry"]["verdict"] == "PASS", g3["registry"]
-        print("  [3/6] norm jargon hit OK (error-level wave finding, norm "
+        print("  [3/7] norm jargon hit OK (error-level wave finding, norm "
               "BLOCK, registry PASS)")
 
         # ---- vector 4: core-lane overlap -> warning only, PASS ----
@@ -1246,7 +1267,7 @@ def selftest():
             rep4["changed_surface"]
         assert g4["norm"]["details"]["error_total"] == 0, g4["norm"]
         assert rep4["summary"]["warn_total"] == 1, rep4["summary"]
-        print("  [4/6] core-lane overlap OK (warning-level only, verdict "
+        print("  [4/7] core-lane overlap OK (warning-level only, verdict "
               "PASS, overlap recorded on core_lib.py)")
 
         # ---- vector 5: read-only + determinism + archive + paths filter ----
@@ -1303,7 +1324,7 @@ def selftest():
             == "out-of-scope", g5b["registry"]
         assert g5b["isolation"]["details"]["outside"] == [], \
             g5b["isolation"]
-        print("  [5/6] read-only + determinism + archive parity + paths "
+        print("  [5/7] read-only + determinism + archive parity + paths "
               "filter OK (tree md5 stable, report byte-identical, archive "
               "diff empty plus one added face, contrib/ scope drops the "
               "books as out-of-scope)")
@@ -1348,14 +1369,45 @@ def selftest():
                  "--base-repo", base, "--base-ref", "main"])
         assert p.returncode == 9, "bad ref should be 9, got %d" \
             % p.returncode
-        print("  [6/6] gate7 real-probe outcomes + CLI four-codes OK "
+        print("  [6/7] gate7 real-probe outcomes + CLI four-codes OK "
               "(echo probe rc=0 PASS, false probe rc=1 gate BLOCK, "
               "help0/bogus2/no-input2/missing9/badref9)")
 
+        # ---- vector 7: the jargon mapping table face is recorded, not
+        # re-scanned - norm_lint keys the table exemption to the canonical
+        # path, which a materialized copy cannot carry, so an unguarded
+        # rescan would flag the table's own curated content and block
+        # every table edit ----
+        d7 = os.path.join(tmp, "v7")
+        base7 = build_base_repo(d7)
+        c7 = clone_at(base7, os.path.join(d7, "contrib"), "main", "maprow")
+        wf(os.path.join(c7, "docs",
+                        "jargon-to-standard-mapping-v1.md"),
+           "| dispatch (narrative sense) | route | identifier stays. "
+           "| tools dispatch |\n")
+        git(c7, "add", "-A")
+        git(c7, "commit", "-q", "-m", "map exempt-cell extension")
+        r7 = os.path.join(d7, "r7.json")
+        p = run(["--contrib-repo", c7, "--contrib-ref", "maprow",
+                 "--base-repo", base7, "--base-ref", "main", "--json", r7])
+        assert p.returncode == 0, p.stdout
+        rep7 = json.load(io.open(r7, encoding="utf-8"))
+        assert rep7["summary"]["verdict"] == "PASS", rep7["summary"]
+        assert rep7["summary"]["block_gates"] == [], rep7["summary"]
+        g7 = gates_by_name(rep7)
+        n7 = g7["norm"]
+        assert n7["details"]["error_total"] == 0, n7["details"]
+        assert any("the jargon mapping table itself" in e
+                   for e in n7["evidence"]), n7["evidence"]
+        assert n7["details"]["files"][0]["path"] == \
+            "docs/jargon-to-standard-mapping-v1.md", n7["details"]["files"]
+        print("  [7/7] map-face skip OK (the table face recorded per the "
+              "table exemption, verdict PASS, no materialized rescan)")
+
         print("CONTRIB-INTAKE-SELFTEST PASS: clean/collision/jargon/"
               "overlap four judgments plus read-only, determinism, "
-              "archive parity, paths filter, probe outcomes and CLI "
-              "checks all pass")
+              "archive parity, paths filter, probe outcomes, CLI checks "
+              "and the map-face table exemption all pass")
         return 0
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
