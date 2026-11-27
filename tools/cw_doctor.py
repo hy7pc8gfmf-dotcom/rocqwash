@@ -663,7 +663,7 @@ def run(args):
     registry three-way resolution -> canned full-coverage precheck -> the four
     domains one by one -> overall score -> verdict -> advice -> report
     (0 = healthy / 1 = degraded)."""
-    # 值校验（2）
+    # value validation (the usage-error family, exit code 2)
     if args.sample < 0:
         raise UsageError("--sample must be >= 0 (0 = no sampling), got %d" % args.sample)
     if args.timeout < 1:

@@ -263,7 +263,7 @@ import time
 PROG = "unclog"
 SCHEMA = "rocqwash-unclog/1"
 CHAIN_SCHEMA = "rocqwash-chain-graph/1"
-STATE_SCHEMA = "rocqwash-sentinel-state/1"   # --state-file 同形承 cw_sentinel
+STATE_SCHEMA = "rocqwash-sentinel-state/1"   # --state-file shares the cw_sentinel state shape
 VERDICT_EXIT = {"unclogged": 0, "wall": 1, "rounds-exhausted": 1, "audit": 0}
 TERMINAL_VERDICTS = ("unclogged", "wall")
 
@@ -751,7 +751,7 @@ class UnclogRun(object):
         self.last_red = red
         print("[round %d/%d] collect: %s failing %d: %s"
               % (k, a.rounds, summary["source"], len(red), ",".join(red) or "-"))
-        self.red_diff(red)   # 轮间红账差分事件 only-new（--state-file 在场时）
+        self.red_diff(red)   # between-round red-account diff event, only-new (with --state-file present)
 
         # step 5 verdict: an empty failure account = unclogged (the final judging probe covers the post-exhaustion extra probe)
         if not red:
@@ -1079,7 +1079,7 @@ def run_audit(args, engines, frozen_hit, events_fh, source, cands_tsv,
 # ---- main flow (--once / --loop watch mode) ----
 
 def run(args, holder):
-    # 值校验（2）
+    # value validation (the usage-error family, exit code 2)
     if args.loop and args.rounds is not None:
         raise UnclogError("--rounds and --loop are mutually exclusive"
                           " (--rounds caps the rounds of one closed-loop pass;"
