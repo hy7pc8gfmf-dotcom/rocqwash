@@ -413,7 +413,9 @@ bash tools/cpu_guard.sh -Reg /tmp/my_reg -Front 0 -Mid 1 -- rocq c -native-compi
 
 An agent session (or any scripted consumer) does not need the tour above.
 Three copy-ready paths, each executed end to end before this section
-landed:
+landed. The session-calling contract for such a session — acquisition
+paths, tool-face groups, execution laws, and the living roster self-check
+vector — is `docs/agent-contract.md`:
 
 **0. The two-command path (single-file bootstrap).** Fetch the
 bootstrap file and let it run the clone, the wiring output, and the
