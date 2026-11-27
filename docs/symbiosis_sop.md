@@ -230,12 +230,15 @@ Import mapping (envelope → append contract):
   absolute claim = a row's gap face rests on this recognition set;
   aliased equivalents were not exhaustively ruled out.  Rescan
   condition: the recognition set changes or a new package arrives.
-  Named divergence: `tools/gap_cluster.py` pins its category token as
-  the escape `\u5748` (code point U+5748) while its own producer
-  (`tools/vacgen.py` line 2470) emits U+5751, and reads only the
-  `category` key spelling; aggregation of a fed ledger therefore
-  recognizes the `TODO-SEAT` / status rows and does not read
-  category-only rows (asserted mechanically in
+  Named divergence, closed (aligned by the gap-trigger alignment item):
+  `tools/gap_cluster.py` pinned its category token as the
+  escape `\u5748` (code point U+5748) while its own producer
+  (`tools/vacgen.py` line 2470) emits U+5751, and read only the
+  `category` key spelling, so aggregation of a fed ledger recognized
+  the `TODO-SEAT` / status rows but not category-only rows.  The
+  reader-side rule now reads both tokens (U+5751 producer-real, U+5748
+  legacy) under both key spellings at both levels, so a category-only
+  fed row counts on the aggregation face (asserted mechanically in
   `tests/t_bus_feeder_shape.py` check 7).
 - **真实样本 Real sample**: `docs/symbiosis-swap-round1.jsonl` (envelope
   `rocqwash@2bd712f`, 27 entries) validates on the dry-run face and

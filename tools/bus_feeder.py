@@ -40,16 +40,17 @@
 #      drafts carry the zh key spelling);
 #   2. the literal protocol token TODO-SEAT in points or evidence;
 #   3. the literal status token status=todo_seat in evidence.
-#   Stated divergence: tools/gap_cluster.py:35 pins CATEGORY_PITFALL as
-#   the escape "\u5748" (a different code point, U+5748) and reads only
-#   the "category" key spelling, so its category rule never matches the
-#   U+5751 token its own producer emits; this tool pins U+5751 verbatim
-#   and reads both key spellings instead of inheriting that dead rule.
-#   gap_cluster aggregation of a fed ledger still recognizes rows through
-#   the TODO-SEAT / status tokens; a row selected here only through the
-#   category token carries a gap face that rests on this recognition set
-#   (negative-finding boundary: aliased gap markers beyond the declared
-#   set were not exhaustively ruled out).
+#   Divergence, closed (the gap-trigger alignment item): tools/gap_cluster.py pinned CATEGORY_PITFALL as the
+#   escape "\u5748" (a different code point, U+5748) and read only the
+#   "category" key spelling, so its category rule never matched the
+#   U+5751 token its own producer emits; this tool pinned U+5751
+#   verbatim and read both key spellings.  The gap_cluster category rule
+#   now reads both tokens (U+5751 producer-real, U+5748 legacy) under
+#   both key spellings at both levels (CATEGORY_PITFALL / CATEGORY_KEYS),
+#   so a row selected here through the category token counts through the
+#   same rule on the aggregation face (negative-finding boundary:
+#   aliased gap markers beyond the declared set were not exhaustively
+#   ruled out).
 #
 # Gap row shape (one canonical JSON line; the entry schema stays verbatim):
 #   the swap entry carried verbatim (id / ts / tool / points / evidence /
@@ -640,7 +641,9 @@ def vectors(root, fails):
                      % rc)
 
     # V8: determinism (two fresh ledgers replay byte-identically) plus the
-    # gap_cluster aggregation boundary on the fed ledger.
+    # gap_cluster aggregation face on the fed ledger; under the aligned
+    # category rule both gap rows count (the TODO-SEAT row and the
+    # zh-category row).
     replay = os.path.join(root, "led_b", LEDGER_NAME)
     rc, _out, _err = run_cli(["feed", "--swap", swap, "--ledger", replay])
     if rc != 0:
@@ -649,9 +652,9 @@ def vectors(root, fails):
         fails.append("V8 same package into two fresh ledgers must replay "
                      "byte-identically")
     aggregated = gap_cluster.aggregate([ledger], [])
-    if aggregated["totals"]["ledgerGapEntries"] != 1:
-        fails.append("V8 gap_cluster should count the TODO-SEAT row as a "
-                     "gap, got %r" % aggregated["totals"])
+    if aggregated["totals"]["ledgerGapEntries"] != 2:
+        fails.append("V8 gap_cluster should count both gap rows under the "
+                     "aligned rule, got %r" % aggregated["totals"])
     if aggregated["clusters"][0]["shapeKey"] != \
             "fam:ineq.real.const-lt-field-re":
         fails.append("V8 gap_cluster cluster key mismatch: %r"
