@@ -1400,8 +1400,7 @@ def selftest():
         assert any("the jargon mapping table itself" in e
                    for e in n7["evidence"]), n7["evidence"]
         assert n7["details"]["files"][0]["path"] == \
-            os.path.join("docs", "jargon-to-standard-mapping-v1.md"), \
-            n7["details"]["files"]
+            "docs/jargon-to-standard-mapping-v1.md", n7["details"]["files"]
         print("  [7/7] map-face skip OK (the table face recorded per the "
               "table exemption, verdict PASS, no materialized rescan)")
 
