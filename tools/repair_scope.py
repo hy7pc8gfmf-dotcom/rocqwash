@@ -4,29 +4,27 @@
 
 Purpose.  One source of truth for the faces a repair class never
   targets: the frozen ledger rows (LEDGER8 and CHECKERS read at runtime
-  from certify/frozen8.py), the append-only ledger document, and the
-  frozen directory families.  The E2 repair classes and the
-  jargon_apply frozen-exclusion face import these providers; each class
-  appends below the append-zone marker with a read-merge-write edit,
-  never a whole-file rewrite, so sibling classes are never lost and a
-  repeated append stays a no-op.
+  from certify/frozen8.py), the append-only ledger document, the
+  governing documents (constitution tier, prefix-matched under docs/),
+  and the frozen directory families.  Consumers edit by appending,
+  never by a whole-file rewrite.
 
-Interface.  frozen8_ledger(repo_root), frozen8_checkers(repo_root),
-  ledger_doc(repo_root), exclusion_roster(repo_root),
-  full_frozen_files(repo_root), dir_family_exclusion(rel_path);
-  constants SNAPSHOT_LEDGER8, SNAPSHOT_CHECKERS, FALLBACK_LEDGER_DOC,
-  FROZEN_DIR_FAMILIES (nested entries allowed), LEGAL_DATA_DIR_FAMILIES.
-  Consumers load this module by path (importlib).
+Interface.  frozen8_ledger / frozen8_checkers / ledger_doc /
+  exclusion_roster / full_frozen_files / governing_doc_faces
+  (repo_root), dir_family_exclusion(rel_path); constants
+  SNAPSHOT_LEDGER8, SNAPSHOT_CHECKERS, FALLBACK_LEDGER_DOC,
+  FROZEN_DIR_FAMILIES, LEGAL_DATA_DIR_FAMILIES, GOVERNING_DOC_PREFIXES.
+  Load by path (importlib).
 
 Dependencies.  Python 3 standard library only.  certify/frozen8.py is
   parsed as an AST literal (the module body never executes); an absent
   or damaged constant degrades to the pinned snapshot tuple, and every
-  provider reports its source so the fallback stays loud.  Zero network
-  face.
+  provider reports its source so the fallback stays loud.  Zero network face.
 
 Evidence.  --selftest: runtime LEDGER8 and checkers parity, roster
-  shape, on-disk faces and family dirs, the ten-row full view, fixture
-  fallback on a temp root, two identical roster reads.
+  shape (ledger rows, the append-only doc, the governing faces), on-disk
+  faces and family dirs, the ten-row full view, the governing roster
+  guard, fixture fallback, two identical roster reads.
 
 Exit-codes.  0 all vectors pass; 1 a failed vector; 2 usage error.
 """
@@ -89,6 +87,21 @@ FROZEN_DIR_FAMILIES = ("certify", "scan", "verify", "wrapper", "names",
 # legal/data faces a repair class never rewrites; the zh doc face rides the
 # norm_lint archive rule instead of this roster
 LEGAL_DATA_DIR_FAMILIES = ("CLA", "seeds", "docs")
+
+# Constitution-tier governing documents (the recursive-improvement
+# charter, the recursive-evolution whitepaper, the three RIS interface
+# faces, and the contrib-isolation protocol, all under docs/).  Name-
+# prefix matched so version-suffixed replacements stay covered; a
+# machine write face never targets them, and their wording findings
+# belong to the human review layer (the charter's own layer law).
+GOVERNING_DOC_PREFIXES = (
+    "docs/recursive-improvement-charter-",
+    "docs/recursive-evolution-whitepaper-",
+    "docs/ris-interface-spec-",
+    "docs/ris-interface-parameters-",
+    "docs/ris-whitepaper-supplement-",
+    "docs/contrib-isolation-protocol-",
+)
 
 
 def dir_family_exclusion(rel_path):
@@ -177,13 +190,33 @@ def ledger_doc(repo_root):
     return FALLBACK_LEDGER_DOC, "snapshot-fallback"
 
 
+def governing_doc_faces(repo_root):
+    """Sorted repo-relative governing-document faces under docs/ whose
+    names start with a GOVERNING_DOC_PREFIXES entry.  Deterministic walk
+    over the docs/ directory; an absent docs/ degrades to an empty
+    tuple."""
+    docs_dir = os.path.join(repo_root, "docs")
+    if not os.path.isdir(docs_dir):
+        return ()
+    out = []
+    for name in sorted(os.listdir(docs_dir)):
+        if not os.path.isfile(os.path.join(docs_dir, name)):
+            continue
+        rel = "docs/" + name
+        if rel.startswith(GOVERNING_DOC_PREFIXES):
+            out.append(rel)
+    return tuple(out)
+
+
 def exclusion_roster(repo_root):
     """(frozen_rel_files, frozen_dir_families) for repair targeting: the
-    runtime LEDGER8 rows plus the append-only ledger document, and the
-    frozen directory families.  This is the shared F1/E2 shape."""
+    runtime LEDGER8 rows plus the append-only ledger document plus the
+    governing-document faces, and the frozen directory families.  This
+    is the shared F1/E2 shape."""
     rows, _src = frozen8_ledger(repo_root)
     doc, _src2 = ledger_doc(repo_root)
-    return rows + [doc], FROZEN_DIR_FAMILIES
+    return (rows + [doc] + list(governing_doc_faces(repo_root)),
+            FROZEN_DIR_FAMILIES)
 
 
 def full_frozen_files(repo_root):
@@ -1544,15 +1577,19 @@ def run_selftest(args):
     vec("runtime-checkers-parity", ok,
         "checker rows=%s source=%s" % (checkers, csource))
 
-    # vector 3: roster shape (LEDGER8 rows + the append-only doc + families)
+    # vector 3: roster shape (LEDGER8 rows + the append-only doc + the
+    # governing faces + families)
     files, families = exclusion_roster(REPO_ROOT)
     doc, dsource = ledger_doc(REPO_ROOT)
-    ok = (len(files) == len(SNAPSHOT_LEDGER8) + 1 and doc in files
+    gov = governing_doc_faces(REPO_ROOT)
+    ok = (len(files) == len(SNAPSHOT_LEDGER8) + 1 + len(gov) and doc in files
           and families == FROZEN_DIR_FAMILIES
           and dsource == "runtime-ledger-doc")
     vec("roster-shape", ok,
-        "files=%d doc=%r families=%d source=%s"
-        % (len(files), doc, len(families), dsource))
+        "files=%d (ledger8 %d + doc 1 + governing %d) doc=%r families=%d "
+        "source=%s"
+        % (len(files), len(SNAPSHOT_LEDGER8), len(gov), doc, len(families),
+           dsource))
 
     # vector 4: the append-only face and every family dir exist on disk
     ok = os.path.isfile(os.path.join(REPO_ROOT, doc))
@@ -1587,6 +1624,16 @@ def run_selftest(args):
     # vector 7: two roster reads return equal results (idempotent read)
     ok = exclusion_roster(REPO_ROOT) == (files, families)
     vec("roster-read-idempotent", ok, "two identical shared-roster reads")
+
+    # vector 8: the governing documents ride the shared roster; a
+    # constitution-tier face is never a repair target and a plain docs
+    # face stays writable
+    ok = bool(gov) and all(g in files for g in gov) \
+        and all(g.startswith(GOVERNING_DOC_PREFIXES) for g in gov) \
+        and "docs/roadmap-v43-plus-20261111.md" not in files
+    vec("governing-docs-on-roster", ok,
+        "%d governing faces rostered by prefix; non-governing doc faces "
+        "stay writable" % len(gov))
 
     failed = 0
     for name, ok2, detail in results:

@@ -27,12 +27,18 @@ SCHEMA = "rocqwash-gap-ledger/1"
 TOOL_VERSION = "1.0.0"
 
 # Gap-class protocol tokens (data tokens, not prose): the ledger-side
-# recognition set and the vacgen draft category token that exp_port carries
-# verbatim in the source field. The pitfall token is written as an escape so
+# recognition set and the vacgen draft category tokens that exp_port carries
+# verbatim in the source field. The pitfall tokens are written as escapes so
 # this source face stays ASCII (annotation standard, CJK-free code faces).
+# The category rule reads the producer-real token U+5751 (tools/vacgen.py
+# line 2470) and the legacy pinned token U+5748, under both key spellings
+# the bus carries ("category" and the zh key, tools/bus_feeder.py
+# CATEGORY_KEYS), at both levels (entry key and source-dict key). Landed
+# ledger rows are append-only, so the alignment is reader-side only.
 PROTOCOL_TOKEN = "TODO-SEAT"
 STATUS_TOKEN = "status=todo_seat"
-CATEGORY_PITFALL = "\u5748"  # vacgen exp-draft category token for the gap class
+CATEGORY_PITFALL = ("\u5751", "\u5748")
+CATEGORY_KEYS = ("category", "\u7c7b\u522b")
 
 # Family shape key rules. An explicit familyId wins (report assumption field,
 # ledger entry field or ledger source field). Otherwise the ledger points text
@@ -67,12 +73,15 @@ def entry_source(entry):
 
 
 def is_ledger_gap_entry(entry):
-    """Ledger gap-class recognition: the pitfall category token (top level or
-    source, carried verbatim from the vacgen exp-draft), the TODO-SEAT
-    protocol token in points or evidence, or the status token in evidence."""
+    """Ledger gap-class recognition: a pitfall category token under either
+    key spelling ("category" or the zh key) at either level (entry key or
+    source-dict key, carried verbatim from the vacgen exp-draft and the
+    fed rows), the TODO-SEAT protocol token in points or evidence, or the
+    status token in evidence."""
     src = entry_source(entry)
-    if entry.get("category") == CATEGORY_PITFALL or src.get("category") == CATEGORY_PITFALL:
-        return True
+    for key in CATEGORY_KEYS:
+        if entry.get(key) in CATEGORY_PITFALL or src.get(key) in CATEGORY_PITFALL:
+            return True
     points = entry.get("points") or ""
     evidence = entry.get("evidence") or ""
     return (PROTOCOL_TOKEN in points or PROTOCOL_TOKEN in evidence
@@ -295,10 +304,11 @@ RULES = {
                        "shape:<normalized text with identifier tokens replaced "
                        "by <id>, digit runs by <num>, whitespace collapsed>"),
     "ledgerGapClass": ("an entry counts as a gap when its category (top level "
-                       "or source) equals the vacgen exp-draft pitfall "
-                       "category token, or the protocol token TODO-SEAT occurs "
-                       "in points or evidence, or evidence contains "
-                       "status=todo_seat"),
+                       "or source, under the category key or the zh key "
+                       "spelling) equals a vacgen exp-draft pitfall category "
+                       "token (U+5751 producer-real or U+5748 legacy), or the "
+                       "protocol token TODO-SEAT occurs in points or evidence, "
+                       "or evidence contains status=todo_seat"),
     "ordering": ("clusters sorted by shapeKey byte order; members sorted by "
                  "(origin, file, line-or-index, id); family, variant and "
                  "degraded lists sorted and distinct; JSON keys sorted; input "
@@ -478,6 +488,47 @@ def selftest():
                     "category-only entry should fall to shape key")
         return "pitfall category token recognized via source dict"
 
+    def check_ledger_category_aligned(tmp):
+        # The aligned category rule: the producer-real token U+5751 and the
+        # legacy token U+5748, under the zh key and the category key, at
+        # both levels. The zh-key source shape is the standing periscope
+        # row in docs/gap-feed-ledger.jsonl.
+        zh_row = {
+            "schema": "rocqwash-exp/1", "id": "fix-013", "ts": "T0",
+            "tool": "periscope", "batch": "b",
+            "points": "the window sentinel wrote its log outside the "
+                      "declared output directory",
+            "evidence": "wf-script.ts:112 vs the on-disk log location",
+            "fingerprint": "4" * 64,
+            "source": {"id": "fix-013", "\u7c7b\u522b": "\u5751"},
+        }
+        legacy_row = {
+            "schema": "rocqwash-exp/1", "id": "fix-014", "ts": "T0",
+            "tool": "vacgen2", "batch": "b",
+            "points": "premise face not covered by any taxonomy row",
+            "evidence": "report.json (assumptions[] status=todo_seat)",
+            "fingerprint": "5" * 64,
+            "source": {"id": "fix-014", "category": "\u5748"},
+        }
+        top_row = {
+            "schema": "rocqwash-exp/1", "id": "fix-015", "ts": "T0",
+            "tool": "vacgen2", "batch": "b",
+            "points": "premise face not covered by any taxonomy row",
+            "evidence": "report.json (assumptions[] status=todo_seat)",
+            "fingerprint": "6" * 64,
+            "\u7c7b\u522b": "\u5751",
+        }
+        path = os.path.join(tmp, "ledger-cat-aligned.jsonl")
+        write(path, "\n".join(json.dumps(r) for r in (zh_row, legacy_row,
+                                                      top_row)) + "\n")
+        got = aggregate([path], [])
+        assert_true(got["totals"]["ledgerGapEntries"] == 3,
+                    "aligned category rule missed a row: %r" % got["totals"])
+        assert_true(got["totals"]["ledgerNonGapEntries"] == 0,
+                    "aligned rule overcounted non-gap: %r" % got["totals"])
+        return ("producer token, legacy token, zh key and top-level key "
+                "all recognized")
+
     def check_degraded_hole(tmp):
         report = {"reportId": "vacgenv2-fix-002", "assumptions": [
             {"kind": "assumption", "name": "h", "typeHead": "_",
@@ -581,6 +632,7 @@ def selftest():
         run("report-clustering", lambda: check_report_clustering(tmp))
         run("ledger-gap-class", lambda: check_ledger_gap_class(tmp))
         run("ledger-category-token", lambda: check_ledger_category_token(tmp))
+        run("ledger-category-aligned", lambda: check_ledger_category_aligned(tmp))
         run("degraded-hole", lambda: check_degraded_hole(tmp))
         run("zero-gaps", lambda: check_zero_gaps(tmp))
         run("corrupt-inputs", lambda: check_corrupt_inputs(tmp))

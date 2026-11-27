@@ -384,9 +384,10 @@ def main():
 
         # Check 7: write surface plus the aggregation boundary - dry runs
         # and read faces add zero files, a real feed adds only its ledger;
-        # gap_cluster aggregate() counts the TODO-SEAT row as a gap while
-        # the zh-category row stays outside its recognition set (the
-        # documented boundary, asserted from the aggregate output face).
+        # gap_cluster aggregate() counts the TODO-SEAT row and the fed
+        # zh-category row as gaps (the aligned category rule reads both
+        # tokens under both key spellings; asserted from the aggregate
+        # output face).
         before_set = snapshot(tmp)
         run_tool(TOOL, ["feed", "--swap", pkg, "--ledger",
                         os.path.join(tmp, "w7", "gap-feed-ledger.jsonl"),
@@ -451,10 +452,10 @@ def main():
                 face_data.get("seatKey") != "fam:ineq.real.const-lt-field-re":
             fails.append("check7 gap_cluster should count the TODO-SEAT row "
                          "as a gap under its family key, got %r" % face)
-        if face_data.get("zhLedgerGaps") != 0:
-            fails.append("check7 the zh-category boundary should hold: "
-                         "gap_cluster does not read the zh key spelling, "
-                         "got %r" % face)
+        if face_data.get("zhLedgerGaps") != 1:
+            fails.append("check7 the aligned category rule should count "
+                         "the zh-category row: gap_cluster reads both key "
+                         "spellings, got %r" % face)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
