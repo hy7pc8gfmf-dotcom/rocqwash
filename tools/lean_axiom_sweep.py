@@ -1,84 +1,95 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """lean_axiom_sweep.py - per-theorem axiom-closure classifier for Lean claim audits.
-Purpose.  Make "0 sorry 0 axiom" claims mechanically reproducible per theorem:
-  the declaration face of the target .lean file(s) is enumerated and each
-  declaration is probed with `#print axioms <decl>` via the copy-append
-  form: the target file is copied to a private temp checker file and one
-  probe line per declaration is appended to the copy, so private
-  declarations are probed in their own file's context (the import-based
-  checker form survives only for cross-file aggregated sweeps where
-  copy-append is not applicable).  The checker runs in the target's own
-  lake environment (`lake env lean`) or against a direct lean binary, and
-  the output is parsed into axiom sets and classified: CLEAN /
-  BENIGN-STANDARD (subset of propext, Classical.choice, Quot.sound) /
-  SORRY-ALARM (sorryAx) / CUSTOM-AXIOM-ALARM (any other name, verbatim) /
-  PRIVATE-COVERED (a private declaration successfully probed via the
-  copy-append form; its axiom closure counts normally toward the verdict,
-  it is not a pass-by-absence) / UNPARSED (honest).
-Interface.  python -I tools/lean_axiom_sweep.py --root <file|dir> [--json OUT]
-  [--allow-axiom NAME]... [--timeout SEC] [--snapshot OUT]
-  [--baseline SNAPSHOT] | --toolchain-doctor --root <file|dir> | --selftest.
-  stdout carries one JSON line (schema rocqwash-axiom-sweep/1); --json
-  additionally writes the same payload to OUT; --snapshot additionally
-  writes a machine closure snapshot (schema
-  rocqwash-axiom-closure-snapshot/1, deterministic); --baseline diffs the
-  current closure against a previous snapshot into the closure_diff block;
-  --toolchain-doctor prints the standalone toolchain resolution-chain
-  report (schema rocqwash-toolchain-doctor/1) and exits 0 always;
-  --selftest runs the frozen offline vectors and exits.
-Dependencies.  Python 3 standard library only; the probe face needs a usable
-  Lean 4 toolchain (lean or lake on PATH passing a version probe, so an
-  elan shim without a default toolchain does not pass), never downloaded or
-  simulated; without one the sweep exits 112 judging nothing.  When the
-  target pins a toolchain (a lean-toolchain file), the pin must be in the
-  elan installed list (`elan toolchain list`) for the sweep to run at all.
-  The snapshot and diff faces are toolchain-independent: the diff reads only
-  the two snapshot files' data, no Lean involvement.
-Evidence.  --selftest covers the parse and classify faces with canned
-  `#print axioms` fixtures for all six classes, the copy-append emission
-  face (checker text plus the emitted probe list the parse name-maps),
-  the name-keyed parse face (exact-name attribution under deliberately
-  wrong probe line numbers, a missing block leaving exactly its own row
-  UNPARSED no cascade, the mangled-private unique-suffix fallback and
-  its ambiguity refusal, double-run byte-identical), the
-  per-probe failure-isolation face (a failed or unresolved probe leaves
-  ONLY its own declaration UNPARSED, no sibling cascade), a private- plus
-  public-declaration fixture probed offline into PRIVATE-COVERED with its
-  axiom set, the report shape (every counter wrapped {value, basis},
-  scan_face four fields), the import-form checker emission and
-  module-derivation faces, the gate vector (child PATH stripped -> rc
-  112), the closure faces (snapshot determinism double-run
-  byte-identical, all four diff verdict kinds, diff_alarm true and
-  false, NEW-DEPENDENCY, baseline load error faces, the no-baseline
-  backward-compat shape), and the toolchain pin faces (upward pin
-  discovery nearest-wins, empty-pin refusal, elan list parse with
-  annotations stripped, pin membership decision, version token parses,
-  probe env injection and no-pin passthrough, toolchain-block
-  pin/target_pin/match fields, doctor payload shape over all four
-  verdicts, the pin-skip spawn face rc 112 with the doctor block and the
-  exact install command on a stripped environment, the doctor face exit
-  0, and the doctor usage-conflict faces); zero network, zero toolchain
-  launch, zero real-repo touch.
-Exit-codes.  0 green (every classified declaration CLEAN, BENIGN-STANDARD
-  or PRIVATE-COVERED, zero UNPARSED rows, zero errors; also the
-  --toolchain-doctor diagnostic face, always); 1 red (any SORRY-ALARM,
-  CUSTOM-AXIOM-ALARM or UNPARSED row, or any recorded error: unjudgeable is
-  not green; unchanged by the diff face - diff_alarm rides the payload);
-  2 usage error (including an unreadable or wrong-schema --baseline, and
-  --toolchain-doctor combined with scan flags);
-  112 no usable Lean toolchain (the honest skip names the requirement), or
-  the target lean-toolchain pin cannot be honored (not in the elan
-  installed list, or the pin unreadable, or the installed list
-  unavailable: running the unverified PATH default would be the toolchain
-  drift this gate exists to prevent; the pin-skip face upgrades the
-  output with a doctor block on stdout naming the exact install command);
-  the axiom_guard rc 111 env-gate precedent family, code 112 per this
-  tool's contract.
+Purpose.  Make "0 sorry 0 axiom" claims mechanically reproducible per
+  theorem: each declaration of the target .lean file(s) is probed with
+  `#print axioms <decl>` via the copy-append form (private temp checker
+  copy, one appended probe line per declaration) and classified CLEAN /
+  BENIGN-STANDARD / SORRY-ALARM / CUSTOM-AXIOM-ALARM / PRIVATE-COVERED /
+  UNPARSED (honest); the class definitions and the enumeration, probe,
+  gate, and pin detail live in the detail block below the header.
+Interface.  python -I tools/lean_axiom_sweep.py --root <file|dir>
+  [--json OUT] [--allow-axiom NAME]... [--timeout SEC] [--snapshot OUT]
+  [--baseline SNAPSHOT] | --toolchain-doctor --root <file|dir> |
+  --selftest; stdout carries one JSON line (rocqwash-axiom-sweep/1).
+Dependencies.  Python 3 standard library only; the probe face needs a
+  usable Lean 4 toolchain (lean or lake on PATH passing a version probe),
+  never downloaded or simulated; without one the sweep exits 112; a
+  pinned toolchain must be in the elan installed list.
+Evidence.  --selftest frozen offline vectors across parse, classify,
+  emission, name-keyed parse, failure isolation, snapshot/diff, and pin
+  faces; the full enumeration is in the detail block.
+Exit-codes.  0 green; 1 red (any alarm, UNPARSED row, or recorded
+  error); 2 usage error; 112 no usable toolchain or unhonored pin; the
+  per-case detail is in the detail block.
 """
 
 # Detail carried below the five-field header budget (the norm_lint
 # header-budget rule keeps the docstring to the five fields):
+#
+# Former-header detail (carried out of the header on the RIS-12 budget
+# cure, verbatim in substance):
+# Interface.  --json additionally writes the same payload to OUT;
+#   --snapshot additionally writes a machine closure snapshot (schema
+#   rocqwash-axiom-closure-snapshot/1, deterministic); --baseline diffs
+#   the current closure against a previous snapshot into the
+#   closure_diff block; --toolchain-doctor prints the standalone
+#   toolchain resolution-chain report (schema
+#   rocqwash-toolchain-doctor/1) and exits 0 always; --selftest runs the
+#   frozen offline vectors and exits.
+# Dependencies.  An elan shim without a default toolchain does not pass
+#   the version probe; when the target pins a toolchain (a
+#   lean-toolchain file), the pin must be in the elan installed list
+#   (`elan toolchain list`) for the sweep to run at all; the snapshot and
+#   diff faces are toolchain-independent: the diff reads only the two
+#   snapshot files' data, no Lean involvement.
+# Purpose detail.  The checker runs in the target's own lake environment
+#   (`lake env lean`) or against a direct lean binary.  Class
+#   definitions: BENIGN-STANDARD = subset of propext, Classical.choice,
+#   Quot.sound; SORRY-ALARM = sorryAx; CUSTOM-AXIOM-ALARM = any other
+#   name, verbatim; PRIVATE-COVERED = a private declaration successfully
+#   probed via the copy-append form, its axiom closure counts normally
+#   toward the verdict, it is not a pass-by-absence.
+# Evidence.  --selftest covers the parse and classify faces with canned
+#   `#print axioms` fixtures for all six classes, the copy-append emission
+#   face (checker text plus the emitted probe list the parse name-maps),
+#   the name-keyed parse face (exact-name attribution under deliberately
+#   wrong probe line numbers, a missing block leaving exactly its own row
+#   UNPARSED no cascade, the mangled-private unique-suffix fallback and
+#   its ambiguity refusal, double-run byte-identical), the per-probe
+#   failure-isolation face (a failed or unresolved probe leaves ONLY its
+#   own declaration UNPARSED, no sibling cascade), a private- plus
+#   public-declaration fixture probed offline into PRIVATE-COVERED with
+#   its axiom set, the report shape (every counter wrapped {value, basis},
+#   scan_face four fields), the import-form checker emission and
+#   module-derivation faces, the gate vector (child PATH stripped -> rc
+#   112), the closure faces (snapshot determinism double-run
+#   byte-identical, all four diff verdict kinds, diff_alarm true and
+#   false, NEW-DEPENDENCY, baseline load error faces, the no-baseline
+#   backward-compat shape), and the toolchain pin faces (upward pin
+#   discovery nearest-wins, empty-pin refusal, elan list parse with
+#   annotations stripped, pin membership decision, version token parses,
+#   probe env injection and no-pin passthrough, toolchain-block
+#   pin/target_pin/match fields, doctor payload shape over all four
+#   verdicts, the pin-skip spawn face rc 112 with the doctor block and
+#   the exact install command on a stripped environment, the doctor face
+#   exit 0, and the doctor usage-conflict faces); zero network, zero
+#   toolchain launch, zero real-repo touch.
+# Exit-codes.  0 green (every classified declaration CLEAN,
+#   BENIGN-STANDARD or PRIVATE-COVERED, zero UNPARSED rows, zero errors;
+#   also the --toolchain-doctor diagnostic face, always); 1 red (any
+#   SORRY-ALARM, CUSTOM-AXIOM-ALARM or UNPARSED row, or any recorded
+#   error: unjudgeable is not green; unchanged by the diff face -
+#   diff_alarm rides the payload); 2 usage error (including an unreadable
+#   or wrong-schema --baseline, and --toolchain-doctor combined with scan
+#   flags); 112 no usable Lean toolchain (the honest skip names the
+#   requirement), or the target lean-toolchain pin cannot be honored (not
+#   in the elan installed list, or the pin unreadable, or the installed
+#   list unavailable: running the unverified PATH default would be the
+#   toolchain drift this gate exists to prevent; the pin-skip face
+#   upgrades the output with a doctor block on stdout naming the exact
+#   install command); the axiom_guard rc 111 env-gate precedent family,
+#   code 112 per this tool's contract.
 #
 # Declaration enumeration.  Byte-literal line-start regex face: optional
 # Lean 4 prefix modifiers (private/protected/noncomputable/unsafe/partial/

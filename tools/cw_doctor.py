@@ -3,78 +3,29 @@
 """cw_doctor.py — aggregate health doctor: four-domain rollup (rocqwash tools/).
 
 Purpose.  One-shot overall health assessment: orchestrates the existing
-  per-domain tools over four domains, each driven by subprocess (write
-  orchestration, never re-implementation — each tool's CLI and JSON schema
-  are read before wiring; a tool failure or malformed report is fail-loud;
-  zero new engines), and aggregates them into an overall health score 0-100
-  plus a per-domain verdict plus an advice list (one entry per non-passing
-  domain, pointing at the corresponding tool).  Domain 1 env (weight 40) =
-  subprocess toolchain_dyld_doctor (the worker default probe is decided
-  inside that tool: flag / env ROCWASH_ROCQWORKER / the sanctioned-machine
-  default) -> report verdict healthy|missing-libs|worker-missing ->
-  healthy scores 100, anything else 0 (a failing result is data, not a tool
-  failure).  Domain 2 net (20) = subprocess net_probe --rounds 1 --interval
-  0 (the default four endpoints) -> report verdict all-up|partial|all-down
-  (without --stable-window, net_probe exit 0 only means the probe completed
-  — reachability is read from the report's verdict field, not the exit
-  code) -> score = reachability rate x 100.  Domain 3 registry (25) =
-  --registry PATH explicit (missing ledger fails loud 9) > env CW_SET
-  /ConstructiveWorld_Live/order.txt probe (a missing ledger skips honestly)
-  > none skips -> the anchor canonical-form audit: the compliance rate of
-  the #R<seq>-<md5_8> form -> score = rate x 100.  Domain 4 clog (15) =
-  --src DIR (skipped by default) + --sample N (default 0 = no sampling ->
-  the domain skips honestly; the domain is active only with --src and
-  --sample>0) -> whole-tree canonical-order .v enumeration -> equidistant
-  sampling -> candidates TSV -> subprocess probe_engine --fresh -> ledger ->
-  chain_graph --top 1 always runs (pure stdlib, zero compiles, zero
-  network; real orchestration, never a puppet) -> the red-account rate
-  (stats.rc1 union stats.other) -> score = (1 - red rate) x 100, plus a TOP
-  entry when a missing-library chain root exists.
-
+  per-domain tools over four domains by subprocess (write orchestration,
+  never re-implementation; a tool failure or malformed report is
+  fail-loud; zero new engines) and aggregates them into an overall
+  health score 0-100, a per-domain verdict, and an advice list.  The
+  domain scoring, score formula, advice table, injector contract,
+  determinism rules, and exit-code detail are specified in the extended
+  contract below the header.
 Interface.  python3 tools/cw_doctor.py [--json OUT] [--workdir DIR]
   [--registry PATH] [--src DIR --sample N [--world DIR]] [--worker PATH]
   [--donor DIR] [--endpoints URL[,URL...]] [--guard PATH] [--guard-reg DIR]
   [--guard-maxwait S] [--timeout S] [--rocq-cmd TPL] [--injector DIR]
-  | --selftest.  Report schema rocqwash-cwdoctor/1.  Score = sum(domain
-  score x weight) / sum(active weights) (skipped domains drop their weight;
-  round 2 places); verdict healthy (>=90) | degraded (<90).  Advice: env ->
-  trace and restore with toolchain_dyld_doctor (advice only, never
-  auto-executed); net -> a two-probe stable window with net_probe
-  --stable-window; registry -> re-anchor to the canonical form with
-  registry_union --reanchor; clog -> clear blockages with the unclog closed
-  loop; a skipped domain -> pass its switch and re-run.  Offline-testable:
-  --injector DIR/scenario.json = {engine key: {"rc": int, "stdout": str,
-  "report": dict}} with the fixed key set dyld/net/probe (the wash_shape
-  Injector contract; unknown key -> 2); the canned table must cover every
-  tool call this run will issue (a missing key -> 9; it never silently
-  falls through to the real tool on the real network).  Determinism: the
-  report carries no wall-clock field, every path is a basename, sort_keys
-  on write; same input and environment rerun byte-identical.
-
+  | --selftest.  Report schema rocqwash-cwdoctor/1.
 Dependencies.  Python 3 standard library only; every path parameterized
-  except the sanctioned --guard default (the ConstructiveWorld cpu_guard.sh
-  path, the same default as toolchain_dyld_doctor; overridable).  Zero
-  sleeps, zero loops in this tool itself (--sleep-scale is irrelevant; the
-  net round interval is always 0).
-
+  except the sanctioned --guard default (the ConstructiveWorld
+  cpu_guard.sh path, the same default as toolchain_dyld_doctor;
+  overridable).  Zero sleeps, zero loops in this tool itself.
 Evidence.  --selftest frozen vectors on a tmp fixture tree with canned
-  subprocess-layer injection (zero real otool, zero real network, zero real
-  compiles; chain_graph and the registry audit run for real — pure stdlib):
-  the four-domain all-green 100, the env-red 60.0 degradation, the registry
-  skip renormalization 86.67 plus the CW_SET missing-ledger honest skip,
-  the clog TOP injection 88.75, advice generation, JSON idempotence,
-  CLI four codes with canned full-coverage, and the registry-audit unit;
-  suite membership tests/test_cw_doctor.py.
-
-Exit-codes.  0 = healthy (overall score >= 90); 1 = degraded (< 90, the
-  failing domains reported loudly — a domain failure is data, not a tool
-  failure); 2 = usage error (argparse / negative --sample / invalid
-  --timeout / malformed injector scenario / unknown key); 9 = missing
-  (tool missing / explicit --registry ledger missing / --src directory
-  missing / --world missing for a real probe / --guard missing / --src with
-  zero candidates / injector scenario missing, canned not covering /
-  subprocess tool failure / unrecognized report schema / registry decode
-  failure).
+  subprocess-layer injection: all-green 100 / env-red 60.0 / registry
+  skip 86.67 + honest skip / clog TOP 88.75 / advice / idempotence /
+  CLI four codes / registry-audit unit; suite tests/test_cw_doctor.py.
+Exit-codes.  0 healthy (score >= 90); 1 degraded (<90; a domain failure
+  is data, not a tool failure); 2 usage error; 9 missing; the per-case
+  detail lives in the extended contract.
 """
 # Extended contract (kept outside the five-field block per the annotation
 # standard 30-line header budget):
@@ -97,6 +48,49 @@ Exit-codes.  0 = healthy (overall score >= 90); 1 = degraded (< 90, the
 # 1:1; comment lines and blank lines are not audited (the key_of semantics);
 # anchorless body rows count into no_anchor and stay out of the compliance-rate
 # denominator; the non-form list caps at 20 with the total reported honestly.
+# domain 1/2/3 scoring detail: domain 1 env (weight 40) = subprocess
+# toolchain_dyld_doctor (the worker default probe is decided inside that tool:
+# flag / env ROCWASH_ROCQWORKER / the sanctioned-machine default) -> report
+# verdict healthy|missing-libs|worker-missing -> healthy scores 100, anything
+# else 0 (a failing result is data, not a tool failure).  Domain 2 net (20) =
+# subprocess net_probe --rounds 1 --interval 0 (the default four endpoints) ->
+# report verdict all-up|partial|all-down (without --stable-window, net_probe
+# exit 0 only means the probe completed — reachability is read from the
+# report's verdict field, not the exit code) -> score = reachability rate x
+# 100.  Domain 3 registry (25) = --registry PATH explicit (missing ledger
+# fails loud 9) > env CW_SET /ConstructiveWorld_Live/order.txt probe (a
+# missing ledger skips honestly) > none skips -> the anchor canonical-form
+# audit: the compliance rate of the #R<seq>-<md5_8> form -> score = rate x
+# 100.  Score = sum(domain score x weight) / sum(active weights) (skipped
+# domains drop their weight; round 2 places); verdict healthy (>=90) |
+# degraded (<90); the advice list carries one entry per non-passing domain.
+# advice table: env -> trace and restore with toolchain_dyld_doctor (advice
+# only, never auto-executed); net -> a two-probe stable window with net_probe
+# --stable-window; registry -> re-anchor to the canonical form with
+# registry_union --reanchor; clog -> clear blockages with the unclog closed
+# loop; a skipped domain -> pass its switch and re-run.
+# offline-testable injector: --injector DIR/scenario.json = {engine key:
+# {"rc": int, "stdout": str, "report": dict}} with the fixed key set
+# dyld/net/probe (the wash_shape Injector contract; unknown key -> 2); the
+# canned table must cover every tool call this run will issue (a missing key
+# -> 9; it never silently falls through to the real tool on the real network).
+# determinism: the report carries no wall-clock field, every path is a
+# basename, sort_keys on write; same input and environment rerun
+# byte-identical.  (--sleep-scale is irrelevant to this tool; the net round
+# interval is always 0.)
+# exit-code detail: 2 = usage error (argparse / negative --sample / invalid
+# --timeout / malformed injector scenario / unknown key); 9 = missing (tool
+# missing / explicit --registry ledger missing / --src directory missing /
+# --world missing for a real probe / --guard missing / --src with zero
+# candidates / injector scenario missing, canned not covering / subprocess
+# tool failure / unrecognized report schema / registry decode failure).
+# evidence detail: chain_graph and the registry audit run for real — pure
+# stdlib; zero real otool, zero real network, zero real compiles; the full
+# enumeration: the four-domain all-green 100, the env-red 60.0 degradation,
+# the registry skip renormalization 86.67 plus the CW_SET missing-ledger
+# honest skip, the clog TOP injection 88.75, advice generation, JSON
+# idempotence, CLI four codes with canned full-coverage, and the
+# registry-audit unit.
 
 import argparse
 import hashlib
