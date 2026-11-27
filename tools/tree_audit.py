@@ -1,77 +1,90 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """tree_audit.py - read-only tree health audit over .lean/.v source trees.
-
-Purpose.  One JSON-line census of a source tree: file/byte/line totals (lines
-  and non-empty lines), declaration counts split into thm and defFam across
-  two per-suffix grammar faces (Lean lowercase keywords in .lean, Rocq
-  capitalized vernacular in .v) with decls as their combined total and
-  grammar_faces carrying the per-grammar sub-counts, an unsound-feature sweep
-  (sorry, sorryAx, axiom, opaque, native_decide, unsafe, implemented_by,
-  extern, ofReduceBool), a trust_surface sweep of the platform blind-spot
-  switches that Print Assumptions / #print axioms can never see (per-grammar
-  fixed tables - Rocq: Unset Guard Checking, Unset Positivity Checking,
-  Unset Universe Checking, Unset Elimination Schemes, native_compute,
-  vm_compute, Declare ML Module; Lean: unsafe def/theorem/instance,
-  @[implemented_by, @[extern, native_decide, Lean.ofReduceBool, partial def,
-  noncomputable, debug.skipKernelTC, set_option), comment faces,
-  per-directory and largest-file tables, and the import-root histogram.
-  Every top-level counter key is {"value": N, "basis": "..."} so each number
-  travels with its counting rule; the trust_surface block carries its
-  switches and files_affected as value+basis counters plus a manifest_note
-  receipt, and scan_face states what the scan covers and what it cannot see.
-  Counting is byte-literal (raw bytes, so comments and strings count too):
-  .lean stays lowercase, calibrated one-to-one to the sandbox census_rh.py
-  face so a same-.lean cross-check is field-for-field equal, while .v rides
-  the Rocq vernacular face added by R-3b because the lowercase faces
-  undercount capitalized .v trees by orders of magnitude.  The root is
-  scanned literally (no src/ descent).
-Interface.  python3 tools/tree_audit.py --root DIR [--json OUT] | --selftest;
-  stdout carries one JSON line and --json writes the same payload to OUT;
-  stderr additionally carries the independent grep cross-check commands for
-  the acceptance gate.  Fields: files, bytes, lines, nonEmptyLines, thm,
-  defFam, decls, grammar_faces, sorry, sorryAx, axiom, opaque,
-  native_decide, unsafe, implemented_by, extern, ofReduceBool,
-  trust_surface, commentLines, blockCommentFiles, perDir, largest10,
-  zeroDeclFiles, importRoots, root, errors, errorCount, scan_face.  Shape:
-  every field but scan_face and the trust_surface block is
-  {"value": ..., "basis": ...}; trust_surface carries switches (each token
-  a {value, basis} counter), files_affected and the manifest_note receipt;
-  perDir.value maps the first path segment to
-  {files, decls, bytes}, largest10.value is [{"path","bytes"}],
-  importRoots.value is a top-ten [[root,count]] list, errors.value is a
-  capped string list, grammar_faces.value maps the grammar name (lean, rocq)
-  to {thm, defFam} counters that each carry value + basis; scan_face has
-  exactly the four fields scanned, not_scanned, negative_finding,
-  equivalents.
-Dependencies.  Python 3 standard library only (argparse, json, os, re,
-  shlex, shutil, sys, tempfile); the fast path reads each file once in
-  binary and scans bytes with precompiled regexes: zero subprocess, zero
-  network, zero imports of the scanned tree, zero tree writes.
-Evidence.  --selftest builds a temporary fixture tree (.v and .lean files
-  with hand-derived known counts covering the thm/defFam split per grammar,
-  a capitalized Rocq .v fixture (3 Theorem + 1 Corollary + 2 Definition +
-  1 Inductive) asserted through the rocq face, a no-leak guard proving the
-  lowercase faces contribute nothing to .v files, and blank / whitespace-
-  only lines), asserts every report field against those vectors, asserts
-  the value/basis shape of every top-level key but scan_face (the
-  grammar_faces counters included), the cross-grammar sum identity, basis
-  strings naming both grammars, the grep cross-check commands carrying the
-  same keyword tables, and the four verbatim scan_face strings, a
-  trust-surface fixture pair (.v with one Unset Guard Checking plus one
-  native_compute; .lean with unsafe def, @[implemented_by, native_decide
-  and a set_option line) asserted token-exact with files_affected and a
-  zero-switch negative-finding shape on the empty tree, the exit-code faces
-  (green scan, empty tree, missing root rc=2) and the --json
-  round trip; the Deicyde mirror cross-check against census_rh.py runs out
-  of tree, and the real-tree rocq acceptance gate re-derives the rocq-face
-  counts with the printed grep commands (no expected count is hardcoded in
-  this file).
-Exit-codes.  0 green (complete scan or green selftest); 1 red (any selftest
-  vector fails, any file read fails, or the --json write fails); 2 usage
-  (missing or non-directory --root, --selftest combined with scan flags,
-  unknown flags).
+Purpose.  One JSON-line census of a source tree: file/byte/line totals,
+  declaration counts split thm/defFam across two per-suffix grammar faces
+  (Lean lowercase in .lean, Rocq vernacular in .v), an unsound-feature
+  sweep, a trust_surface sweep of the platform blind-spot switches, and
+  the comment, per-directory, largest-file, and import-root tables.
+  Every counter travels as {"value": N, "basis": rule} and counting is
+  byte-literal (comments and strings count); the sweep tables, field
+  list, and shape contract live in the extended contract below.
+Interface.  python3 tools/tree_audit.py --root DIR [--json OUT] |
+  --selftest; stdout carries one JSON line and --json writes the same
+  payload to OUT; stderr additionally carries the independent grep
+  cross-check commands for the acceptance gate.  The full field list and
+  shape are in the extended contract.
+Dependencies.  Python 3 standard library only; the fast path reads each
+  file once in binary and scans bytes with precompiled regexes: zero
+  subprocess, zero network, zero imports of the scanned tree, zero tree
+  writes.
+Evidence.  --selftest builds a temporary fixture tree with hand-derived
+  known counts and asserts every report field, the value/basis shape,
+  the cross-grammar sum identity, the trust-surface tokens, the exit
+  faces, and the --json round trip; the enumeration is in the extended
+  contract.
+Exit-codes.  0 green (complete scan or green selftest); 1 red (any
+  selftest vector fails, any file read fails, or the --json write
+  fails); 2 usage (missing or non-directory --root, --selftest combined
+  with scan flags, unknown flags).
 """
+
+# Extended contract (kept outside the five-field header so the header
+# stays within the 30-line budget of the annotation standard; the moved
+# facts are carried over from the former header verbatim in substance):
+#
+# Unsound-feature sweep tokens: sorry, sorryAx, axiom, opaque,
+#   native_decide, unsafe, implemented_by, extern, ofReduceBool.
+# Trust-surface sweep: the platform blind-spot switches that Print
+#   Assumptions / #print axioms can never see, per-grammar fixed tables -
+#   Rocq: Unset Guard Checking, Unset Positivity Checking, Unset Universe
+#   Checking, Unset Elimination Schemes, native_compute, vm_compute,
+#   Declare ML Module; Lean: unsafe def/theorem/instance,
+#   @[implemented_by, @[extern, native_decide, Lean.ofReduceBool, partial
+#   def, noncomputable, debug.skipKernelTC, set_option.  The
+#   trust_surface block carries its switches and files_affected as
+#   value+basis counters plus a manifest_note receipt, and scan_face
+#   states what the scan covers and what it cannot see.
+# Counting semantics: byte-literal (raw bytes, so comments and strings
+#   count too); .lean stays lowercase, calibrated one-to-one to the
+#   sandbox census_rh.py face so a same-.lean cross-check is
+#   field-for-field equal; .v rides the Rocq vernacular face added by
+#   R-3b because the lowercase faces undercount capitalized .v trees by
+#   orders of magnitude.  The root is scanned literally (no src/
+#   descent).
+# Fields: files, bytes, lines, nonEmptyLines, thm, defFam, decls,
+#   grammar_faces, sorry, sorryAx, axiom, opaque, native_decide, unsafe,
+#   implemented_by, extern, ofReduceBool, trust_surface, commentLines,
+#   blockCommentFiles, perDir, largest10, zeroDeclFiles, importRoots,
+#   root, errors, errorCount, scan_face.  Shape: every field but
+#   scan_face and the trust_surface block is {"value": ..., "basis":
+#   ...}; trust_surface carries switches (each token a {value, basis}
+#   counter), files_affected and the manifest_note receipt; perDir.value
+#   maps the first path segment to {files, decls, bytes}; largest10.value
+#   is [{"path","bytes"}]; importRoots.value is a top-ten [[root,count]]
+#   list; errors.value is a capped string list; grammar_faces.value maps
+#   the grammar name (lean, rocq) to {thm, defFam} counters that each
+#   carry value + basis; scan_face has exactly the four fields scanned,
+#   not_scanned, negative_finding, equivalents.
+# Evidence detail: the fixture tree (.v and .lean files with hand-derived
+#   known counts covering the thm/defFam split per grammar, a capitalized
+#   Rocq .v fixture (3 Theorem + 1 Corollary + 2 Definition + 1 Inductive)
+#   asserted through the rocq face, a no-leak guard proving the lowercase
+#   faces contribute nothing to .v files, and blank / whitespace-only
+#   lines); every report field asserted against those vectors; the
+#   value/basis shape of every top-level key but scan_face (the
+#   grammar_faces counters included), the cross-grammar sum identity,
+#   basis strings naming both grammars, the grep cross-check commands
+#   carrying the same keyword tables, and the four verbatim scan_face
+#   strings; a trust-surface fixture pair (.v with one Unset Guard
+#   Checking plus one native_compute; .lean with unsafe def,
+#   @[implemented_by, native_decide and a set_option line) asserted
+#   token-exact with files_affected and a zero-switch negative-finding
+#   shape on the empty tree; the exit-code faces (green scan, empty tree,
+#   missing root rc=2) and the --json round trip; the Deicyde mirror
+#   cross-check against census_rh.py runs out of tree, and the real-tree
+#   rocq acceptance gate re-derives the rocq-face counts with the printed
+#   grep commands (no expected count is hardcoded in this file).
 
 import argparse
 import json
