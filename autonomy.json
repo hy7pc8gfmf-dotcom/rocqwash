@@ -3,5 +3,5 @@
  "admission_threshold": 0.8,
  "max_unreviewed_rounds": 3,
  "oscillation_alert": 2,
- "verify_cmd": ["py", "-I", "-X", "utf8", "tools/axiom_guard.py", "--repo", "."]
+ "verify_cmd": ["py", "-I", "-X", "utf8", "tools/axiom_guard.py", "--repo", ".", "--strict", "--strict-exclude", "tests/fixtures"]
 }

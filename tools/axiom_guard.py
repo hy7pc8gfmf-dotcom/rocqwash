@@ -14,8 +14,9 @@ Purpose.  Answer "what does each theorem actually rest on?" mechanically
   contract below.
 Interface.  python3 tools/axiom_guard.py --repo DIR [--out DIR]
   [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC]
-  [--keep] [--strict] | --selftest.  Binary resolution, the report
-  write face, and the usage lines are in the extended contract.
+  [--keep] [--strict] [--strict-exclude PATH]... | --selftest.
+  Binary resolution, the report write face, and the usage lines are in
+  the extended contract.
 Dependencies.  Python 3 standard library only; rocq and coqchk binaries
   from the environment or flags (never downloaded, never simulated).
 Evidence.  Deterministic: sorted inputs, no wall clock, same input tree
@@ -47,8 +48,12 @@ Exit-codes.  0 PASS (zero red files); 1 red; 2 usage error; 9 fail-loud
 #   the guard's process tree).
 # Exit-code detail: 0 PASS = zero red files (compile-broken recorded as
 #   debt; --strict turns compile-broken files and trust-surface alarm
-#   files red and lists them in report["strict_red"]); 1 red = axiom
-#   outside the whitelist, an unjudgeable heavy face, or a selftest red;
+#   files red and lists the compile-broken promotions in
+#   report["strict_red"]; --strict-exclude entries contribute no strict
+#   red of any kind, keep their compile-broken files as debt, and are
+#   named in report["strict_excluded"]; trust-surface alarms are never
+#   excludable); 1 red = axiom outside the whitelist, an unjudgeable
+#   heavy face, or a selftest red;
 #   2 usage error; 9 fail-loud environment (configured binary missing or
 #   --repo absent); 111 honest skip (toolchain unconfigured, reported
 #   not simulated, the verify/ rc 111 convention).
@@ -101,9 +106,23 @@ import tempfile
 #   5. Verdict: a compile-ok file is red when either face reports an axiom
 #      outside the whitelist, or the heavy face cannot deliver a summary
 #      (unjudgeable is not green).  Compile-broken files are debt, not
-#      red.  Run verdict PASS = zero red files.
+#      red.  Run verdict PASS = zero red files.  Under --strict a
+#      compile-broken file is red and lands in report["strict_red"],
+#      except a file under a declared --strict-exclude entry (repeatable;
+#      a repo-relative file path, or a directory whose whole subtree is
+#      meant): under --strict such a file contributes no red of any kind
+#      (its compile-broken classification stays debt, its axiom-verdict
+#      reds are scoped the same way, and its full verdict detail stays in
+#      the report), and every excluded path is named in the sorted
+#      report["strict_excluded"] face, so a scope decision is visible in
+#      the report, never silent.  The flag is inert without --strict.
+#      Trust-surface alarms are never excludable (the block policy note
+#      forbids allow-listing them).  The exclusion roster belongs to the
+#      caller's reviewed configuration (the verify gate in autonomy.json
+#      declares its own entries); the guard never derives one.
 #   6. Trust surface (additive, verdict-neutral by default; under --strict
-#      an alarm block fails the run via _apply_strict): under the same masking
+#      an alarm block fails the run via _apply_strict, and an alarm file is
+#      never excludable by --strict-exclude): under the same masking
 #      scanner, every source is swept for the Rocq switches that turn
 #      kernel checking off (Unset Guard/Positivity/Universe Checking,
 #      Unset Elimination Schemes) and for ML entry points (Declare ML
@@ -446,20 +465,45 @@ def light_face(rocq, base_text, work_dir, stem, statements, timeout,
     return verdicts
 
 
-def _apply_strict(report, reds):
+def _exclude_matches(rel, excludes):
+    """True when rel is a declared strict-mode scope exclusion: the entry
+    names the file exactly, or names a directory (a trailing slash is
+    optional and normalized) whose subtree rel lives under.  Pure."""
+    for e in excludes or []:
+        if not e:
+            continue
+        if rel == e:
+            return True
+        prefix = e if e.endswith("/") else e + "/"
+        if rel.startswith(prefix):
+            return True
+    return False
+
+
+def _apply_strict(report, reds, excludes=()):
     """Strict-mode verdict face (tools/axiom_guard.py --strict): compile-broken
     files and trust-surface alarm files become red (default mode records them
-    as debt / verdict-neutral and never reaches this function).  Returns the
-    list of newly red names (dedup against reds; the caller stores it as
-    report["strict_red"]).  Pure: no I/O, no verdict text changes beyond the
-    red list."""
+    as debt / verdict-neutral and never reaches this function).  A compile-
+    broken file under a declared exclusion (--strict-exclude entry) stays
+    debt and is returned in the excluded list instead; the caller names every
+    excluded path in report["strict_excluded"], so a scope decision is never
+    silent, and the caller gates the axiom-verdict promotions on the same
+    exclusions inside the walk.  Trust-surface alarm files are never
+    excludable.  Returns (newly_red_names, excluded_names) (each deduped;
+    the caller stores the first as report["strict_red"]).  Pure: no I/O, no
+    verdict text changes beyond the two lists."""
     strict_added = []
+    strict_excluded = []
     for f in report.get("files", []):
         rel = f.get("file")
-        if f.get("classification") == "compile-broken" and rel \
-                and rel not in reds:
-            reds.append(rel)
-            strict_added.append(rel)
+        if f.get("classification") == "compile-broken" and rel:
+            if _exclude_matches(rel, excludes):
+                if rel not in strict_excluded:
+                    strict_excluded.append(rel)
+                continue
+            if rel not in reds:
+                reds.append(rel)
+                strict_added.append(rel)
     ts = report.get("trust_surface")
     if ts and ts.get("verdict") == "alarm":
         for h in ts.get("hits", []):
@@ -467,15 +511,19 @@ def _apply_strict(report, reds):
             if rel and rel not in reds:
                 reds.append(rel)
                 strict_added.append(rel)
-    return strict_added
+    return strict_added, strict_excluded
 
 
 def guard(repo, rocq, coqchk, allow_axioms, timeout, out_dir, keep,
-          strict=False):
+          strict=False, strict_excludes=()):
     """Full run; returns (exit_code, report_dict).  Write faces: the private
     temp workdir and (when given) the caller-named --out report file.
     strict=True: compile-broken files and trust-surface alarm files enter the
-    red list (default face keeps them as debt / verdict-neutral)."""
+    red list (default face keeps them as debt / verdict-neutral).
+    strict_excludes: repo-relative entries; under --strict a file under one
+    contributes no red of any kind and is named in
+    report["strict_excluded"] (compile-broken stays debt); trust-surface
+    alarms are never excluded."""
     v_files = []
     for dirpath, dirnames, filenames in os.walk(repo):
         dirnames[:] = [d for d in dirnames if d not in (".git",)]
@@ -503,6 +551,9 @@ def guard(repo, rocq, coqchk, allow_axioms, timeout, out_dir, keep,
         "verdict": "PASS",
     }
     reds = []
+    # Strict-gate scope paths: every file the roster removes from strict
+    # judgment (both classifications) is named in the report face.
+    scoped_paths = []
     # Trust-surface accumulators (additive face, verdict-neutral).
     trust_hits = []
     vm_total = 0
@@ -549,6 +600,13 @@ def guard(repo, rocq, coqchk, allow_axioms, timeout, out_dir, keep,
                 continue
             entry["classification"] = "compile-ok"
             entry["compile_rc"] = 0
+            # Strict-gate scope: under --strict a file under a declared
+            # --strict-exclude entry contributes no red of any kind; its
+            # verdict detail stays in the report (nothing silent).  The
+            # flag is inert without --strict.
+            scoped_out = strict and _exclude_matches(rel, strict_excludes)
+            if scoped_out:
+                scoped_paths.append(rel)
             base_text = raw.decode("utf-8", "replace")
             stmts = statement_names(base_text)
             entry["statements"] = len(stmts)
@@ -567,7 +625,7 @@ def guard(repo, rocq, coqchk, allow_axioms, timeout, out_dir, keep,
                                   "detail": chk_err or "rc %s" % chk_rc,
                                   "tail": error_tail(strip_tmp(chk_out, work),
                                                      4)}
-                if rel not in reds:
+                if rel not in reds and not scoped_out:
                     reds.append(rel)
             else:
                 status, axioms = parse_axioms_summary(chk_out)
@@ -575,7 +633,7 @@ def guard(repo, rocq, coqchk, allow_axioms, timeout, out_dir, keep,
                 entry["heavy"] = {"verdict": status,
                                   "axioms": axioms,
                                   "coqchk_rc": chk_rc}
-                if status == "no-summary" or axioms:
+                if (status == "no-summary" or axioms) and not scoped_out:
                     if rel not in reds:
                         reds.append(rel)
             # light-face judgment (pre-screen; the heavy face stays
@@ -584,7 +642,7 @@ def guard(repo, rocq, coqchk, allow_axioms, timeout, out_dir, keep,
                 v["axioms"] = [a for a in v.get("axioms", [])
                                if a not in allow_axioms]
                 if v["verdict"] == "axioms" and v["axioms"] \
-                        and rel not in reds:
+                        and rel not in reds and not scoped_out:
                     reds.append(rel)
             report["files"].append(entry)
         # Trust-surface assembly (additive face): source hits plus the
@@ -593,7 +651,15 @@ def guard(repo, rocq, coqchk, allow_axioms, timeout, out_dir, keep,
         # as without this face.
         report["trust_surface"] = build_trust_surface(
             trust_hits + project_flag_hits(repo), vm_total, native_total)
-        report["strict_red"] = _apply_strict(report, reds) if strict else []
+        if strict:
+            strict_added, strict_excluded = _apply_strict(report, reds,
+                                                          strict_excludes)
+            report["strict_red"] = strict_added
+            report["strict_excluded"] = sorted(set(strict_excluded)
+                                               | set(scoped_paths))
+        else:
+            report["strict_red"] = []
+            report["strict_excluded"] = []
         report["red_files"] = reds
         report["verdict"] = "RED" if reds else "PASS"
         if out_dir:
@@ -890,7 +956,7 @@ def selftest():
                               "hits": [{"file": "hit.v", "line": 2,
                                         "token": "Unset Guard Checking"}]}}
         reds = ["already.v"]
-        added = _apply_strict(rep, reds)
+        added, excluded = _apply_strict(rep, reds)
         vec("strict-compile-broken-red",
             "broken.v" in reds and "broken.v" in added and "ok.v" not in reds,
             "strict: compile-broken turns red; ok stays clean; added=%s" % added)
@@ -898,12 +964,63 @@ def selftest():
             "hit.v" in reds and "hit.v" in added,
             "strict: trust-surface alarm file turns red; added=%s" % added)
         vec("strict-dedup",
-            "broken.v" not in _apply_strict(rep, ["broken.v"]),
+            "broken.v" not in _apply_strict(rep, ["broken.v"])[0]
+            and _apply_strict(rep, ["broken.v"])[1] == [],
             "strict: an already-red name is never duplicated again")
         vec("strict-clean-pass",
             _apply_strict({"files": [], "trust_surface": {"verdict": "clean",
-                                                          "hits": []}}, []) == [],
+                                                          "hits": []}},
+                          []) == ([], []),
             "strict: a clean report adds nothing")
+        rep_fx = {"files": [
+            {"file": "tests/fixtures/broken_specimen.v",
+             "classification": "compile-broken"},
+            {"file": "tests/fixtures/nested/deep_broken.v",
+             "classification": "compile-broken"},
+            {"file": "src/real_broken.v", "classification": "compile-broken"},
+            {"file": "src/fixtures_like.v", "classification": "compile-broken"}],
+            "trust_surface": {"verdict": "clean", "hits": []}}
+        reds_fx = []
+        added_fx, excluded_fx = _apply_strict(rep_fx, reds_fx,
+                                              ["tests/fixtures"])
+        vec("strict-exclude-scoped-debt",
+            excluded_fx == ["tests/fixtures/broken_specimen.v",
+                            "tests/fixtures/nested/deep_broken.v"]
+            and added_fx == ["src/real_broken.v", "src/fixtures_like.v"]
+            and reds_fx == added_fx,
+            "strict-exclude: directory prefix scopes its subtree to debt and "
+            "names it; sibling names outside the prefix stay red; "
+            "excluded=%s" % excluded_fx)
+        rep_al = {"files": [
+            {"file": "tests/fixtures/alarm_specimen.v",
+             "classification": "compile-ok"}],
+            "trust_surface": {"verdict": "alarm",
+                              "hits": [{"file": "tests/fixtures/alarm.v",
+                                        "line": 3,
+                                        "token": "Unset Guard Checking"}]}}
+        added_al, excluded_al = _apply_strict(rep_al, [],
+                                              ["tests/fixtures"])
+        vec("strict-exclude-trust-never",
+            added_al == ["tests/fixtures/alarm.v"] and excluded_al == [],
+            "strict-exclude: a trust-surface alarm under a declared prefix "
+            "is still red; alarms are never excludable")
+        vec("strict-exclude-exact-file",
+            _apply_strict({"files": [{"file": "tests/one.v",
+                                      "classification": "compile-broken"},
+                                     {"file": "tests/one.v.bak",
+                                      "classification": "compile-broken"}],
+                           "trust_surface": {"verdict": "clean",
+                                             "hits": []}},
+                          [], ["tests/one.v"])
+            == (["tests/one.v.bak"], ["tests/one.v"]),
+            "strict-exclude: an exact file entry scopes only that file; "
+            "similarly named neighbors stay red")
+        vec("strict-exclude-empty-entry-ignored",
+            _apply_strict({"files": [{"file": "a.v",
+                                      "classification": "compile-broken"}],
+                           "trust_surface": {"verdict": "clean", "hits": []}},
+                          [], [""]) == (["a.v"], []),
+            "strict-exclude: an empty entry excludes nothing and is ignored")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print("selftest: %d vector(s), %d FAIL" % (total[0], len(failures)))
@@ -937,6 +1054,15 @@ def build_parser():
     ap.add_argument("--strict", action="store_true",
                     help="strict mode: compile-broken files and trust-surface "
                     "alarm files are red (default: debt / verdict-neutral)")
+    ap.add_argument("--strict-exclude", action="append", default=[],
+                    dest="strict_excludes",
+                    help="strict-gate scope entry (repeatable; repo-relative "
+                    "file or directory): under --strict a file under it "
+                    "contributes no red of any kind (compile-broken stays "
+                    "debt, named in the report's strict_excluded face; "
+                    "axiom-verdict reds are scoped the same way); "
+                    "trust-surface alarms are never excludable; inert "
+                    "without --strict")
     ap.add_argument("--selftest", action="store_true",
                     help="run the frozen offline vector group and exit")
     return ap
@@ -973,7 +1099,8 @@ def main():
 
     code, _report = guard(args.repo, args.rocq, args.coqchk,
                           args.allow_axioms, args.timeout, args.out,
-                          args.keep, strict=args.strict)
+                          args.keep, strict=args.strict,
+                          strict_excludes=args.strict_excludes)
     sys.exit(code)
 
 
