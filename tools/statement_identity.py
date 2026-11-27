@@ -1,34 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """statement_identity.py - challenge<->proven two-face identity prober
-(the encoding audit-line generation-3/4 method: does the proven thing
-equal the claimed thing?).
-
+(the encoding audit-line generation-3/4 method).
 Purpose.  Take a claimed face (challenge-side statement file) and a proven
   face (the repo's certified counterpart), enumerate both statement faces
   (line-start theorem/lemma/def vernaculars over comment/string-masked
-  text, the frozen sibling regex face), normalize them for matching
-  (whitespace collapse, declared-name placeholder, binder identifiers
-  replaced with appearance-order placeholders, operators/head symbols
-  kept), and answer the identity question mechanically at the statement
-  face: an identity matrix (claimed x proven) whose cells are MATCHED /
-  SEAM:<class> / UNMATCHED.  UNMATCHED cells on the claimed side are the
-  uncast regions (matrix-uncast-area detection, generation-3 method).
+  text), normalize them for matching (whitespace collapse, declared-name
+  placeholder, binder identifiers replaced with appearance-order
+  placeholders, operators/head symbols kept), and answer the identity
+  question mechanically at the statement face: an identity matrix
+  (claimed x proven) whose cells are MATCHED / SEAM:<class> / UNMATCHED;
+  UNMATCHED claimed-side cells are the uncast regions (generation-3
+  method).
 Interface.  python -I tools/statement_identity.py --claimed <file|dir>
   --proven <file|dir> [--out <json>] | --selftest.  One JSON report line
-  (schema rocqwash-statement-identity/1); every counter wrapped
-  {value, basis}; top-level scan_face four-element field.  file+file is
-  one pair; dir+dir is pairwise matching by normalized name (casefolded
-  alphanumeric stem, non-recursive, *.v only) over one repo's two faces;
-  a file/dir mix is refused at the front door (usage error, not input).
+  (schema rocqwash-statement-identity/1); the counter shape, the pairing
+  modes, and the mix refusal are in the extended contract below.
 Dependencies.  Python 3 standard library only; zero network, zero compile,
   zero subprocess (the prober itself runs nothing); deterministic report
   (no wall clock, basenames only on the report face, sort_keys).
-Evidence.  --selftest: tempfile-driven offline fixture vectors (fixture
-  extraction, clean-match and symbol-seam cells, token-scoped header
-  evidence, uncast row detection, matrix-shape vocabulary, cells-unmatched
-  algebra, definition-equivalence and tool-semantic seams, positional
-  pairing, dir pairwise).
+Evidence.  --selftest: tempfile-driven offline fixture vectors covering
+  extraction, match and seam cells, header evidence, uncast-row
+  detection, matrix vocabulary, cells-unmatched algebra, equivalence and
+  tool-semantic seams, positional pairing, and dir pairwise mode.
 Exit-codes.  0 report emitted (seams and uncast rows are findings, loud
   in the JSON, not failures - the seam_probe caliber); 2 usage error
   (file/dir mix, missing argument, bad --out) or selftest vector failure;
@@ -66,6 +60,15 @@ Exit-codes.  0 report emitted (seams and uncast rows are findings, loud
 #   * DECLARATION-level caliber only: proof bodies past the statement-
 #     terminating dot are never read; an all-MATCHED matrix is a negative
 #     finding of this statement-face prober, not semantic identity.
+#   * Former-header detail (carried out of the header on the RIS-17 budget
+#     cure, verbatim in substance): the statement enumeration rides the
+#     frozen sibling regex face; every counter is wrapped {value, basis}
+#     and the top level carries the four-element scan_face field;
+#     file+file is one pair; dir+dir is pairwise matching by normalized
+#     name (casefolded alphanumeric stem, non-recursive, *.v only) over
+#     one repo's two faces; a file/dir mix is refused at the front door
+#     (usage error, not input); the uncast-region detection is the
+#     matrix-uncast-area method.
 
 import argparse
 import hashlib

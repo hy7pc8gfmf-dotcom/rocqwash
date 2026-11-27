@@ -1,38 +1,44 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """jargon_apply.py - apply the jargon-to-standard map to prose faces.
-
 Purpose.  Reads seeds/jargon/jargon-map.json (159 entries: the 62-entry
   seed prefix plus the md-table superset the P1 sync absorbed) read-only and
   drives the E2 application face: plan every machine-applicable occurrence
   of a banned face on .py/.sh/.md prose faces; behind --apply only, splice
   the mapped standard in and rescan via tools/norm_lint.py with the
   projected table; residue zero is the exit-zero gate and a second apply
-  plans zero would-fix items.  rewrite_or_delete rows are never applied by
-  machine (human findings); rows whose note records a sense split or
-  context guard, and rows with context-keyed slash alternatives, are
-  guarded (default reject-and-report; --guarded-interactive emits the
-  query file); carve-outs ride the exempt mechanism; backticks are masked.
-  The map's own source table and the tools/repair_scope.py frozen roster
-  are never wash targets; tree rows mark excluded(frozen), --file rejects.
-
+  plans zero would-fix items.  The guarded-row rules and the frozen-face
+  exclusions are in the extended contract below.
 Interface.  Pure functions load_map, project_table, plan_rewrites,
   apply_rewrites; CLI --file | --tree with --plan (default zero writes) |
   --apply, --json, --guarded-interactive, --selftest.
-
 Dependencies.  Python 3 standard library only; tools/norm_lint.py is the
   same-source matcher, prose-face extraction, and rescan detector (absent
   module exits 9); the in-repo md table feeds the A2 vector (loud SKIP
   when absent).  Zero network face.
-
 Evidence.  --selftest: seed contract; classification; derive_after
-  vectors; projector byte equality; loader round-trip; A2 row-equality
-  diff of the in-repo-md-v1 rows (the sync's own product; the four
-  original tool-track authority rows sit outside the gate by contract);
+  vectors; projector byte equality; loader round-trip; the A2 vector;
   apply idempotence; guarded rejection; carve-out silence; backtick
   masking; scan parity; frozen faces.
+Exit-codes.  0 clean or residue zero after apply; 1 hits, residue, or a failed vector; 2 usage; 9 missing input.
+"""
 
-Exit-codes.  0 clean or residue zero after apply; 1 hits, residue, or a failed vector; 2 usage; 9 missing input."""
+# Extended contract (kept outside the five-field header so the header
+# stays within the 30-line budget of the annotation standard; the moved
+# facts are carried over from the former header verbatim in substance):
+#
+# Guarded rows: rewrite_or_delete rows are never applied by machine
+#   (human findings); rows whose note records a sense split or context
+#   guard, and rows with context-keyed slash alternatives, are guarded
+#   (default reject-and-report; --guarded-interactive emits the query
+#   file); carve-outs ride the exempt mechanism; backticks are masked.
+#   The map's own source table and the tools/repair_scope.py frozen
+#   roster are never wash targets; tree rows mark excluded(frozen),
+#   --file rejects.
+# Evidence enumeration detail: the A2 row-equality diff of the
+#   in-repo-md-v1 rows (the sync's own product; the four original
+#   tool-track authority rows sit outside the gate by contract).
+
 
 import argparse
 import importlib.util

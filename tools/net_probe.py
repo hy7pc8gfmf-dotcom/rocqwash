@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """net_probe.py - network-window probe (rocqwash tools/).
-
 Purpose.  Probe all endpoints with a bare GET and decide the dual-probe
   stability window (a single-probe round must not initiate): with
   --stable-window the window holds only when every endpoint is reachable
@@ -9,38 +8,45 @@ Purpose.  Probe all endpoints with a bare GET and decide the dual-probe
   Reachable = any HTTP status from urlopen(url, timeout=12), 500/400
   included; URLError, timeout or DNS failure = unreachable (http_code=null);
   HTTPError subclasses URLError, so exceptions pass classify_error first.
-  A failure whose error says nothing about the target's existence or state
-  (TLS handshake blocked, DNS failure, connection timeout) is registered
-  as "unverifiable" on the endpoint entry, never as a claim about the
-  target (unreachable is not nonexistent; the MIT dashboard TLS-block
-  precedent); target-evidence failures (connection refused and friends)
-  stay plain failures.
-
+  The unverifiable-outcome registration and the target-evidence rule are
+  in the extended contract below.
 Interface.  python3 tools/net_probe.py [--endpoints URL[,URL...]]
   [--rounds N] [--interval S] [--stable-window] [--jitter S] [--seed N]
-  [--json out.json] | --selftest.  Defaults: --rounds 1 (>= 1), --interval
-  60 (>= 0, no sleep after the last round), jitter off, default
-  `DEFAULT_ENDPOINTS` (--endpoints overrides); --jitter S (>= 0) sleeps
-  uniform(0, S) before each endpoint probe (--seed N pins the RNG;
-  jitter_sec appears only while --jitter > 0); --stable-window requires
-  --rounds >= 2.  Report schema rocqwash-net-probe/1: rounds[{at,
-  endpoints[{url, http_code, ok(, jitter_sec)(, status, reason_class,
-  evidence, registered_as)}]}], verdict (STABLE|
-  UNSTABLE with --stable-window, else all-up|partial|all-down); the four
-  registration keys appear only on unverifiable outcomes (status and
-  registered_as = "unverifiable"; reason_class = tls-blocked | dns |
-  timeout; evidence = the underlying error text); existing ok and
-  plain-failure entries carry no new keys; writes
-  deterministic, rounds[].at is wall-clock UTC (varies per round).
-
+  [--json out.json] | --selftest.  The defaults, the jitter semantics,
+  the report schema, and the registration-key rules are in the extended
+  contract.
 Dependencies.  Python 3 standard library only; zero network under --selftest.
-
 Evidence.  --selftest frozen vector group V1-V9; suite lane t_net_probe
   (tests/test_net_probe.py).
-
 Exit-codes.  0 = probe completed and, with --stable-window, the window
   held; 1 = unstable window; 2 = usage error or report write failure.
 """
+
+# Extended contract (kept outside the five-field header so the header
+# stays within the 30-line budget of the annotation standard; the moved
+# facts are carried over from the former header verbatim in substance):
+#
+# Unverifiable outcomes.  A failure whose error says nothing about the
+#   target's existence or state (TLS handshake blocked, DNS failure,
+#   connection timeout) is registered as "unverifiable" on the endpoint
+#   entry, never as a claim about the target (unreachable is not
+#   nonexistent; the MIT dashboard TLS-block precedent); target-evidence
+#   failures (connection refused and friends) stay plain failures.
+# Defaults and jitter.  --rounds 1 (>= 1), --interval 60 (>= 0, no sleep
+#   after the last round), jitter off, default `DEFAULT_ENDPOINTS`
+#   (--endpoints overrides); --jitter S (>= 0) sleeps uniform(0, S)
+#   before each endpoint probe (--seed N pins the RNG; jitter_sec appears
+#   only while --jitter > 0); --stable-window requires --rounds >= 2.
+# Report schema rocqwash-net-probe/1: rounds[{at, endpoints[{url,
+#   http_code, ok(, jitter_sec)(, status, reason_class, evidence,
+#   registered_as)}]}], verdict (STABLE|UNSTABLE with --stable-window,
+#   else all-up|partial|all-down); the four registration keys appear only
+#   on unverifiable outcomes (status and registered_as = "unverifiable";
+#   reason_class = tls-blocked | dns | timeout; evidence = the underlying
+#   error text); existing ok and plain-failure entries carry no new keys;
+#   writes deterministic, rounds[].at is wall-clock UTC (varies per
+#   round).
+
 import argparse
 import io
 import json

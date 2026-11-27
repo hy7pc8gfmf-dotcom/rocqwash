@@ -6,39 +6,55 @@ Purpose.  Answer "what does each theorem actually rest on?" mechanically
   workdir and judged at two levels (a per-theorem Print Assumptions
   census plus the coqchk kernel recheck); the standard is strict - every
   statement Closed, the axiom whitelist empty by default.  A third,
-  strictly additive trust-surface face (verdict-neutral to that
-  judgment) sweeps every source for the Rocq switches that disable
-  kernel checks and for ML module entry points, sweeps a repo-root
-  _CoqProject/_RocqProject for -admit/-type-in-type/-noinit, and counts
-  vm_compute/native_compute informationally (bytecode-flag law):
-  trust-surface hits are alarms, never silently passed, never
-  allow-listable, and never change the compile/light/heavy verdicts or
-  the exit code.
+  strictly additive trust-surface face (verdict-neutral) sweeps the
+  kernel-check-disabling switches, ML module entry points, project
+  -admit/-type-in-type/-noinit flags, and counts vm_compute/
+  native_compute informationally; trust-surface hits are alarms, never
+  silently passed, never allow-listable; the details are in the extended
+  contract below.
 Interface.  python3 tools/axiom_guard.py --repo DIR [--out DIR]
   [--rocq BIN] [--coqchk BIN] [--allow-axiom NAME]... [--timeout SEC]
-  [--keep] [--strict] | --selftest.  Binary paths resolve per flag then
-  environment (--rocq / ROCWASH_ROCQ, --coqchk / ROCWASH_COQCHK);
-  --out DIR receives axiom-guard-report.json (stdout summary only
-  without it); --selftest runs the frozen offline vectors and exits.
+  [--keep] [--strict] | --selftest.  Binary resolution, the report
+  write face, and the usage lines are in the extended contract.
 Dependencies.  Python 3 standard library only; rocq and coqchk binaries
   from the environment or flags (never downloaded, never simulated).
-Evidence.  Deterministic: sorted inputs, no wall clock in report or
-  logic, same input tree yields the byte-identical report; write face =
-  caller-named --out report plus private temp workdir (removed unless
-  --keep); the destructive matrix pins this contract.  Thermal: no
-  embedded guard, wrap guarded runs in tools/cpu_guard.sh (compile
-  children stay in the guard's process tree).  Selftest vectors are
-  offline: zero network, zero toolchain launch, zero real-repo touch.
-Exit-codes.  0 PASS (zero red files; compile-broken recorded as debt;
-  --strict turns compile-broken files and trust-surface alarm files red and
-  lists them in report["strict_red"]);
-  1 red (axiom outside the whitelist, an unjudgeable heavy face, or a
-  selftest red); 2 usage error; 9 fail-loud environment (configured
-  binary missing or --repo absent); 111 honest skip (toolchain
-  unconfigured, reported not simulated, the verify/ rc 111 convention).
-Usage:  python3 tools/axiom_guard.py --repo . --out /tmp/evid/t0-2
-  python3 tools/axiom_guard.py --selftest
+Evidence.  Deterministic: sorted inputs, no wall clock, same input tree
+  yields the byte-identical report; the destructive matrix pins this
+  contract; thermal wrapping per tools/cpu_guard.sh; selftest vectors
+  offline (zero network, zero toolchain launch, zero real-repo touch).
+Exit-codes.  0 PASS (zero red files); 1 red; 2 usage error; 9 fail-loud
+  environment; 111 honest skip; the per-case detail is in the extended
+  contract.
 """
+
+# Extended contract (kept outside the five-field header so the header
+# stays within the 30-line budget of the annotation standard; the moved
+# facts are carried over from the former header verbatim in substance):
+#
+# Trust-surface face detail: sweeps every source for the Rocq switches
+#   that disable kernel checks and for ML module entry points, sweeps a
+#   repo-root _CoqProject/_RocqProject for -admit/-type-in-type/-noinit,
+#   and counts vm_compute/native_compute informationally (bytecode-flag
+#   law); trust-surface hits never change the compile/light/heavy
+#   verdicts or the exit code.
+# Binary resolution: per flag then environment (--rocq / ROCWASH_ROCQ,
+#   --coqchk / ROCWASH_COQCHK); --out DIR receives
+#   axiom-guard-report.json (stdout summary only without it); --selftest
+#   runs the frozen offline vectors and exits.
+# Evidence detail: write face = caller-named --out report plus private
+#   temp workdir (removed unless --keep); thermal: no embedded guard,
+#   wrap guarded runs in tools/cpu_guard.sh (compile children stay in
+#   the guard's process tree).
+# Exit-code detail: 0 PASS = zero red files (compile-broken recorded as
+#   debt; --strict turns compile-broken files and trust-surface alarm
+#   files red and lists them in report["strict_red"]); 1 red = axiom
+#   outside the whitelist, an unjudgeable heavy face, or a selftest red;
+#   2 usage error; 9 fail-loud environment (configured binary missing or
+#   --repo absent); 111 honest skip (toolchain unconfigured, reported
+#   not simulated, the verify/ rc 111 convention).
+# Usage:  python3 tools/axiom_guard.py --repo . --out /tmp/evid/t0-2
+#   python3 tools/axiom_guard.py --selftest
+
 import argparse
 import hashlib
 import io
