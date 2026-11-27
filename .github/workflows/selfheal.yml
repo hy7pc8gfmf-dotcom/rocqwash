@@ -145,6 +145,23 @@ jobs:
               --reconcile
           fi
 
+      # Stable channel leg: the ONLY writer of the rolling `stable` tag.
+      # The mover decides hold/wait/create/move itself (the newest green
+      # run of the main-branch CI workflow, held only while its head
+      # equals the current main head), so a pass triggered by a PR run
+      # is a no-op hold; the move rule (never a human hand) lives in
+      # .github/scripts/stable_channel.py and the README agent-sessions
+      # face.
+      - name: Stable channel leg (advance tags/stable to the green main head)
+        if: env.AUTOMERGE == '1'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python3 .github/scripts/stable_channel.py \
+            --repo "${{ github.repository }}" \
+            --move
+
       - name: Upload triage artifacts
         if: always() && (env.RUN_ID != '' || env.RECONCILE == '1' || env.AUTOMERGE == '1')
         uses: actions/upload-artifact@v7

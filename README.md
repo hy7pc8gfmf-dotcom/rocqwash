@@ -473,6 +473,15 @@ serve a tree sitting behind the last fetched remote ref (exit 1, the
 refusal names the refresh command); the `repo_sync_status` capability
 reports the same offset on demand.
 
+The machinery also maintains a rolling verified channel: on every green
+completion of the main-branch CI run, the self-heal workflow advances the
+`stable` tag to that commit (`.github/scripts/stable_channel.py`; the tag
+is never moved by hand). Once the channel exists, `git clone --branch
+stable` tracks the newest machine-verified commit instead of a fixed
+release, and the MCP initialize version block names `stable` as the tag
+on such a checkout. The planned single-file bootstrap defaults to this
+channel; its `--track main` face will opt into the moving tip.
+
 
 ## Platform Support
 
