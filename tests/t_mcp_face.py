@@ -256,6 +256,15 @@ EXPECTED_TOOLS = [
     # window override stay CLI-side per the ledger-append-face layer law -
     # no such token can be formed from the exposed argument set)
     "capability_ratchet",
+    # the repo-sync registration increment (one read-only local-git
+    # staleness face over the landed tools/repo_sync_status.py: the
+    # ahead/behind offset of the working HEAD against the last fetched
+    # refs/remotes/origin/main, with head_sha, tag, origin_sha, and the
+    # up_to_date verdict, every field a {value, basis} pair; zero
+    # network, the unmeasurable faces are exit 9 with the reason; the
+    # server-side --require-fresh flag and the initialize repository
+    # block hang their contracts on this measurement)
+    "repo_sync_status",
 ]
 
 # Frozen micro-ticket vector (mu-3): the full argparse flag face of
@@ -353,6 +362,14 @@ EXPECTED_STATEMENT_PROBES_ARGS = ["from_statements", "from_repo"]
 # real argparse store_true flag here, unlike the pre-argparse selftest
 # routes, so it belongs to this face; ticket 14 wave 1).
 EXPECTED_VACGEN_COQ_ARGS = ["from_v", "taxonomy", "out", "limit", "selftest"]
+
+# Frozen repo_sync_status vector: the full argparse flag face of
+# tools/repo_sync_status.py (repo, json, selftest) in argparse declaration
+# order; the repo_sync_status schema properties must match this list
+# one-to-one, exactly the EXPECTED_VACGEN_COQ_ARGS discipline (the tool's
+# --selftest is a pre-argparse route that shares the flag name, so it
+# stays in this face; the repo-sync registration increment).
+EXPECTED_REPO_SYNC_STATUS_ARGS = ["repo", "json", "selftest"]
 
 
 def _child_env():
@@ -495,6 +512,28 @@ def main():
                          "got %r" % (info.get("name"),))
         elif not init["result"].get("protocolVersion"):
             fails.append("probe1 protocolVersion echo missing")
+        else:
+            # the repository version block (the repo-sync registration
+            # increment): four measured fields, each a {value, basis}
+            # pair; the values depend on the serving checkout, the shape
+            # does not.
+            repo_block = info.get("repository")
+            if not isinstance(repo_block, dict) or sorted(repo_block.keys()) != \
+                    ["census_count", "head_sha", "selftest_digest", "tag"]:
+                fails.append("probe1 serverInfo.repository should carry "
+                             "head_sha, tag, census_count, selftest_digest, "
+                             "got %r" % (sorted(repo_block.keys())
+                                         if isinstance(repo_block, dict)
+                                         else repo_block,))
+            else:
+                for key in repo_block:
+                    pair = repo_block[key]
+                    if not isinstance(pair, dict) or "value" not in pair \
+                            or "basis" not in pair:
+                        fails.append("probe1 repository.%s should be a "
+                                     "{value, basis} pair, got %r"
+                                     % (key, pair,))
+                        break
 
         # Probe 2: the notification gets no response line
         responses = [l for l in lines if "id" in l or "error" in l]
@@ -575,6 +614,24 @@ def main():
             fails.append("probe3c tree_audit description should declare the "
                          "per-field {value, basis} annotations and the "
                          "top-level scan_face field")
+
+        # Probe 3v: repo_sync_status schema-face vectors (schema shape
+        # mirrors the tool's real argparse flag face one-to-one; the spec
+        # description declares the {value, basis} field annotations, the
+        # zero-network fetched-ref posture, and the schema name; the
+        # repo-sync registration increment).
+        rs_spec = by_name.get("repo_sync_status") or {}
+        rs_props = list((rs_spec.get("inputSchema") or {})
+                        .get("properties") or {})
+        if rs_props != EXPECTED_REPO_SYNC_STATUS_ARGS:
+            fails.append("probe3v repo_sync_status schema flags must match "
+                         "the argparse face one-to-one\nexpected=%r\nactual=%r"
+                         % (EXPECTED_REPO_SYNC_STATUS_ARGS, rs_props))
+        rs_desc = rs_spec.get("description") or ""
+        if "rocqwash-repo-sync-status/1" not in rs_desc or "basis" not in rs_desc:
+            fails.append("probe3v repo_sync_status description should declare "
+                         "the schema name and the per-field {value, basis} "
+                         "annotations")
 
         # Probe 3d: axiom_sweep schema-face vectors (schema shape mirrors
         # the tool's real argparse flag face one-to-one; the spec

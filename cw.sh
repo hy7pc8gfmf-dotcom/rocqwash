@@ -213,6 +213,8 @@
 #                 cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest
 #   capability-ratchet  the nine-metric capability ratchet (append-only capability readings that only roll forward: four capability-carrier metrics (triage classes, regression vectors, taxonomy rows, cure patterns) plus five mechanism metrics (MCP roster, selftest vectors, repair action rate, B-gate ready classes, calibration agreement rate) are re-derived from their source accounts at every run, never hand-filled; unmeasured is null, never 0; --measure derives fresh readings, --gate judges against a --baseline (below rc 1), --compare validates the whole ledger chain against fresh readings, --append lands exactly one chain-linked snapshot line and is the only write face; --selftest is an offline vector group, repository-write-free; zero network) -> tools/capability_ratchet.py
 #                 cw.sh capability-ratchet [--repo DIR] [--measure [--json [PATH]]] [--gate --baseline FILE] [--compare FILE] [--append FILE [--allow-dirty-anchor]] [--from-sha SHA] | --selftest
+#   repo-sync-status  local repository sync offset reader (the staleness face a remote consumer checks before trusting this checkout: how far HEAD is ahead of and behind the last fetched origin/main, with head_sha, tag, origin_sha, and the up_to_date verdict, every field a {value, basis} pair; zero network - the origin side is the last fetched ref, never a live remote query; an unmeasurable offset is exit 9 with the reason, never a guessed zero) -> tools/repo_sync_status.py
+#                 cw.sh repo-sync-status [--repo DIR] [--json OUT] | --selftest
 #   help        this help (help <tool> = the tool's one-line usage hint)
 #
 # Routing contract:
@@ -443,6 +445,8 @@ Tools:
                 cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest
   capability-ratchet  the nine-metric capability ratchet (append-only capability readings that only roll forward: four capability-carrier metrics (triage classes, regression vectors, taxonomy rows, cure patterns) plus five mechanism metrics (MCP roster, selftest vectors, repair action rate, B-gate ready classes, calibration agreement rate) are re-derived from their source accounts at every run, never hand-filled; unmeasured is null, never 0; --measure derives fresh readings, --gate judges against a --baseline (below rc 1), --compare validates the whole ledger chain against fresh readings, --append lands exactly one chain-linked snapshot line and is the only write face; --selftest is an offline vector group, repository-write-free; zero network) -> tools/capability_ratchet.py
                 cw.sh capability-ratchet [--repo DIR] [--measure [--json [PATH]]] [--gate --baseline FILE] [--compare FILE] [--append FILE [--allow-dirty-anchor]] [--from-sha SHA] | --selftest
+  repo-sync-status  local repository sync offset reader (the staleness face a remote consumer checks before trusting this checkout: how far HEAD is ahead of and behind the last fetched origin/main, with head_sha, tag, origin_sha, and the up_to_date verdict, every field a {value, basis} pair; zero network - the origin side is the last fetched ref, never a live remote query; an unmeasurable offset is exit 9 with the reason, never a guessed zero) -> tools/repo_sync_status.py
+                cw.sh repo-sync-status [--repo DIR] [--json OUT] | --selftest
 
   help        this help (help <tool> = the tool's one-line usage hint)
 
@@ -543,6 +547,7 @@ hint_for() {  # $1=tool
     independence-screener) echo "cw.sh independence-screener --manifest FILE --library FILE [--out F] | --selftest   # name-level independence screening (anchor manifest x mutant library; underscore-part collisions listed fail-loud rc 1; no-name rows recorded; screening is not proof; zero network) -> tools/independence_screener.py" ;;
     census-rescan) echo "cw.sh census-rescan --repo DIR [--tools DIR] [--only NAME,NAME] [--stand FILE] [--merge] [--out F] | --selftest   # census lane reproduction (AST word-face rows v1; --merge appends missing tools verbatim-preserving; meta generation split; zero network) -> tools/census_rescan.py" ;;
     capability-ratchet) echo "cw.sh capability-ratchet [--repo DIR] [--measure [--json [PATH]]] [--gate --baseline FILE] [--compare FILE] [--append FILE [--allow-dirty-anchor]] [--from-sha SHA] | --selftest   # nine-metric capability ratchet (append-only readings re-derived from source accounts, never hand-filled; unmeasured is null, never 0; --append is the only write face; zero network) -> tools/capability_ratchet.py" ;;
+    repo-sync-status) echo "cw.sh repo-sync-status [--repo DIR] [--json OUT] | --selftest   # local repository sync offset reader (ahead/behind against the last fetched origin/main, {value, basis} fields, up_to_date verdict; zero network; unmeasurable is exit 9 with the reason) -> tools/repo_sync_status.py" ;;
     *) return 1 ;;
   esac
 }
@@ -649,6 +654,7 @@ case "${1:-}" in
   census-rescan) shift; run_tool census-rescan "tools/census_rescan.py" "$@" ;;
   lean-parity-crosswalk) shift; run_tool lean-parity-crosswalk "tools/lean_parity_crosswalk.py" "$@" ;;
   capability-ratchet) shift; run_tool capability-ratchet "tools/capability_ratchet.py" "$@" ;;
+  repo-sync-status) shift; run_tool repo-sync-status "tools/repo_sync_status.py" "$@" ;;
   help|-h|--help)
     if [ "$#" -ge 2 ]; then
       if hint_for "$2"; then
