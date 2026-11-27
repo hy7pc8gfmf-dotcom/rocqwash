@@ -42,6 +42,8 @@ Delta note, current at the section-1 backfill increment (re-measured on the incr
 
 Delta note, current at the repo-sync registration increment (re-measured on the increment tree, November 28, 2026): tree 83 against index 81 leaves two `.py` files without an index entry (`capability_index.py` — the self-reference carve-out, `mcp_server.py` — deliberately no hand-written entry per section 6; both carry section 1 census rows like every other censused file as of the backfill increment). `repo_sync_status.py` carries the four-place `cw.sh` route `repo-sync-status` (registered this increment, the route face landed with the entry, no standing debt); the route count is 87, the distinct routed targets 85, the registry union 85, and the README-cw title/targets tokens 87/85 (re-measured this increment). Index entries pointing at absent files: 0 (re-measured this increment).
 
+Delta note, current at the detached-safe column increment (re-measured on the increment tree, November 28, 2026): the section 1 table gains the derived `Detached-safe` column (empty recorded local imports and no underscore prefix means the tool runs from one downloaded file; derived from the standing census's recorded `imports.local` face by `.github/scripts/detached_safe_derive.py`, which re-derives and checks the column against the standing census; 65 of the 80 non-helper tools are detached-safe at this cast, 15 carry sibling imports); the row values are otherwise unchanged. Index entries pointing at absent files: 0 (re-measured this increment).
+
 ## 0. Positioning and How to Read
 
 
@@ -58,91 +60,91 @@ When invoking from an entry, record the HEAD sha used as the version anchor; aft
 
 ## 1. Summary Table
 
-| File | Bytes | Lines | Doc | Arg | Pos/Opt | Network face (word) | Env markers | Basis |
-|---|---|---|---|---|---|---|---|---|
-| _abl1_4b_compile.py | 3,451 | 80 | Y | N | 0/0 | zero | ocaml(15) | usage |
-| _gen_fin_mac.py | 9,001 | 166 | Y | Y | 0/6 | zero | ocaml(7), coq(12), thermal(3), runner(1) | arg |
-| _http_backoff.py | 5,082 | 110 | Y | N | 0/0 | zero | none | usage |
-| ai_flavor.py | 20,687 | 481 | Y | Y | 0/5 | zero | none | arg |
-| ai_flavor_apply.py | 54,124 | 1,299 | Y | Y | 0/7 | urllib.request | env | arg |
-| anchor_guard.py | 58,990 | 1,333 | Y | Y | 0/7 | zero | env (ROCWASH_ROCQ, ROCWASH_COQCHK) | arg |
-| attest_join.py | 46,468 | 1079 | Y | Y | 0/5 | zero | coq(12) | arg |
-| auto_merge.py | 28,831 | 636 | Y | Y | 0/10 | zero | none | arg |
-| auto_round.py | 84,108 | 1,898 | Y | Y | 2/22 | zero | none | arg |
-| axiom_audit.py | 43,335 | 994 | Y | Y | 0/10 | zero | env (ROCWASH_ROCQ), coq(31), lean(22) | arg |
-| axiom_guard.py | 22,281 | 504 | Y | Y | 0/7 | zero | env (ROCWASH_ROCQ, ROCWASH_COQCHK) | arg |
-| b_gate_audit.py | 21,052 | 498 | Y | Y | 0/1 | zero | none | arg |
-| baseline_diff.py | 41,200 | 800 | Y | Y | 2/2 | zero | none | arg |
-| bus_feeder.py | 33,027 | 749 | Y | Y | 1/4 | zero | none | arg |
-| calibration_ledger.py | 32,404 | 747 | Y | Y | 0/12 | zero | env (ROCWASH_EXPERIENCE_DIR) | arg |
-| capability_index.py | 26,815 | 641 | Y | Y | 0/3 | zero | none | arg |
-| capability_ratchet.py | 78,135 | 1,629 | Y | Y | 0/10 | zero | none | arg |
-| census_rescan.py | 26,326 | 600 | Y | Y | 0/6 | git: git git push | ocaml(4), coq(9), thermal(2), runner(1), lean(4), win(3), mac(5) | arg |
-| chain_graph.py | 14,854 | 335 | Y | Y | 1/3 | zero | none | arg |
-| ci_triage.py | 121,218 | 2,194 | Y | Y | 0/11 | urllib.request | coq(109), win(4), runner(2) | arg |
-| claim_watch.py | 66,458 | 1443 | Y | Y | 0/6 | git: fetch / socket+ssl+urllib.request | none | arg |
-| contrib_intake.py | 62,133 | 1,365 | Y | Y | 0/11 | git: clone | coq(23) | arg |
-| coqtop_batch.py | 11,107 | 267 | Y | Y | 0/4 | zero | env (ROCWASH_COQTOP), coq(19) | arg |
-| count_guard.py | 25,212 | 620 | Y | Y | 0/3 | zero | env (ROCWASH_TOOLS_DIR), coq(5) | arg |
-| cw_doctor.py | 58,988 | 1,176 | Y | Y | 0/15 | zero | env, coq(5), dyld(31), thermal(5) | arg |
-| cw_sentinel.py | 119,753 | 2,168 | Y | Y | 0/23 | http.client, socket, urllib.request | coq(1), thermal(3) | arg |
-| doc_lint.py | 61,486 | 1,291 | Y | Y | 0/3 | zero | none | arg |
-| evolution_dashboard.py | 38,249 | 811 | Y | Y | 0/8 | zero | none | arg |
-| evolve.py | 90,890 | 1,819 | Y | Y | 0/19 | zero | coq(7) | arg |
-| exp_port.py | 23,301 | 541 | Y | Y | 1/13 | zero | env (ROCWASH_EXPERIENCE_DIR) | arg |
-| flaky_guard.py | 49,683 | 1,173 | Y | Y | 0/18 | zero | env (ROCWASH_ADVISORY_ROSTER, ROCWASH_PY, ROCWASH_TESTS_EXCLUDE, ROCWASH_TESTS_ONLY) | arg |
-| gap_cluster.py | 30,859 | 657 | Y | Y | 0/4 | zero | none | arg |
-| i18n_pipeline.py | 80,939 | 1,939 | Y | Y | 0/4 | zero | env | arg |
-| i18n_translate.py | 45,371 | 1,301 | Y | Y | 0/13 | urllib.request | env | arg |
-| i18n_verify.py | 47,407 | 1,030 | Y | Y | 0/13 | zero | none | arg |
-| independence_screener.py | 14,432 | 338 | Y | Y | 0/4 | zero | coq(8) | arg |
-| jargon_apply.py | 41,610 | 967 | Y | Y | 0/10 | zero | none | arg |
-| jargon_map_sync.py | 81,054 | 1749 | Y | Y | 0/6 | zero | none | arg |
-| lean_axiom_sweep.py | 127,022 | 2514 | Y | Y | 0/8 | zero | lean(243), win(1) | arg |
-| lean_parity_crosswalk.py | 62,468 | 1307 | Y | Y | 0/11 | zero | env (ROCWASH_ROCQ), coq(40), lean(62) | arg |
-| lean_sweep.py | 57,056 | 1,089 | Y | Y | 0/16 | zero | lean(23), thermal(1) | arg |
-| learning_feedback.py | 35,331 | 740 | Y | Y | 0/1 | zero | none | arg |
-| ledger_sync.py | 26,938 | 549 | Y | Y | 0/5 | zero | none | arg |
-| mcp_server.py | 167,481 | 3213 | Y | Y | 0/4 | http.client | env (ROCWASH_COQCHK), ocaml(2), coq(11), lean(37), thermal(1) | arg |
-| mutant_manifest.py | 11,473 | 261 | Y | Y | 0/5 | zero | coq(8) | arg |
-| net_probe.py | 19,076 | 412 | Y | Y | 0/7 | socket, urllib.request | none (network is its subject) | arg |
-| netname_normalize.py | 15,059 | 332 | Y | Y | 0/4 | zero | none | arg |
-| norm_lint.py | 32,256 | 823 | Y | Y | 0/8 | zero | none | arg |
-| numeric_probe.py | 37,496 | 818 | Y | Y | 0/3 | zero | none | arg |
-| periscope.py | 75,772 | 1720 | Y | Y | 0/6 | literal only | lean(3) | arg |
-| pin_repair.py | 38,338 | 899 | Y | Y | 0/4 | zero | none | arg |
-| pipeline_lite.py | 42,272 | 924 | Y | Y | 1/19 | zero | coq(11), lean(1) | arg |
-| pushci.py | 108,070 | 2,134 | Y | Y | 0/21 | urllib.request, git: push+ls-remote | env, coq(11) | arg |
-| qed_cost_lint.py | 10,003 | 238 | Y | Y | 0/5 | zero | coq(3) | arg |
-| red_dispatch.py | 48,353 | 935 | Y | Y | 0/10 | zero | coq(5), thermal(1) | arg |
-| registry_audit.py | 51,476 | 1,054 | Y | Y | 0/11 | zero | coq(12) | arg |
-| registry_fix.py | 60,064 | 1,161 | Y | Y | 0/8 | zero | env, coq(5) | arg |
-| registry_regen.py | 61,590 | 1,346 | Y | Y | 0/15 | zero | coq(37) | arg |
-| registry_union.py | 42,872 | 931 | Y | Y | 0/14 | zero | coq(4) | arg |
-| release_chain.py | 64,517 | 1314 | Y | Y | 0/11 | urllib.request | none | arg |
-| render_events.py | 26,635 | 547 | Y | Y | 0/5 | zero | none | arg |
-| repair_scope.py | 78,951 | 1,856 | Y | Y | 0/12 | zero | thermal(1) | arg |
-| repair_weekly.py | 34,095 | 769 | Y | Y | 0/13 | zero | none | arg |
-| repo_sync_status.py | 10,348 | 230 | Y | Y | 0/3 | zero | none | arg |
-| require_rewire.py | 18,721 | 411 | Y | Y | 0/7 | zero | coq(2) | arg |
-| roster_resync.py | 27,142 | 619 | Y | Y | 0/4 | zero | none | arg |
-| row_render.py | 66,691 | 1,867 | Y | Y | 0/16 | urllib.request | lean(15) | arg |
-| scheduler_lite.py | 29,088 | 695 | Y | Y | 1/11 | zero | none | arg |
-| select_audit.py | 32,930 | 654 | Y | Y | 0/6 | zero | ocaml/opam token(2) | arg |
-| selfevolve_round.py | 31,385 | 732 | Y | Y | 0/4 | urllib.request | env | arg |
-| source_fetch.py | 39,817 | 844 | Y | Y | 0/9 | urllib.request | none | arg |
-| statement_identity.py | 48,926 | 1114 | Y | Y | 0/4 | zero | none | arg |
-| sweep_verdict.py | 31,939 | 696 | Y | Y | 0/3 | zero | none | arg |
-| symbiosis_bus.py | 39,500 | 878 | Y | Y | 1/9 | zero | none | arg |
-| termbase.py | 22,477 | 520 | Y | Y | 0/5 | zero | none | arg |
-| toolchain_dyld_doctor.py | 23,777 | 492 | Y | Y | 0/6 | zero | env, coq(32), dyld(39), thermal(5) | arg |
-| tree_audit.py | 17,762 | 411 | Y | Y | 0/3 | zero | none | arg |
-| unclog.py | 103,325 | 1,943 | Y | Y | 0/30 | zero | coq(5), thermal(2) | arg |
-| uplink.py | 59,383 | 1,392 | Y | Y | 1/15 | zero | none | arg |
-| vacgen.py | 122,111 | 2,625 | Y | Y | 0/20 | zero | lean(64), thermal(3) | arg |
-| vacgen_coq.py | 68,194 | 1530 | Y | Y | 0/5 | zero | lean(5) | arg |
-| verdict_diff.py | 33,797 | 668 | Y | Y | 0/6 | zero | none | arg |
-| wash_shape.py | 110,172 | 2,285 | Y | Y | 0/16 | zero | env, coq(6) | arg |
+| File | Bytes | Lines | Doc | Arg | Pos/Opt | Network face (word) | Env markers | Basis | Detached-safe |
+|---|---|---|---|---|---|---|---|---|---|
+| _abl1_4b_compile.py | 3,451 | 80 | Y | N | 0/0 | zero | ocaml(15) | usage | no |
+| _gen_fin_mac.py | 9,001 | 166 | Y | Y | 0/6 | zero | ocaml(7), coq(12), thermal(3), runner(1) | arg | no |
+| _http_backoff.py | 5,082 | 110 | Y | N | 0/0 | zero | none | usage | no |
+| ai_flavor.py | 20,687 | 481 | Y | Y | 0/5 | zero | none | arg | yes |
+| ai_flavor_apply.py | 54,124 | 1,299 | Y | Y | 0/7 | urllib.request | env | arg | yes |
+| anchor_guard.py | 58,990 | 1,333 | Y | Y | 0/7 | zero | env (ROCWASH_ROCQ, ROCWASH_COQCHK) | arg | yes |
+| attest_join.py | 46,468 | 1079 | Y | Y | 0/5 | zero | coq(12) | arg | yes |
+| auto_merge.py | 28,831 | 636 | Y | Y | 0/10 | zero | none | arg | yes |
+| auto_round.py | 84,108 | 1,898 | Y | Y | 2/22 | zero | none | arg | yes |
+| axiom_audit.py | 43,335 | 994 | Y | Y | 0/10 | zero | env (ROCWASH_ROCQ), coq(31), lean(22) | arg | yes |
+| axiom_guard.py | 22,281 | 504 | Y | Y | 0/7 | zero | env (ROCWASH_ROCQ, ROCWASH_COQCHK) | arg | yes |
+| b_gate_audit.py | 21,052 | 498 | Y | Y | 0/1 | zero | none | arg | yes |
+| baseline_diff.py | 41,200 | 800 | Y | Y | 2/2 | zero | none | arg | yes |
+| bus_feeder.py | 33,027 | 749 | Y | Y | 1/4 | zero | none | arg | no |
+| calibration_ledger.py | 32,404 | 747 | Y | Y | 0/12 | zero | env (ROCWASH_EXPERIENCE_DIR) | arg | yes |
+| capability_index.py | 26,815 | 641 | Y | Y | 0/3 | zero | none | arg | yes |
+| capability_ratchet.py | 78,135 | 1,629 | Y | Y | 0/10 | zero | none | arg | yes |
+| census_rescan.py | 26,326 | 600 | Y | Y | 0/6 | git: git git push | ocaml(4), coq(9), thermal(2), runner(1), lean(4), win(3), mac(5) | arg | yes |
+| chain_graph.py | 14,854 | 335 | Y | Y | 1/3 | zero | none | arg | yes |
+| ci_triage.py | 121,218 | 2,194 | Y | Y | 0/11 | urllib.request | coq(109), win(4), runner(2) | arg | no |
+| claim_watch.py | 66,458 | 1443 | Y | Y | 0/6 | git: fetch / socket+ssl+urllib.request | none | arg | no |
+| contrib_intake.py | 62,133 | 1,365 | Y | Y | 0/11 | git: clone | coq(23) | arg | no |
+| coqtop_batch.py | 11,107 | 267 | Y | Y | 0/4 | zero | env (ROCWASH_COQTOP), coq(19) | arg | yes |
+| count_guard.py | 25,212 | 620 | Y | Y | 0/3 | zero | env (ROCWASH_TOOLS_DIR), coq(5) | arg | yes |
+| cw_doctor.py | 58,988 | 1,176 | Y | Y | 0/15 | zero | env, coq(5), dyld(31), thermal(5) | arg | yes |
+| cw_sentinel.py | 119,753 | 2,168 | Y | Y | 0/23 | http.client, socket, urllib.request | coq(1), thermal(3) | arg | no |
+| doc_lint.py | 61,486 | 1,291 | Y | Y | 0/3 | zero | none | arg | yes |
+| evolution_dashboard.py | 38,249 | 811 | Y | Y | 0/8 | zero | none | arg | yes |
+| evolve.py | 90,890 | 1,819 | Y | Y | 0/19 | zero | coq(7) | arg | no |
+| exp_port.py | 23,301 | 541 | Y | Y | 1/13 | zero | env (ROCWASH_EXPERIENCE_DIR) | arg | yes |
+| flaky_guard.py | 49,683 | 1,173 | Y | Y | 0/18 | zero | env (ROCWASH_ADVISORY_ROSTER, ROCWASH_PY, ROCWASH_TESTS_EXCLUDE, ROCWASH_TESTS_ONLY) | arg | yes |
+| gap_cluster.py | 30,859 | 657 | Y | Y | 0/4 | zero | none | arg | yes |
+| i18n_pipeline.py | 80,939 | 1,939 | Y | Y | 0/4 | zero | env | arg | yes |
+| i18n_translate.py | 45,371 | 1,301 | Y | Y | 0/13 | urllib.request | env | arg | yes |
+| i18n_verify.py | 47,407 | 1,030 | Y | Y | 0/13 | zero | none | arg | yes |
+| independence_screener.py | 14,432 | 338 | Y | Y | 0/4 | zero | coq(8) | arg | yes |
+| jargon_apply.py | 41,610 | 967 | Y | Y | 0/10 | zero | none | arg | yes |
+| jargon_map_sync.py | 81,054 | 1749 | Y | Y | 0/6 | zero | none | arg | yes |
+| lean_axiom_sweep.py | 127,022 | 2514 | Y | Y | 0/8 | zero | lean(243), win(1) | arg | yes |
+| lean_parity_crosswalk.py | 62,468 | 1307 | Y | Y | 0/11 | zero | env (ROCWASH_ROCQ), coq(40), lean(62) | arg | yes |
+| lean_sweep.py | 57,056 | 1,089 | Y | Y | 0/16 | zero | lean(23), thermal(1) | arg | yes |
+| learning_feedback.py | 35,331 | 740 | Y | Y | 0/1 | zero | none | arg | yes |
+| ledger_sync.py | 26,938 | 549 | Y | Y | 0/5 | zero | none | arg | yes |
+| mcp_server.py | 167,481 | 3213 | Y | Y | 0/4 | http.client | env (ROCWASH_COQCHK), ocaml(2), coq(11), lean(37), thermal(1) | arg | yes |
+| mutant_manifest.py | 11,473 | 261 | Y | Y | 0/5 | zero | coq(8) | arg | yes |
+| net_probe.py | 19,076 | 412 | Y | Y | 0/7 | socket, urllib.request | none (network is its subject) | arg | yes |
+| netname_normalize.py | 15,059 | 332 | Y | Y | 0/4 | zero | none | arg | yes |
+| norm_lint.py | 32,256 | 823 | Y | Y | 0/8 | zero | none | arg | yes |
+| numeric_probe.py | 37,496 | 818 | Y | Y | 0/3 | zero | none | arg | yes |
+| periscope.py | 75,772 | 1720 | Y | Y | 0/6 | literal only | lean(3) | arg | yes |
+| pin_repair.py | 38,338 | 899 | Y | Y | 0/4 | zero | none | arg | yes |
+| pipeline_lite.py | 42,272 | 924 | Y | Y | 1/19 | zero | coq(11), lean(1) | arg | yes |
+| pushci.py | 108,070 | 2,134 | Y | Y | 0/21 | urllib.request, git: push+ls-remote | env, coq(11) | arg | no |
+| qed_cost_lint.py | 10,003 | 238 | Y | Y | 0/5 | zero | coq(3) | arg | yes |
+| red_dispatch.py | 48,353 | 935 | Y | Y | 0/10 | zero | coq(5), thermal(1) | arg | yes |
+| registry_audit.py | 51,476 | 1,054 | Y | Y | 0/11 | zero | coq(12) | arg | no |
+| registry_fix.py | 60,064 | 1,161 | Y | Y | 0/8 | zero | env, coq(5) | arg | no |
+| registry_regen.py | 61,590 | 1,346 | Y | Y | 0/15 | zero | coq(37) | arg | no |
+| registry_union.py | 42,872 | 931 | Y | Y | 0/14 | zero | coq(4) | arg | yes |
+| release_chain.py | 64,517 | 1314 | Y | Y | 0/11 | urllib.request | none | arg | no |
+| render_events.py | 26,635 | 547 | Y | Y | 0/5 | zero | none | arg | yes |
+| repair_scope.py | 78,951 | 1,856 | Y | Y | 0/12 | zero | thermal(1) | arg | no |
+| repair_weekly.py | 34,095 | 769 | Y | Y | 0/13 | zero | none | arg | yes |
+| repo_sync_status.py | 10,348 | 230 | Y | Y | 0/3 | zero | none | arg | yes |
+| require_rewire.py | 18,721 | 411 | Y | Y | 0/7 | zero | coq(2) | arg | yes |
+| roster_resync.py | 27,142 | 619 | Y | Y | 0/4 | zero | none | arg | no |
+| row_render.py | 66,691 | 1,867 | Y | Y | 0/16 | urllib.request | lean(15) | arg | yes |
+| scheduler_lite.py | 29,088 | 695 | Y | Y | 1/11 | zero | none | arg | yes |
+| select_audit.py | 32,930 | 654 | Y | Y | 0/6 | zero | ocaml/opam token(2) | arg | yes |
+| selfevolve_round.py | 31,385 | 732 | Y | Y | 0/4 | urllib.request | env | arg | yes |
+| source_fetch.py | 39,817 | 844 | Y | Y | 0/9 | urllib.request | none | arg | no |
+| statement_identity.py | 48,926 | 1114 | Y | Y | 0/4 | zero | none | arg | yes |
+| sweep_verdict.py | 31,939 | 696 | Y | Y | 0/3 | zero | none | arg | yes |
+| symbiosis_bus.py | 39,500 | 878 | Y | Y | 1/9 | zero | none | arg | no |
+| termbase.py | 22,477 | 520 | Y | Y | 0/5 | zero | none | arg | yes |
+| toolchain_dyld_doctor.py | 23,777 | 492 | Y | Y | 0/6 | zero | env, coq(32), dyld(39), thermal(5) | arg | yes |
+| tree_audit.py | 17,762 | 411 | Y | Y | 0/3 | zero | none | arg | yes |
+| unclog.py | 103,325 | 1,943 | Y | Y | 0/30 | zero | coq(5), thermal(2) | arg | yes |
+| uplink.py | 59,383 | 1,392 | Y | Y | 1/15 | zero | none | arg | yes |
+| vacgen.py | 122,111 | 2,625 | Y | Y | 0/20 | zero | lean(64), thermal(3) | arg | yes |
+| vacgen_coq.py | 68,194 | 1530 | Y | Y | 0/5 | zero | lean(5) | arg | yes |
+| verdict_diff.py | 33,797 | 668 | Y | Y | 0/6 | zero | none | arg | yes |
+| wash_shape.py | 110,172 | 2,285 | Y | Y | 0/16 | zero | env, coq(6) | arg | yes |
 
 
 Legend: Doc = module docstring present; Arg = argparse import present; Pos/Opt = positional/optional flag counts; Network face = three-channel word-face reading (zero = no hit in any channel); Env markers = marker families with word-face hit counts (ocaml = ocamlc/ocamldep/opam; coq = coqc/coqtop/coqchk/coqdep/rocq family; thermal = cpu_guard/_THERMAL family; runner = self-hosted/actions-runner; win = Windows guard wording; env = ROCWASH_* environment variables; dyld = macOS dyld tooling face; lean = lake/mathlib/Lean/elan family). Env markers are word-face hits, not proof of runtime requirements (boundary in §3.1). Basis = invocation reconstruction source (arg = argparse; usage = usage string).

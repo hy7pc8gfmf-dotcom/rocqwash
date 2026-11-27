@@ -469,8 +469,10 @@ posture) is `docs/mcp.md`; the capability roster is
 process: the registry and the schema table load once at startup.
 
 **2. Pull one tool without cloning (detached form).** A tool with zero
-sibling imports runs from one downloaded file; the repository sync
-offset reader is one such tool:
+sibling imports runs from one downloaded file; the census summary
+tables mark exactly these tools in their `Detached-safe` column
+(re-derived by `.github/scripts/detached_safe_derive.py`), and the
+repository sync offset reader is one such tool:
 
 ```bash
 curl -L https://raw.githubusercontent.com/hy7pc8gfmf-dotcom/rocqwash/main/tools/repo_sync_status.py -o repo_sync_status.py
