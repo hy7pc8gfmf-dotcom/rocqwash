@@ -1,69 +1,49 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """wash_shape.py: shape-normalizing tool, canonical seven-wash pipeline (rocqwash tools/).
-
 Purpose.  Applies the canonical wash pipeline to every target file in
-  order (each wash selectable via --only; per-wash contract in the
-  extended comment block below): 1 lexical (gate4 word-face findings
-  exchanged through the `wash/comment_pack.json` flag_words table,
-  applied by `wash/comment_sweep.py --apply`; findings without a rewrite
-  entry are reported as plan-miss, never synthesized), 2 token
-  (`scan/scan_v4_token.py` survey + `wash/cure_applier.py` dry run, then
-  --apply; the cure engine re-asserts zero residue on a second pass),
-  3 header (missing-field cure via --header-map per-file data or the
-  --header-map-preset designated template rendered from the target's own
-  Require faces and carried header), 4 eol (CRLF->LF normalization with
-  final-newline preservation), 5 anchor (order.txt line anchors
-  re-canonicalized to `#R<seq>-<md5-8>` by `tools/registry_union.py
-  --reanchor`), 6 jargon (tools/jargon_apply.py plan/apply over the
-  .py/.sh/.md prose faces from the 62-entry seed map; the engine's own
-  apply-then-rescan gate keeps residue zero), 7 ai-flavor (advisory:
-  tools/ai_flavor_apply.py plans the provider suggestions and --apply
-  emits the handoff package; the write itself only happens through the
-  provider round trip, never a machine substitution).  Two phases: plan
-  (zero writes; per-wash {kind,action,status,detail} list plus stats)
-  then --apply (execute would-fix items, re-run all washes, verdict
-  shaped only when the rescan is fully clean).  verdict: clean | shaped
-  | partial | plan-miss.  Dry run by default; writes only under --apply.
-
+  order (each wash selectable via --only): 1 lexical, 2 token, 3 header,
+  4 eol, 5 anchor, 6 jargon, 7 ai-flavor (advisory); per-wash contracts
+  (engines, rewrite faces, gate semantics) in the contract block below.
+  Two phases: plan (zero writes; per-wash {kind,action,status,detail} list plus stats) then --apply (execute
+  would-fix items, re-run all washes, verdict shaped only when the
+  rescan is fully clean).  verdict: clean | shaped | partial | plan-miss;
+  dry run by default, writes only under --apply.
 Interface.  python3 tools/wash_shape.py --file A.v [--file B.v ...]
   [--json OUT] | --dir TREE [--exclude NAME ...] [--only 1,3,6] [--apply]
   [--header-map M.json | --header-map-preset NAME] [--anchor-src DIR]
   | --loop [--interval S] [--max-rounds N] [--events FILE] | --selftest.
-  Report schema rocqwash-shape/1; loop event stream schema
-  rocqwash-sentinel-event/1 (sort_keys canonical JSONL, one line per
-  event, flush+fsync, stdout mirror).  Template-source probe order:
-  --header-map > --header-map-preset > env ROCWASH_HEADER_MAP > none
-  (= plan-miss, reported honestly); --header-map and
-  --header-map-preset are same-slot mutually exclusive (rc 2).  The
-  preset source rewrites only gate4 header-domain hard items and never
-  aligns an already-conforming five-field header (a human-curated face
-  is never machine-rewritten).  Frozen surfaces (the certify/frozen8.py
-  roster and the frozen ledger) are auto-excluded on --dir and
-  hard-rejected on explicit --file (exit 2).
-
+  Report schema rocqwash-shape/1; loop events rocqwash-sentinel-event/1;
+  the probe order, exclusivity, and frozen-surface rules are in the
+  contract block below.
 Dependencies.  Python 3 standard library only; every path parameterized,
-  zero hardcoded absolute paths, zero network.  The five wash engines
-  run as subprocesses (`python3 -B <engine>`): orchestration, never
-  re-implementation.  Offline-testable: --injector cans the subprocess
-  call layer with {rc,stdout,report}; --sleep-scale scales sleeps to
-  zero for the selftest vectors.
-
-Evidence.  --selftest: 18 frozen vectors on temporary fixtures (zero
-  real network, zero real compiles) covering per-wash plan verdicts,
-  zero-write plan, plan-miss honesty, apply->rescan->shaped,
-  idempotence, frozen-roster exclusion (canned and real), injector
-  layer, CLI four codes, loop/once modes, byte-identical determinism,
-  preset chain and probe order, preset render->apply end to end,
-  same-slot exclusivity, missing-library rc 9, event-stream shape, and
-  plan-cache invalidation; suite membership tests/test_wash_shape.py.
-
-Exit-codes.  0 = clean/shaped; 1 = partial/plan-miss (washes incomplete,
-  reported loudly); 2 = usage/assertion (frozen-surface rejection,
-  engine out-of-shape exit, malformed JSON, same-slot exclusivity);
-  9 = missing input path (--file/--dir/engine file/template library/
-  env map/--injector/--events write failure).
+  zero hardcoded absolute paths, zero network.  The wash engines run as
+  subprocesses (`python3 -B <engine>`): orchestration, never
+  re-implementation; --injector cans the subprocess call layer;
+  --sleep-scale scales sleeps to zero for the selftest.
+Evidence.  --selftest: 18 frozen vectors on temporary fixtures covering
+  per-wash plan verdicts, zero-write plan, plan-miss honesty,
+  apply->rescan->shaped, idempotence, frozen-roster exclusion, injector
+  layer, CLI codes, loop/once modes, determinism, the preset chain, plan-cache invalidation; suite tests/test_wash_shape.py.
+Exit-codes.  0 clean/shaped; 1 partial/plan-miss (reported loudly); 2
+  usage/assertion (frozen rejection, engine exit, malformed JSON,
+  same-slot exclusivity); 9 missing input path (per-case detail in the
+  extended contract).
 """
+
+# Former-header detail (carried out of the header on the RIS-19 budget
+# cure, verbatim in substance):
+# Exit-code detail: 9 = missing input path (--file/--dir/engine file/
+#   template library/env map/--injector/--events write failure).
+# Template-source probe order: --header-map > --header-map-preset > env
+#   ROCWASH_HEADER_MAP > none (= plan-miss, reported honestly);
+#   --header-map and --header-map-preset are same-slot mutually exclusive
+#   (rc 2).  The preset source rewrites only gate4 header-domain hard
+#   items and never aligns an already-conforming five-field header (a
+#   human-curated face is never machine-rewritten).  Frozen surfaces
+#   (the certify/frozen8.py roster and the frozen ledger) are
+#   auto-excluded on --dir and hard-rejected on explicit --file (exit 2).
+
 # Extended contract (kept outside the five-field block per the annotation
 # standard 30-line header budget):
 # wash 1 lexical  subprocess `verify/gate4_comment_guard.py --file` (five check
